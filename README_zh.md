@@ -1,9 +1,9 @@
 
 ## HiQuant
 
-[Read English version of this document](README.md)
+[Read English version of this document](https://github.com/floatinghotpot/hiquant/blob/master/README.md)
 
-[hiquant](https://github.com/floatinghotpot/hiquant.git) 是一组用 Python 开发的 辅助股票投资的工具。
+Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及一个开箱即用的命令行工具。
 
 可以运行于任何支持 Python 的操作系统。建议 Python 3.7 以上。
 

@@ -1,7 +1,7 @@
 
 ## Hiquant
 
-[阅读此文档的中文版本](README_zh.md)
+[阅读此文档的中文版本](https://github.com/floatinghotpot/hiquant/blob/master/README_zh.md)
 
 Hiquant is an out-of-box toolset for assiting stock investment and a library for study on quantitative trading.
 
@@ -66,13 +66,13 @@ hiquant fund backtrade etc/myfund.conf
 ## Usage
 
 Read following docs for more details:
-- [How to use hiquant tool](docs/README.md)
-- [Hiquant commands referrence](docs/CMD.md)
+- [How to use hiquant tool](https://github.com/floatinghotpot/hiquant/blob/master/docs/README.md)
+- [Hiquant commands referrence](https://github.com/floatinghotpot/hiquant/blob/master/docs/CMD.md)
 
 ## Develop with Hiquant
 
 Read this document on how to develop with Hiquant:
-- [How to develop with Hiquant](docs/DEV.md)
+- [How to develop with Hiquant](https://github.com/floatinghotpot/hiquant/blob/master/docs/DEV.md)
 
 ## Screenshots
 
