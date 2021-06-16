@@ -1,6 +1,6 @@
 ## HiQuant 说明文档
 
-[Read English version of this document]](README.md)
+[Read English version of this document](README.md)
 
 Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及一个开箱即用的命令行工具。
 
