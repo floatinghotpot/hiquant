@@ -76,16 +76,16 @@ hiquant fund backtrade etc/myfund.conf
 
 ## 功能截图
 
-绘制股票 技术指标 和 收益率：
+- 绘制股票 技术指标 和 收益率：
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_1.png)
 
-绘制 多个技术指标的交易信号、持仓情况 以及收益率：
+- 绘制 多个技术指标的交易信号、持仓情况 以及收益率：
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_2.png)
 
-模拟回测：
+- 模拟回测：
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/back_trade.png)
 
-运行多个投资组合：
+- 运行多个投资组合：
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
 
 ## 致谢

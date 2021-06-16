@@ -1,5 +1,7 @@
 ## HiQuant 说明文档
 
+[Read English version of this document]](README.md)
+
 Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及一个开箱即用的命令行工具。
 
 可以运行于任何支持 Python 的操作系统。建议 Python 3.7 以上。
@@ -65,9 +67,9 @@ hiquant index list update
 为了避免这个结果，程序每下载一条数据，会等待 3-5 秒钟。因此，如果下载大量上市公司的财报或者行情，可能时间会比较长。
 
 建议：
-1、财报 不需要经常下载，一个季度下载一次 即可。
-2、个股行情 不需要所有个股都下载，只下载自己关心的个股行情数据 即可。
-3、下载数据的任务，建议安排到 晚上进行。
+1. 财报 不需要经常下载，一个季度下载一次 即可。
+2. 个股行情 不需要所有个股都下载，只下载自己关心的个股行情数据 即可。
+3. 下载数据的任务，建议安排到 晚上进行。
 
 ```bash
 # 下载所有 A 股上市公司的 3 张财报、IPO信息、分红/送股信息
@@ -85,6 +87,7 @@ hiquant finance show all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_ra
 ```
 
 参数解释如下：
+```
 -ipo_years=3-         过滤条件为 上市大于 3年
 -earn_ttm=1.0-        过滤条件为 年利润 > 1亿
 -roe=0.20-1.0         过滤条件为 20% < ROE < 100%
@@ -93,12 +96,12 @@ hiquant finance show all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_ra
 -sortby=roe                     按照 ROE 排序
 -desc                           排序列 从大到小 逆排序
 -out=stockpool/good_stock.csv   输出结果写入 stockpool/good_stock.csv
-
+```
 筛选条件的逻辑是：
-1、上市超过 3年以上；（部分新公司为了完成上市的对赌协议，可能会把财务报表做得漂亮）
-2、公司必须赚钱，年净利润不少于 1亿；
-3、净资产收益率（ROE）高于 20%；（据说巴菲特选股的条件是这样的）
-4、最近 3年净资产成长率高于 20%；
+1. 上市超过 3年以上；（部分新公司为了完成上市的对赌协议，可能会把财务报表做得漂亮）
+2. 公司必须赚钱，年净利润不少于 1亿；
+3. 净资产收益率（ROE）高于 20%；（据说巴菲特选股的条件是这样的）
+4. 最近 3年净资产成长率高于 20%；
 
 注：每一列都可以用作过滤或者排序的关键字。
 
@@ -121,9 +124,11 @@ hiquant pepb view good_stock.csv -pb_pos=0-70 -sortby=pb_pos -out=stockpool/good
 ```
 
 参数解释如下：
+```
 -pb_pos=0-70                           PB 历史百分位 在 0-70% 之间 
 -sortby=pb_pos                         按照 PB 历史百分位排序
 -out=stockpool/good_cheap_stock.csv    输出结果写入 stockpool/good_cheap_stock.csv
+```
 
 ```bash
 cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
@@ -144,28 +149,28 @@ cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
 技术指标
 
 程序内 预先定义了一些均线算法 和 交易指标，包括：
-1、均线：
-  SMA（简单移动均线）
-  EMA（指数移动均线）
-  SMMA（平滑均线）
-  WMA（加权均线）
-  HMA（赫尔均线）
+1. 均线：
+-  SMA（简单移动均线）
+-  EMA（指数移动均线）
+-  SMMA（平滑均线）
+-  WMA（加权均线）
+-  HMA（赫尔均线）
 
-2、趋势指标：
-  MACD（平滑异同移动平均线）
-  DMA（平行线差指标）
-  TRIX（三重指数平滑移动平均指标）
-  VHF（十字过滤线指标）
+2. 趋势指标：
+-  MACD（平滑异同移动平均线）
+-  DMA（平行线差指标）
+-  TRIX（三重指数平滑移动平均指标）
+-  VHF（十字过滤线指标）
 
-3、超买超卖指标：
-  KDJ（随机指标）
-  CCI（顺势指标）
-  RSI（相对强弱指标）
-  WR（威廉指标）
-  BOLL（布林带指标）
-  BIAS（乖离率指标）
-  MFI（资金流量指标）
-  SAR（抛物线指标，或停损点转向指标）
+3. 超买超卖指标：
+-  KDJ（随机指标）
+-  CCI（顺势指标）
+-  RSI（相对强弱指标）
+-  WR（威廉指标）
+-  BOLL（布林带指标）
+-  BIAS（乖离率指标）
+-  MFI（资金流量指标）
+-  SAR（抛物线指标，或停损点转向指标）
 
 ```bash
 hiquant indicator bench stockpool/mystocks.csv -out=stockpool/mystocks_ind.csv
@@ -210,10 +215,10 @@ hiquant strategy create strategy/mystrategy.py
 ```
 
 交易策略是一个 python 程序片段，在其中需包含如下逻辑：
-1、如何选股
-2、持股数量、仓位
-3、何时触发 交易信号
-4、何时止损、止盈
+1. 如何选股
+2. 持股数量、仓位
+3. 何时触发 交易信号
+4. 何时止损、止盈
 
 以下是一个简单的固定股票池，根据 MACD 指标交易的 策略：
 ```python

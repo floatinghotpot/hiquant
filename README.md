@@ -76,22 +76,22 @@ Read this document on how to develop with Hiquant:
 
 ## Screenshots
 
-Draw stock indicators and yield curve
+- Draw stock indicators and yield curve
 ```bash
 hiquant stock 600036 -ma -macd -kdj
 ```
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_1.png)
 
-Draw trade signal of mixed indicators, holding time, and yield curve
+- Draw trade signal of mixed indicators, holding time, and yield curve
 ```bash
 hiquant stock 600036 -wr -bias -mix
 ```
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_2.png)
 
-Backtrade with one portoflio
+- Backtrade with one portoflio
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/back_trade.png)
 
-Backtrade with multiple portoflios
+- Backtrade with multiple portoflios
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
 
 ## Credits

@@ -69,8 +69,8 @@ Notice:
 
 Advice:
 1. Download the financial reports once a quarter, as they are not updated frequently.
-2. Only download daily data of those stocks concerned, no need to download every stock.
-3. Arrange the download task to executed in nights.
+2. nly download daily data of those stocks concerned, no need to download every stock.
+3. rrange the download task to executed in nights.
 
 ```bash
 # download financial reports (balance, income, cashflow, ipo info, dividend history)
@@ -88,6 +88,7 @@ hiquant finance show all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_ra
 ```
 
 Comments on arguments:
+```
 -ipo_years=3-         filter condition: IPO > 3 years
 -earn_ttm=1.0-        filter condition: Earn TTM > 0.1 Billion
 -roe=0.20-1.0         filter condition: 20% < ROE < 100%
@@ -96,7 +97,7 @@ Comments on arguments:
 -sortby=roe                     Sort by ROE
 -desc                           Sort descending, else ascending
 -out=stockpool/good_stock.csv   Export result into file: stockpool/good_stock.csv
-
+```
 Logic of the filter condition:
 1, Must on market for over 3 years.
 2, Must earn money, annual profit no less than 0.1 Billion.
@@ -125,9 +126,11 @@ hiquant pepb view good_stock.csv -pb_pos=0-70 -sortby=pb_pos -out=stockpool/good
 ```
 
 Comments on arguments:
+```
 -pb_pos=0-70                           PB historical percentile is between 0-70%
 -sortby=pb_pos                         按Sort by PB historical percentile
 -out=stockpool/good_cheap_stock.csv    Export result into file: stockpool/good_cheap_stock.csv
+```
 
 ```bash
 cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
@@ -149,27 +152,27 @@ There is no need to manually download the daily stock data, the program will aut
 
 Some moving average algorithms and trading indicators are pre-defined in the program, including:
 1. Moving average:
-   SMA (Simple Moving Average)
-   EMA (Exponential Moving Average)
-   SMMA (Smoothed Moving Average)
-   WMA (Weighted moving average)
-   HMA (Hull Moving Average)
+-  SMA (Simple Moving Average)
+-  EMA (Exponential Moving Average)
+-  SMMA (Smoothed Moving Average)
+-  WMA (Weighted moving average)
+-  HMA (Hull Moving Average)
 
 2. Trend indicators:
-   MACD (Moving Average Convergence and Divergence)
-   DMA (Parallel Line Difference Index)
-   TRIX (Triple Exponential Smoothing Moving Average Index)
-   VHF (Cross filter line index)
+-  MACD (Moving Average Convergence and Divergence)
+-  DMA (Parallel Line Difference Index)
+-  TRIX (Triple Exponential Smoothing Moving Average Index)
+-  VHF (Cross filter line index)
 
 3. Overbought and oversold indicators:
-   KDJ (Stochastic index)
-   CCI (Choice Index)
-   RSI (Relative Strength Index)
-   WR (William Index)
-   BOLL (Bollinger Band Index)
-   BIAS (Disparity Rate Index)
-   MFI (Money Flow Index)
-   SAR (Parabolic indicator, or stop loss point turning indicator)
+-  KDJ (Stochastic index)
+-  CCI (Choice Index)
+-  RSI (Relative Strength Index)
+-  WR (William Index)
+-  BOLL (Bollinger Band Index)
+-  BIAS (Disparity Rate Index)
+-  MFI (Money Flow Index)
+-  SAR (Parabolic indicator, or stop loss point turning indicator)
 
 ```bash
 hiquant indicator bench stockpool/mystocks.csv -out=stockpool/mystocks_ind.csv
