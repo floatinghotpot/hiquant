@@ -1,30 +1,35 @@
-## HiQuant 说明文档
 
-[hiquant](https://github.com/floatinghotpot/hiquant.git) 是一组用 Python 开发的 辅助股票投资的工具。
+## Hiquant
 
-需要 Python 3.7 以上。理论上，可以运行于任何支持 Python 的操作系统。本文的一些示范说明写于 Mac 环境。
+[阅读此文档的中文版本](README_zh.md)
 
-## 如何安装
+[hiquant](https://github.com/floatinghotpot/hiquant.git) is an out-of-box toolset for assiting stock investment and a library for study on quantitative trading.
+
+It can run on any OS with Python 3, suggest Python v3.7+. 
+
+This software is developed on Mac, and the examples in this document are written with Mac environment. They are similiar for Linux, but might be a little difference on Windows.
+
+## Installation
 
 ```bash
 pip install hiquant
 ```
 
-或者 从 GitHub 复制：
+Or, clone from GitHub:
 ```bash
 git clone https://github.com/floatinghotpot/hiquant.git
 cd hiquant
 pip install -e .
 ```
 
-## 快速体验
+## Quick Start
 
 ```bash
 hiquant create myFund
 cd myFund
 
-hiquant stock list update
-hiquant index list update
+hiquant list stock
+hiquant list index
 
 hiquant stock 600036 -ma -macd -kdj
 hiquant stock 600519 -all
@@ -39,69 +44,70 @@ hiquant fund create myfund.conf
 hiquant fund backtrade myfund.conf
 ```
 
-## 如何使用
+## Usage
 
-# 第 1 步，创建 hiquant 工作目录
+# Step 1, Create working folder for Hiquant
 
 ```bash
 hiquant create MyFund
 cd MyFund
 ```
 
-# 第 2 步，获取 基本数据
+# Step 2, Pull basic data
 
 ```bash
-# 下载所有 A 股上市公司的列表（约4300多家）以及指数
+# download list of all stocks and indice
 hiquant stock list update
 hiquant index list update
 ```
 
-需要从财经网站（新浪、乐股等），下载股票相关的基本面数据，包括：上市公司财报（资产负债表、现金流量表、损益表）、市盈率市净率等。
+Download financial reports (balance, income, cashflow), PE/PB data from Sina and Legu websites.
 
-注意：
-如果过于快速和频繁下载大量数据，有可能被财经网站视为网络攻击或者网络爬虫而被暂时封禁IP。
-为了避免这个结果，程序每下载一条数据，会等待 3-5 秒钟。因此，如果下载大量上市公司的财报或者行情，可能时间会比较长。
+Notice:
+- If download lots of data too fast, will be regarded as spider or network attack, and will cause IP banned by the websites.
+- To avoid the consequence, the software will pause 2-3 seconds after download a piece of data. So it will take quite long time if download all financial reports.
 
-建议：
-1、财报 不需要经常下载，一个季度下载一次 即可。
-2、个股行情 不需要所有个股都下载，只下载自己关心的个股行情数据 即可。
-3、下载数据的任务，建议安排到 晚上进行。
+Advice:
+1. Download the financial reports once a quarter, as they are not updated frequently.
+2. Only download daily data of those stocks concerned, no need to download every stock.
+3. Arrange the download task to executed in nights.
 
 ```bash
-# 下载所有 A 股上市公司的 3 张财报、IPO信息、分红/送股信息
-#（4300个股票，约 400 MB数据，需要 10秒 * 4300 = 12 小时）
+# download financial reports (balance, income, cashflow, ipo info, dividend history)
+# ~ 4300 stocks, 10 seconds each, totally, 400 MB data, 10 sec * 4300 = 12 hours
 hiquant finance update all
 
-# 下载所有 A 股上市公司的 市盈率市净率数据
-#（4300个股票，约 650 MB数据，需要 1.5 小时）
+# download PE/PB data of all stocks
+# ~ 4300 stocks, 2 seconds each, totally, 650 MB data, 1 sec * 4300 = 2.4 hour
 hiquant pepb update all
 ```
 
-# 第 3 步, 基本面分析，筛选出 价值股票
+# Step 3, Financial Analysis, find "vluable" stocks
 ```bash
 hiquant finance show all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_rate=0.20- -sortby=roe -desc -out=stockpool/good_stock.csv
 ```
 
-参数解释如下：
--ipo_years=3-         过滤条件为 上市大于 3年
--earn_ttm=1.0-        过滤条件为 年利润 > 1亿
--roe=0.20-1.0         过滤条件为 20% < ROE < 100%
--3yr_grow_rate=0.20-  过滤条件为 最近3年 净资产增长率 > 20%
+Comments on arguments:
+-ipo_years=3-         filter condition: IPO > 3 years
+-earn_ttm=1.0-        filter condition: Earn TTM > 0.1 Billion
+-roe=0.20-1.0         filter condition: 20% < ROE < 100%
+-3yr_grow_rate=0.20-  filter condition: Grow rate of net assets in recent 3 years > 20%
 
--sortby=roe                     按照 ROE 排序
--desc                           排序列 从大到小 逆排序
--out=stockpool/good_stock.csv   输出结果写入 stockpool/good_stock.csv
+-sortby=roe                     Sort by ROE
+-desc                           Sort descending, else ascending
+-out=stockpool/good_stock.csv   Export result into file: stockpool/good_stock.csv
 
-筛选条件的逻辑是：
-1、上市超过 3年以上；（部分新公司为了完成上市的对赌协议，可能会把财务报表做得漂亮）
-2、公司必须赚钱，年净利润不少于 1亿；
-3、净资产收益率（ROE）高于 20%；（据说巴菲特选股的条件是这样的）
-4、最近 3年净资产成长率高于 20%；
+Logic of the filter condition:
+1, Must on market for over 3 years.
+2, Must earn money, annual profit no less than 0.1 Billion.
+3, ROE > 20% (It is said that Buffett’s stock picking requirements are like this）
+4, Grow rate of net assets in recent 3 years > 20%
 
-注：每一列都可以用作过滤或者排序的关键字。
+Note: each column key can be used as filter or sort key
 
-筛选出的股票，写入文件 good_stock.csv。
-这是个仅包含股票代码、股票名称的 “股票池”文件，格式如下：
+The selected stocks are exported into file: good_stock.csv
+
+It's a "Stock pool" CSV file, containing symbol and name, in following file format:
 ```
 symbol,name
 002258,利尔化学
@@ -112,85 +118,86 @@ symbol,name
 ... ...
 ```
 
-# 第 4步，估值分析，筛选出目前 价值低估 的 便宜股票
+# Step 4, Valuation analysis, find currently undervalued stocks
 
 ```bash
 hiquant pepb view good_stock.csv -pb_pos=0-70 -sortby=pb_pos -out=stockpool/good_cheap_stock.csv
 ```
 
-参数解释如下：
--pb_pos=0-70                           PB 历史百分位 在 0-70% 之间 
--sortby=pb_pos                         按照 PB 历史百分位排序
--out=stockpool/good_cheap_stock.csv    输出结果写入 stockpool/good_cheap_stock.csv
+Comments on arguments:
+-pb_pos=0-70                           PB historical percentile is between 0-70%
+-sortby=pb_pos                         按Sort by PB historical percentile
+-out=stockpool/good_cheap_stock.csv    Export result into file: stockpool/good_cheap_stock.csv
 
 ```bash
 cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
 ```
 
-# 第 5 步, 日线数据 以及 技术指标
+# Step 5, Daily OHCL data and technical indicators
 
-日线数据
+Daily OHCL data
 
-需要用股票的历史行情，来模拟交易和计算股票的成长性，所以需要下载个股的 K线历史行情数据 和 后复权因子。
-由于股票历史行情数据每日更新，通常只下载自己关心的部分股票的日线数据。
+We need to use stock historical market data to simulate trading and calculate stock growth, so we need to download the K-line historical market data of individual stocks and post-restoration factors.
 
-为了避免被 财经网站 判定为网络爬虫而封禁 IP，这个下载过程也稍微做了 3秒钟 的延迟处理，每下载1只股票约 6秒钟。
+Since the stock historical market data is updated daily, usually only download the daily data of some stocks that you care about.
 
-不需要手动下载股票的日线数据，程序会在用到的时候自动下载 并缓存到 cache/market 目录下。
+In order to avoid being banned by the financial website as a web crawler, this download process is also delayed for 3 seconds, and each stock download is about 6 seconds.
 
-技术指标
+There is no need to manually download the daily stock data, the program will automatically download and cache it in the cache/market directory when it is used.
 
-程序内 预先定义了一些均线算法 和 交易指标，包括：
-1、均线：
-  SMA（简单移动均线）
-  EMA（指数移动均线）
-  SMMA（平滑均线）
-  WMA（加权均线）
-  HMA（赫尔均线）
+Technical indicators
 
-2、趋势指标：
-  MACD（平滑异同移动平均线）
-  DMA（平行线差指标）
-  TRIX（三重指数平滑移动平均指标）
-  VHF（十字过滤线指标）
+Some moving average algorithms and trading indicators are pre-defined in the program, including:
+1. Moving average:
+   SMA (Simple Moving Average)
+   EMA (Exponential Moving Average)
+   SMMA (Smoothed Moving Average)
+   WMA (Weighted moving average)
+   HMA (Hull Moving Average)
 
-3、超买超卖指标：
-  KDJ（随机指标）
-  CCI（顺势指标）
-  RSI（）
-  WR（威廉指标）
-  BOLL（布林带指标）
-  BIAS（乖离率指标）
-  MFI（资金流量指标）
-  SAR（抛物线指标，或停损点转向指标）
+2. Trend indicators:
+   MACD (Moving Average Convergence and Divergence)
+   DMA (Parallel Line Difference Index)
+   TRIX (Triple Exponential Smoothing Moving Average Index)
+   VHF (Cross filter line index)
+
+3. Overbought and oversold indicators:
+   KDJ (Stochastic index)
+   CCI (Choice Index)
+   RSI (Relative Strength Index)
+   WR (William Index)
+   BOLL (Bollinger Band Index)
+   BIAS (Disparity Rate Index)
+   MFI (Money Flow Index)
+   SAR (Parabolic indicator, or stop loss point turning indicator)
 
 ```bash
 hiquant indicator bench stockpool/mystocks.csv -out=stockpool/mystocks_ind.csv
 ```
-执行这个命令，可以为每只股票筛选出表现最好的指标，并且按照其收益率排序，输出到 stockpool/mystocks_ind.csv
+By executing this command, you can filter the best-performing indicators for each stock, sort them according to their returns, and output them to stockpool/mystocks_ind.csv
 
-此外，也可以单独通过绘图可视化的方式，更加直观地查看 某只股票 的技术指标 表现情况。
+In addition, you can also view the performance of a certain stock's technical indicators more intuitively through the visualization of the drawing alone.
 
-例如：绘制某个单独或者多个指标，并绘制这些指标信号交易结果的表现
+For example: plot a single or multiple indicators, and the performance of these indicators signal trading results:
 ```bash
 hiquant stock 600036 -ma -macd -kdj
 ```
 ![Draw stock](draw_stock_1.png)
 
-例如：混合多个指标信号 交易的表现，并显示交易动作和持仓情况
+Another example: mixing multiple indicator signals, trading performance, and displaying trading actions and positions:
 ```bash
 hiquant stock 600036 -cci -macd -kdj -mix
 ```
 ![Draw stock](draw_stock_2.png)
 
-# 第 5 步，创建和编辑 股票池
+# Step 5, Create or edit stock pool file
 
-使用这个命令可以创建一个股票池文件
+Use this command to create a stock pool file:
 ```bash
 hiquant stockpool create stockpool/mystocks.csv 600036 600519 300122 300357 601888
 ```
 
-股票池文件是一个包含股票代码以及名称的简单 csv 文件，格式如下：
+The stock pool file is a simple csv file containing stock symbols and names, in the following format:
 ```
 symbol,name
 300122,智飞生物
@@ -200,19 +207,19 @@ symbol,name
 601888,中国中免
 ```
 
-# 第 6 步，创建一个交易策略文件
+# Step 6, Create a trading strategy script
 
 ```bash
 hiquant strategy create strategy/mystrategy.py
 ```
 
-交易策略是一个 python 程序片段，在其中需包含如下逻辑：
-1、如何选股
-2、持股数量、仓位
-3、何时触发 交易信号
-4、何时止损、止盈
+The trading strategy is a snippet of a python program, which needs to contain the following logic:
+1. How to choose stocks
+2. Number of shares held and positions
+3. When to trigger trading signals
+4. When to stop loss and profit
 
-以下是一个简单的固定股票池，根据 MACD 指标交易的 策略：
+The following is a simple fixed stock pool, based on the MACD indicator trading strategy:
 ```python
 import pandas as pd
 import talib
@@ -262,13 +269,13 @@ def after_market_close(strategy):
     pass
 ```
 
-# 第 7 步，创建一个投资组合配置文件
+# Step 7, Create a configration file for portoflios
 
 ```bash
 hiquant fund create etc/myfund.conf
 ```
 
-这是一个配置文件，描述了 模拟回测 和 实盘运行 需要的一些参数。
+This is a configuration file that describes some parameters required for simulation backtesting and actual operation.
 
 ```
 [main]
@@ -301,27 +308,27 @@ user =
 passwd =
 ```
 
-# 第 8 步，模拟回测
+# Step 8, Simulated backtrade
 
-可用历史行情数据，来回测投资组合（默认是倒推 3年回测）：
+Historical market data can be used to test the investment portfolio back and forth (the default is to back-test for 3 years):
 ```bash
 hiquant fund backtrade etc/myfund.conf
 ```
 
-也可以指定任意时间段 （年月日格式：YYYYMMDD）进行回测：
+You can also specify any time period (year, month, day format: YYYYMMDD) for backtesting:
 ```bash
 hiquant fund backtrade 001-simple-example.conf 20160101 20210101
 ```
 
-回测结果 图形显示为：
+The results of the back test are shown with plot:
 ![Back trade](back_trade.png)
 
-如果在 fund_list 中描述多个投资组合配置信息，就可以同时测试多个策略，并将结果放在一起比较：
+If you describe multiple portfolio configuration information in fund_list, you can test multiple portfolio strategies at the same time and compare the results together:
 ![Multi funds](multi_funds.png)
 
-# 第 9 步，实盘模拟，盯盘提醒 买入/卖出
+# Step 9, Real-market simulation, monitor market changes and remind to buy/sell
 
-为了收到邮件提醒，请修改 myfund.conf 中的邮件参数配置（收件人、发送方 以及服务器等）
+In order to receive email reminders, please modify the email parameter configuration in myfund.conf (recipient, sender, server, etc.)
 ```
 [email_1]
 push_type = email
@@ -332,20 +339,20 @@ user =
 passwd =
 ```
 
-然后就可以运行：
+Then, run following command:
 ```bash
 hiquant fund run etc/myfund.conf
 ```
 
-如果是股市开市时间，每 5分钟，它会从财经网站获取最新股价，并根据指定的策略进行判断。
+If the stock market has not yet opened, it will wait; if it is at the opening time, it will obtain the latest stock price from the financial website every few minutes and make judgments based on the specified strategy.
 
-如果触发交易条件，则模拟交易，并发邮件提醒。
+If the trading conditions are triggered, the transaction will be simulated and an email will be sent to remind you to buy or sell stocks.
 
-# 第 10 步，策略 和 参数调优
+# Step 10, Strategy and parameter tuning
 
-修改回测配置，同时运行 多个投资组合，分别 配置不同的 策略代码 或者 策略参数。
+Modify the backtest configuration and run multiple portfolios at the same time. Each portfolio can be configured with different strategy codes or strategy parameters.
 
-例如下方的配置，策略1 是不做止损/止盈，策略2 是做了止损/止盈，最终的收益表现 是不一样的。
+For example, in the configuration below, strategy 1 does not use stop loss/take profit, and strategy 2 uses stop loss/take profit. The final return performance is different.
 
 ```
 [fund_list]
@@ -353,7 +360,7 @@ hiquant fund run etc/myfund.conf
 2 = fund_2
 
 [fund_1]
-name = 财富1号基金（无止损）
+name = Fund No. 1 (no stop loss)
 start_cash = 1000000.00
 
 strategy = strategy/mystrategy.py
@@ -364,7 +371,7 @@ max_weight = 1.2
 ## stop_earn = 0.20
 
 [fund_2]
-name = 财富2号基金（止损/止盈）
+name = Fund No. 2 (with stop loss)
 start_cash = 1000000.00
 
 strategy = strategy/mystrategy.py
@@ -379,11 +386,11 @@ stop_earn = 0.20
 hiquant fund backtrade etc/2-two-funds.conf
 ```
 
-测试结果显示为：
+The backtest result will be:
 ![Compare 2 funds](two_funds.png)
 
-## 进阶：开发自己的 交易策略
+## Advanced: Develop your own trading strategy
 
-如何使用请参见 文档[《如何基于 hiquant 开发》](DEV.md)
+Please refer to the document ["How to develop based on hiquant"] (DEV.md)
 
--- 全文完 --
+-- End of document --

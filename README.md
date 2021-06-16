@@ -1,45 +1,47 @@
 
-## HiQuant
+## Hiquant
 
-[hiquant](https://github.com/floatinghotpot/hiquant.git) 是一组用 Python 开发的 辅助股票投资的工具。
+[阅读此文档的中文版本](README_zh.md)
 
-理论上，可以运行于任何支持 Python 的操作系统。本文的一些示范说明写于 Mac 环境。
+[hiquant](https://github.com/floatinghotpot/hiquant.git) is an out-of-box toolset for assiting stock investment and a library for study on quantitative trading.
 
-建议 Python 3.7 以上。
+It can run on any OS with Python 3, suggest Python v3.7+. 
 
-## 功能
+This software is developed on Mac, and the examples in this document are written with Mac environment. They are similiar for Linux, but might be a little difference on Windows.
 
-[x] 数据获取：免费获取 股票、指数 列表，获取 财报、历史行情、实时行情数据、PE/PB数据
-[x] 价值分析：从 财报 提取关键财务数据，计算 年利润、ROE、净资产增长率 等指标，根据指定标准，筛选出 “价值投资” 的股票
-[x] 估值分析：从 PE/PB 数据计算 PE/PB 百分位等，根据指定标准，筛选出 “估值便宜” 的股票
-[x] 股票池：包含一个创建 “股票池” csv 文件的命令，并提供 合并、去除、交集 等操作
-[x] 策略池：包含一些 demo 用途的交易策略代码，并提供一个从模版创建 新策略 的命令，便于用户编写自己的策略
-[x] 多投资组合：包含一些 demo 用途的基金策略配置，并提供一个从模版创建 新配置 的命令
-[x] 模拟回测：用历史行情数据，对 1个或者多个 投资组合的策略进行 模拟回测，输出投资回报的数据分析，并绘制收益率曲线 进行对比
-[x] 盯盘提醒：同步实时行情，根据策略计算交易决策，发送 邮件通知 提醒交易
-[ ] 自动化交易：对接 量化交易 买卖接口，实现 自动化交易（尚未实现，计划中）
-[ ] 目前仅支持 中国 A股市场，将增加 对其他国家市场的 支持
+## Features
 
-其他附带的功能：
-[x] K线图：绘制 股票 / 指数 的 K线图，并可绘制常见的 技术指标，以及 根据指标交易的 获利结果 对比
-[x] 多指标组合：绘制 K线图时，也可混合多个指标 的信号 进行交易，并显示 交易动作、持仓时间、回报率 轨迹
-[x] K线形态图：绘制图形展示 talib 提供的 61个 K线形态，并统计在本地日线数据中 每个形态出现的次数，以及 统计预测走势的 有效性
-[x] 指标测试：用根据历史数据和技术指标 测试股票池，测试出每只股票 表现最有效的 技术指标
+[x] Data acquisition: Obtain the list of stocks and indices, and obtain financial reports, historical market quotations, real-time market data, and PE/PB data from financial websites
+[x] Value analysis: extract key financial data from financial reports, calculate annual profit, ROE, net asset growth rate and other indicators, and screen out "value investment" stocks based on specified filter conditions
+[x] Valuation analysis: Calculate PE/PB percentiles from PE/PB data, and select “cheap valuation” stocks based on specified filter conditions
+[x] Stock pool: Contains a command to create a "stock pool" csv file, and provides operations such as merging, removing, and intersection
+[x] Strategy Pool: Contains some trading strategy codes for demo purposes, and provides a command to create a new strategy from the template, which is convenient for users to write their own strategies
+[x] Multi-portfolio: Contains some fund strategy configurations for demo purposes, and provides a command to create a new configuration from the template
+[x] Simulated backtesting: Use historical market data to simulate backtesting of one or more portfolio strategies, output data analysis of investment returns, and draw yield curves for comparison
+[x] Tracking reminder: Synchronize real-time market data, calculate trading decisions based on strategies, and send email notifications to remind users to trade
+[] Automated trading: call the quantitative trading interface to realize automated trading (not yet implemented, planned)
+[] Global market: currently only supports China’s A-share market, and will increase support for markets in other countries
 
-## 如何安装
+Other additional functions:
+[x] K-line chart: draw the K-line chart of stocks/indices, including drawing common technical indicators, and comparing the profit results of trading based on the indicators
+[x] Multi-indicator combination: When drawing a K-line chart, you can also mix signals from multiple indicators for trading, and display trading actions, holding time, and yield curve
+[x] K-line patterns: graphically display the 61 K-line patterns provided by TALib, count the number of occurrences of each pattern in the local daily data, and verify the correctness of these patterns for trend prediction
+[x] Indicator test: Use historical data and technical indicators to test the stocks in the stock pool and find the most effective technical indicators for each stock
+
+## Installation
 
 ```bash
 pip install hiquant
 ```
 
-或者 从 GitHub 复制：
+Or, clone from GitHub:
 ```bash
 git clone https://github.com/floatinghotpot/hiquant.git
 cd hiquant
 pip install -e .
 ```
 
-## 快速体验
+## Quick Start
 
 ```bash
 hiquant create myFund
@@ -61,42 +63,49 @@ hiquant fund create myfund.conf
 hiquant fund backtrade myfund.conf
 ```
 
-## 如何使用
+## Usage
 
-如何使用请参见 文档:
-1, [《如何使用 hiquant 工具》](docs/README.md)
-2, [《 hiquant 命令集 参考》](docs/CMD.md)
+Read following docs for more details:
+1, [How to use hiquant tool](docs/README.md)
+2, [Hiquant commands referrence](docs/CMD.md)
 
-## 如何开发
+## Develop with Hiquant
 
-如何使用请参见 文档[《如何基于 hiquant 开发》](docs/DEV.md)
+Read this document on how to develop with Hiquant:
+[How to develop with Hiquant](docs/DEV.md)
 
-## 功能截图
+## Screenshots
 
-绘制股票 技术指标 和 收益率：
+Draw stock indicators and yield curve
+```bash
+hiquant stock 600036 -ma -macd -kdj
+```
 ![Draw stock](draw_stock_1.png)
 
-绘制 多个技术指标的交易信号、持仓情况 以及收益率：
+Draw trade signal of mixed indicators, holding time, and yield curve
+```bash
+hiquant stock 600036 -wr -bias -mix
+```
 ![Draw stock](draw_stock_2.png)
 
-模拟回测：
+Backtrade with one portoflio
 ![Draw stock](back_trade.png)
 
-运行多个投资组合：
+Backtrade with multiple portoflios
 ![Draw stock](multi_funds.png)
 
-## 致谢
+## Credits
 
-感谢如下开源项目的开发者：pandas, matplotlib, mplfinance, akshare，没有他们的工作作为基础，不会有这个项目。
+Great appreciate developers of following projects. This project is based on their great works: Pandas, Matplotlib, Mplfinance, Akshare, etc.
 
-感谢 新浪财经 和 乐股 网站提供的数据服务。
+Thanks SINA financial and Legu for providing data service from their websites.
 
-感谢 知乎、百度 上提供各种指标介绍的 热心分享者。
+Thanks the warm-hearted knowledge sharing on Zhihu and Baidu websites.
 
-## 声明
+## Disclaimer
 
-本软件及相关代码，仅供研究用途，不构成任何投资建议。
+This software and related codes are for research purposes only and do not constitute any investment advice.
 
-若投入资金做实盘用途，风险自负。
+If anyone invests money in actual investment based on this, please bear all risks by yourself.
 
--- 全文完 --
+-- End of file --

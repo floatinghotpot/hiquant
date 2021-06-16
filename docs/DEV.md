@@ -1,9 +1,11 @@
 
-## 如何基于 hiquant 开发
+## How to develop based on Hiquant
 
-# hiquant 的 程序架构
+# Architecture of Hiquant
 
-# 如何开发一个简单的策略
+TODO:
+
+# How to write a simple strategy
 
 ```python
 import pandas as pd
@@ -29,7 +31,7 @@ class MyStrategy( BasicStrategy ):
         return pd.Series( CROSS(dif, dea), index=df.index )
 
     def get_signal_comment(self, symbol, signal):
-        return 'MACD 金叉' if (signal > 0) else 'MACD 死叉'
+        return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
 
 def init(fund):
     strategy = MyStrategy(fund, __file__)
@@ -50,10 +52,10 @@ def after_market_close(strategy):
     pass
 ```
 
-# 如何开发一个较为复杂的策略
+# How to write a complex strategy
 
 
-# 如何添加新的 技术指标
+# How to add more technical indicators
 
 
--- 全文完 --
+-- End of document --

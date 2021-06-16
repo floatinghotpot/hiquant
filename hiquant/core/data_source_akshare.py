@@ -403,7 +403,7 @@ def extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
 def download_stock_pepb_history(symbol):
     print('\tfetching pe/pb data ...', symbol)
     df = ak.stock_a_lg_indicator(symbol)
-    time.sleep(1)
+    time.sleep(2)
     df = df.rename(columns={"trade_date":"date"}).sort_values(by='date')
     return df
 
