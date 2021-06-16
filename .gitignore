@@ -1,0 +1,20 @@
+# ignore following files
+.DS_Store
+.settings
+.idea
+*.iml
+hiquant.egg-info
+build
+dist
+cache/finance
+cache/market
+cache/pepb
+cache/bank
+output
+human
+log
+tmp
+test1
+test2
+test3
+__pycache__

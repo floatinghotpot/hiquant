@@ -1,0 +1,69 @@
+
+20210616:
+    - refactoring, move indicators out of core
+
+20210610:
+    - rename project from traderbot to hiquant
+    - re-write whole logic, combine all tools into single CLI hiquant
+
+20210517:
+    - add edit-portfolio.py to handle stock list files (merge, intersect, or remove)
+    - update selected stocks, top20, stable50, grow60
+    - add percentage position to PE/PB
+
+20210516:
+    - add draw-stock.py to visualize indicators
+    - draw MACD, TRIX, DMA, VHF, KDJ, RSI, MFI, OBV, BOLL, ENE, BIAS, etc.
+
+20210514:
+    - update README.md
+    - add config file for analyse-stock.py, back-trade.py, watch-trade.py
+    - add indicator MFI, OBV
+
+20210513:
+    - add indicator BB, WIDTH, WR, ENE, SAR, DMA, BIAS, CCI
+
+20210511:
+    - add add timestamp for pepb downloading
+
+20210508:
+    - add indicators BOLL, TRIX, RSI
+    - add risk control with cut loss and stop earning
+
+20210504:
+    - add date mark of download to avoid re-download on same day
+
+20210503:
+    - add command line options
+
+20210502:
+    - refactoring on hfq/qfq, now only download daily history raw and hfq-factor
+
+20210501:
+    - add strategy turtle rule
+
+20210428:
+    - add indicator KDJ
+    - optimize strategy MACD
+
+20210426:
+    - add analyse and filter to select stocks
+
+20210424:
+    - add calculation of fundamental summary for stocks
+    - check report missing when abstract
+    - add financial report
+
+20210421:
+    - add more moving average: sma, ema, smma, wma, hma, etc.
+
+20210419:
+    - make result file output_excel.csv easier to read with numbers or excel
+    - add feature to send email when watch trade
+    - add feature watch stock with realtime spot data
+
+20210418:
+    - add simulate trade
+
+20210416:
+    - first commit

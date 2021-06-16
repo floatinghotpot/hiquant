@@ -1,0 +1,21 @@
+symbol,name,indicators
+002714,牧原股份,mfi + kdj + boll
+603882,金域医学,trix + sar + boll
+300122,智飞生物,kdj + trix + dma
+601888,中国中免,kdj + boll + wr
+601100,恒立液压,macd + dma + trix
+300529,健帆生物,sar + macd + trix
+600031,三一重工,ma + mfi + cci
+603288,海天味业,rsi + mfi + trix
+002901,大博医疗,macd + boll + trix
+603486,科沃斯,sar + macd + trix
+600309,万华化学,mfi + dma + ma
+603501,韦尔股份,macd + trix + boll
+300726,宏达电子,boll + macd + cci
+600519,贵州茅台,ma + mfi + trix
+603444,吉比特,sar + macd + trix
+002415,海康威视,vhf + mfi + dma
+603899,晨光文具,kdj + boll + cci
+300737,科顺股份,cci + vhf + boll
+603638,艾迪精密,boll + sar + cci
+600298,安琪酵母,mfi + ma + trix
