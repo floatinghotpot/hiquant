@@ -100,5 +100,3 @@ hiquant fund backtrade myfund.conf
 本软件及相关代码，仅供研究用途，不构成任何投资建议。
 
 若投入资金做实盘用途，风险自负。
-
--- 全文完 --

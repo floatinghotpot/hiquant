@@ -3,7 +3,7 @@
 
 [阅读此文档的中文版本](README_zh.md)
 
-[hiquant](https://github.com/floatinghotpot/hiquant.git) is an out-of-box toolset for assiting stock investment and a library for study on quantitative trading.
+Hiquant is an out-of-box toolset for assiting stock investment and a library for study on quantitative trading.
 
 It can run on any OS with Python 3, suggest Python v3.7+. 
 
@@ -46,14 +46,14 @@ hiquant fund backtrade myfund.conf
 
 ## Usage
 
-# Step 1, Create working folder for Hiquant
+### Step 1, Create working folder for Hiquant
 
 ```bash
 hiquant create MyFund
 cd MyFund
 ```
 
-# Step 2, Pull basic data
+### Step 2, Pull basic data
 
 ```bash
 # download list of all stocks and indice
@@ -82,7 +82,7 @@ hiquant finance update all
 hiquant pepb update all
 ```
 
-# Step 3, Financial Analysis, find "vluable" stocks
+### Step 3, Financial Analysis, find "vluable" stocks
 ```bash
 hiquant finance show all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_rate=0.20- -sortby=roe -desc -out=stockpool/good_stock.csv
 ```
@@ -118,7 +118,7 @@ symbol,name
 ... ...
 ```
 
-# Step 4, Valuation analysis, find currently undervalued stocks
+### Step 4, Valuation analysis, find currently undervalued stocks
 
 ```bash
 hiquant pepb view good_stock.csv -pb_pos=0-70 -sortby=pb_pos -out=stockpool/good_cheap_stock.csv
@@ -133,9 +133,9 @@ Comments on arguments:
 cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
 ```
 
-# Step 5, Daily OHCL data and technical indicators
+### Step 5, Daily OHCL data and technical indicators
 
-Daily OHCL data
+- Daily OHCL data
 
 We need to use stock historical market data to simulate trading and calculate stock growth, so we need to download the K-line historical market data of individual stocks and post-restoration factors.
 
@@ -145,7 +145,7 @@ In order to avoid being banned by the financial website as a web crawler, this d
 
 There is no need to manually download the daily stock data, the program will automatically download and cache it in the cache/market directory when it is used.
 
-Technical indicators
+- Technical indicators
 
 Some moving average algorithms and trading indicators are pre-defined in the program, including:
 1. Moving average:
@@ -190,7 +190,7 @@ hiquant stock 600036 -cci -macd -kdj -mix
 ```
 ![Draw stock](draw_stock_2.png)
 
-# Step 5, Create or edit stock pool file
+### Step 5, Create or edit stock pool file
 
 Use this command to create a stock pool file:
 ```bash
@@ -207,7 +207,7 @@ symbol,name
 601888,中国中免
 ```
 
-# Step 6, Create a trading strategy script
+### Step 6, Create a trading strategy script
 
 ```bash
 hiquant strategy create strategy/mystrategy.py
@@ -269,7 +269,7 @@ def after_market_close(strategy):
     pass
 ```
 
-# Step 7, Create a configration file for portoflios
+### Step 7, Create a configration file for portoflios
 
 ```bash
 hiquant fund create etc/myfund.conf
@@ -308,7 +308,7 @@ user =
 passwd =
 ```
 
-# Step 8, Simulated backtrade
+### Step 8, Simulated backtrade
 
 Historical market data can be used to test the investment portfolio back and forth (the default is to back-test for 3 years):
 ```bash
@@ -317,7 +317,7 @@ hiquant fund backtrade etc/myfund.conf
 
 You can also specify any time period (year, month, day format: YYYYMMDD) for backtesting:
 ```bash
-hiquant fund backtrade 001-simple-example.conf 20160101 20210101
+hiquant fund backtrade etc/myfund 20160101 20210101
 ```
 
 The results of the back test are shown with plot:
@@ -326,7 +326,7 @@ The results of the back test are shown with plot:
 If you describe multiple portfolio configuration information in fund_list, you can test multiple portfolio strategies at the same time and compare the results together:
 ![Multi funds](multi_funds.png)
 
-# Step 9, Real-market simulation, monitor market changes and remind to buy/sell
+### Step 9, Real-market simulation, monitor market changes and remind to buy/sell
 
 In order to receive email reminders, please modify the email parameter configuration in myfund.conf (recipient, sender, server, etc.)
 ```
@@ -348,7 +348,7 @@ If the stock market has not yet opened, it will wait; if it is at the opening ti
 
 If the trading conditions are triggered, the transaction will be simulated and an email will be sent to remind you to buy or sell stocks.
 
-# Step 10, Strategy and parameter tuning
+### Step 10, Strategy and parameter tuning
 
 Modify the backtest configuration and run multiple portfolios at the same time. Each portfolio can be configured with different strategy codes or strategy parameters.
 
@@ -393,4 +393,3 @@ The backtest result will be:
 
 Please refer to the document ["How to develop based on hiquant"] (DEV.md)
 
--- End of document --

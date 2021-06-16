@@ -107,5 +107,3 @@ Thanks the warm-hearted knowledge sharing on Zhihu and Baidu websites.
 This software and related codes are for research purposes only and do not constitute any investment advice.
 
 If anyone invests money in actual investment based on this, please bear all risks by yourself.
-
--- End of file --

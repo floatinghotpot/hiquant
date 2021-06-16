@@ -1,11 +1,11 @@
 
-## How to develop based on Hiquant
+# How to develop based on Hiquant
 
-# Architecture of Hiquant
+## Architecture of Hiquant
 
 TODO:
 
-# How to write a simple strategy
+## How to write a simple strategy
 
 ```python
 import pandas as pd
@@ -52,10 +52,9 @@ def after_market_close(strategy):
     pass
 ```
 
-# How to write a complex strategy
+## How to write a complex strategy
 
 
-# How to add more technical indicators
+## How to add more technical indicators
 
 
--- End of document --

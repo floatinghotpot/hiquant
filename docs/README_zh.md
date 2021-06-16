@@ -1,6 +1,6 @@
 ## HiQuant 说明文档
 
-[hiquant](https://github.com/floatinghotpot/hiquant.git) 是一组用 Python 开发的 辅助股票投资的工具。
+Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及一个开箱即用的命令行工具。
 
 需要 Python 3.7 以上。理论上，可以运行于任何支持 Python 的操作系统。本文的一些示范说明写于 Mac 环境。
 
@@ -41,14 +41,14 @@ hiquant fund backtrade myfund.conf
 
 ## 如何使用
 
-# 第 1 步，创建 hiquant 工作目录
+### 第 1 步，创建 hiquant 工作目录
 
 ```bash
 hiquant create MyFund
 cd MyFund
 ```
 
-# 第 2 步，获取 基本数据
+### 第 2 步，获取 基本数据
 
 ```bash
 # 下载所有 A 股上市公司的列表（约4300多家）以及指数
@@ -77,7 +77,7 @@ hiquant finance update all
 hiquant pepb update all
 ```
 
-# 第 3 步, 基本面分析，筛选出 价值股票
+### 第 3 步, 基本面分析，筛选出 价值股票
 ```bash
 hiquant finance show all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_rate=0.20- -sortby=roe -desc -out=stockpool/good_stock.csv
 ```
@@ -112,7 +112,7 @@ symbol,name
 ... ...
 ```
 
-# 第 4步，估值分析，筛选出目前 价值低估 的 便宜股票
+### 第 4步，估值分析，筛选出目前 价值低估 的 便宜股票
 
 ```bash
 hiquant pepb view good_stock.csv -pb_pos=0-70 -sortby=pb_pos -out=stockpool/good_cheap_stock.csv
@@ -127,11 +127,12 @@ hiquant pepb view good_stock.csv -pb_pos=0-70 -sortby=pb_pos -out=stockpool/good
 cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
 ```
 
-# 第 5 步, 日线数据 以及 技术指标
+### 第 5 步, 日线数据 以及 技术指标
 
 日线数据
 
-需要用股票的历史行情，来模拟交易和计算股票的成长性，所以需要下载个股的 K线历史行情数据 和 后复权因子。
+我们需要用股票的历史行情，来模拟交易和计算股票的成长性，所以需要下载个股的 K线历史行情数据 和 后复权因子。
+
 由于股票历史行情数据每日更新，通常只下载自己关心的部分股票的日线数据。
 
 为了避免被 财经网站 判定为网络爬虫而封禁 IP，这个下载过程也稍微做了 3秒钟 的延迟处理，每下载1只股票约 6秒钟。
@@ -183,7 +184,7 @@ hiquant stock 600036 -cci -macd -kdj -mix
 ```
 ![Draw stock](draw_stock_2.png)
 
-# 第 5 步，创建和编辑 股票池
+### 第 5 步，创建和编辑 股票池
 
 使用这个命令可以创建一个股票池文件
 ```bash
@@ -200,7 +201,7 @@ symbol,name
 601888,中国中免
 ```
 
-# 第 6 步，创建一个交易策略文件
+### 第 6 步，创建一个交易策略文件
 
 ```bash
 hiquant strategy create strategy/mystrategy.py
@@ -262,7 +263,7 @@ def after_market_close(strategy):
     pass
 ```
 
-# 第 7 步，创建一个投资组合配置文件
+### 第 7 步，创建一个投资组合配置文件
 
 ```bash
 hiquant fund create etc/myfund.conf
@@ -301,7 +302,7 @@ user =
 passwd =
 ```
 
-# 第 8 步，模拟回测
+### 第 8 步，模拟回测
 
 可用历史行情数据，来回测投资组合（默认是倒推 3年回测）：
 ```bash
@@ -310,7 +311,7 @@ hiquant fund backtrade etc/myfund.conf
 
 也可以指定任意时间段 （年月日格式：YYYYMMDD）进行回测：
 ```bash
-hiquant fund backtrade 001-simple-example.conf 20160101 20210101
+hiquant fund backtrade etc/myfund.conf 20160101 20210101
 ```
 
 回测结果 图形显示为：
@@ -319,7 +320,7 @@ hiquant fund backtrade 001-simple-example.conf 20160101 20210101
 如果在 fund_list 中描述多个投资组合配置信息，就可以同时测试多个策略，并将结果放在一起比较：
 ![Multi funds](multi_funds.png)
 
-# 第 9 步，实盘模拟，盯盘提醒 买入/卖出
+### 第 9 步，实盘模拟，盯盘提醒 买入/卖出
 
 为了收到邮件提醒，请修改 myfund.conf 中的邮件参数配置（收件人、发送方 以及服务器等）
 ```
@@ -341,7 +342,7 @@ hiquant fund run etc/myfund.conf
 
 如果触发交易条件，则模拟交易，并发邮件提醒。
 
-# 第 10 步，策略 和 参数调优
+### 第 10 步，策略 和 参数调优
 
 修改回测配置，同时运行 多个投资组合，分别 配置不同的 策略代码 或者 策略参数。
 
@@ -385,5 +386,3 @@ hiquant fund backtrade etc/2-two-funds.conf
 ## 进阶：开发自己的 交易策略
 
 如何使用请参见 文档[《如何基于 hiquant 开发》](DEV.md)
-
--- 全文完 --
