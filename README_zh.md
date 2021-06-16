@@ -66,12 +66,13 @@ hiquant fund backtrade etc/myfund.conf
 ## 如何使用
 
 如何使用请参见 文档:
-1, [《如何使用 hiquant 工具》](docs/README.md)
-2, [《 hiquant 命令集 参考》](docs/CMD.md)
+- [《如何使用 hiquant 工具》](docs/README.md)
+- [《 hiquant 命令集 参考》](docs/CMD.md)
 
 ## 如何开发
 
-如何使用请参见 文档[《如何基于 hiquant 开发》](docs/DEV.md)
+如何使用请参见 
+- [《如何基于 hiquant 开发》](docs/DEV.md)
 
 ## 功能截图
 

@@ -66,8 +66,8 @@ hiquant fund backtrade etc/myfund.conf
 ## Usage
 
 Read following docs for more details:
-- 1, [How to use hiquant tool](docs/README.md)
-- 2, [Hiquant commands referrence](docs/CMD.md)
+- [How to use hiquant tool](docs/README.md)
+- [Hiquant commands referrence](docs/CMD.md)
 
 ## Develop with Hiquant
 
