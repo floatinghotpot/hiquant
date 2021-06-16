@@ -59,20 +59,20 @@ hiquant finance view stockpool/mystocks.csv
 hiquant pepb view stockpool/mystocks.csv
 
 hiquant strategy create strategy/mystrategy.py
-hiquant fund create myfund.conf
-hiquant fund backtrade myfund.conf
+hiquant fund create etc/myfund.conf
+hiquant fund backtrade etc/myfund.conf
 ```
 
 ## Usage
 
 Read following docs for more details:
-1, [How to use hiquant tool](docs/README.md)
-2, [Hiquant commands referrence](docs/CMD.md)
+- 1, [How to use hiquant tool](docs/README.md)
+- 2, [Hiquant commands referrence](docs/CMD.md)
 
 ## Develop with Hiquant
 
 Read this document on how to develop with Hiquant:
-[How to develop with Hiquant](docs/DEV.md)
+- [How to develop with Hiquant](docs/DEV.md)
 
 ## Screenshots
 

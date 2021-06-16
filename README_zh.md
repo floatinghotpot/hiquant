@@ -59,8 +59,8 @@ hiquant finance view stockpool/mystocks.csv
 hiquant pepb view stockpool/mystocks.csv
 
 hiquant strategy create strategy/mystrategy.py
-hiquant fund create myfund.conf
-hiquant fund backtrade myfund.conf
+hiquant fund create etc/myfund.conf
+hiquant fund backtrade etc/myfund.conf
 ```
 
 ## 如何使用
