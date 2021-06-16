@@ -138,7 +138,7 @@ cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
 
 ### Step 5, Daily OHCL data and technical indicators
 
-- Daily OHCL data
+#### Daily OHCL data
 
 We need to use stock historical market data to simulate trading and calculate stock growth, so we need to download the K-line historical market data of individual stocks and post-restoration factors.
 
@@ -148,7 +148,7 @@ In order to avoid being banned by the financial website as a web crawler, this d
 
 There is no need to manually download the daily stock data, the program will automatically download and cache it in the cache/market directory when it is used.
 
-- Technical indicators
+#### Technical indicators
 
 Some moving average algorithms and trading indicators are pre-defined in the program, including:
 1. Moving average:

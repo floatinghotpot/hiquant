@@ -136,7 +136,7 @@ cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
 
 ### 第 5 步, 日线数据 以及 技术指标
 
-日线数据
+#### 日线数据
 
 我们需要用股票的历史行情，来模拟交易和计算股票的成长性，所以需要下载个股的 K线历史行情数据 和 后复权因子。
 
@@ -146,7 +146,7 @@ cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
 
 不需要手动下载股票的日线数据，程序会在用到的时候自动下载 并缓存到 cache/market 目录下。
 
-技术指标
+#### 技术指标
 
 程序内 预先定义了一些均线算法 和 交易指标，包括：
 1. 均线：
