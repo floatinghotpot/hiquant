@@ -46,6 +46,7 @@ setuptools.setup(
     version = __version__,
     description = 'Hiquant is an outbox python tool and libraries for quant trade and study',
     long_description = long_description,
+    long_description_content_type='text/markdown',
 
     # The project's main homepage.
     url = 'https://github.com/floatinghotpot/hiquant',
