@@ -20,9 +20,9 @@ This software is developed on Mac, and the examples in this document are written
 - [x] Simulated backtesting: Use historical market data to simulate backtesting of one or more portfolio strategies, output data analysis of investment returns, and draw yield curves for comparison
 - [x] Tracking reminder: Synchronize real-time market data, calculate trading decisions based on strategies, and send email notifications to remind users to trade
 - [ ] Automated trading: call the quantitative trading interface to realize automated trading (not yet implemented, planned)
-- [ ] Global market: currently only supports China’s A-share market, and will increase support for markets in other countries
+- [ ] Global market: currently only supports China’s A-share market, and will increase support for markets in other countries (not yet implemented, planned)
 
-Other additional functions:
+Other additional features:
 - [x] K-line chart: draw the K-line chart of stocks/indices, including drawing common technical indicators, and comparing the profit results of trading based on the indicators
 - [x] Multi-indicator combination: When drawing a K-line chart, you can also mix signals from multiple indicators for trading, and display trading actions, holding time, and yield curve
 - [x] K-line patterns: graphically display the 61 K-line patterns provided by TALib, count the number of occurrences of each pattern in the local daily data, and verify the correctness of these patterns for trend prediction
