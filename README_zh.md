@@ -66,7 +66,7 @@ hiquant fund backtrade etc/myfund.conf
 ## 如何使用
 
 如何使用请参见 文档:
-- [《如何使用 hiquant 工具》](https://github.com/floatinghotpot/hiquant/blob/master/docs/README.md)
+- [《如何使用 hiquant 工具》](https://github.com/floatinghotpot/hiquant/blob/master/docs/README_zh.md)
 - [《 hiquant 命令集 参考》](https://github.com/floatinghotpot/hiquant/blob/master/docs/CMD.md)
 
 ## 如何开发
