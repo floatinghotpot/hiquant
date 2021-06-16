@@ -3,7 +3,7 @@
 
 [阅读此文档的中文版本](README_zh.md)
 
-[hiquant](https://github.com/floatinghotpot/hiquant.git) is an out-of-box toolset for assiting stock investment and a library for study on quantitative trading.
+Hiquant is an out-of-box toolset for assiting stock investment and a library for study on quantitative trading.
 
 It can run on any OS with Python 3, suggest Python v3.7+. 
 
@@ -11,22 +11,22 @@ This software is developed on Mac, and the examples in this document are written
 
 ## Features
 
-[x] Data acquisition: Obtain the list of stocks and indices, and obtain financial reports, historical market quotations, real-time market data, and PE/PB data from financial websites
-[x] Value analysis: extract key financial data from financial reports, calculate annual profit, ROE, net asset growth rate and other indicators, and screen out "value investment" stocks based on specified filter conditions
-[x] Valuation analysis: Calculate PE/PB percentiles from PE/PB data, and select “cheap valuation” stocks based on specified filter conditions
-[x] Stock pool: Contains a command to create a "stock pool" csv file, and provides operations such as merging, removing, and intersection
-[x] Strategy Pool: Contains some trading strategy codes for demo purposes, and provides a command to create a new strategy from the template, which is convenient for users to write their own strategies
-[x] Multi-portfolio: Contains some fund strategy configurations for demo purposes, and provides a command to create a new configuration from the template
-[x] Simulated backtesting: Use historical market data to simulate backtesting of one or more portfolio strategies, output data analysis of investment returns, and draw yield curves for comparison
-[x] Tracking reminder: Synchronize real-time market data, calculate trading decisions based on strategies, and send email notifications to remind users to trade
-[] Automated trading: call the quantitative trading interface to realize automated trading (not yet implemented, planned)
-[] Global market: currently only supports China’s A-share market, and will increase support for markets in other countries
+- [x] Data acquisition: Obtain the list of stocks and indices, and obtain financial reports, historical market quotations, real-time market data, and PE/PB data from financial websites
+- [x] Value analysis: extract key financial data from financial reports, calculate annual profit, ROE, net asset growth rate and other indicators, and screen out "value investment" stocks based on specified filter conditions
+- [x] Valuation analysis: Calculate PE/PB percentiles from PE/PB data, and select “cheap valuation” stocks based on specified filter conditions
+- [x] Stock pool: Contains a command to create a "stock pool" csv file, and provides operations such as merging, removing, and intersection
+- [x] Strategy Pool: Contains some trading strategy codes for demo purposes, and provides a command to create a new strategy from the template, which is convenient for users to write their own strategies
+- [x] Multi-portfolio: Contains some fund strategy configurations for demo purposes, and provides a command to create a new configuration from the template
+- [x] Simulated backtesting: Use historical market data to simulate backtesting of one or more portfolio strategies, output data analysis of investment returns, and draw yield curves for comparison
+- [x] Tracking reminder: Synchronize real-time market data, calculate trading decisions based on strategies, and send email notifications to remind users to trade
+- [] Automated trading: call the quantitative trading interface to realize automated trading (not yet implemented, planned)
+- [] Global market: currently only supports China’s A-share market, and will increase support for markets in other countries
 
 Other additional functions:
-[x] K-line chart: draw the K-line chart of stocks/indices, including drawing common technical indicators, and comparing the profit results of trading based on the indicators
-[x] Multi-indicator combination: When drawing a K-line chart, you can also mix signals from multiple indicators for trading, and display trading actions, holding time, and yield curve
-[x] K-line patterns: graphically display the 61 K-line patterns provided by TALib, count the number of occurrences of each pattern in the local daily data, and verify the correctness of these patterns for trend prediction
-[x] Indicator test: Use historical data and technical indicators to test the stocks in the stock pool and find the most effective technical indicators for each stock
+- [x] K-line chart: draw the K-line chart of stocks/indices, including drawing common technical indicators, and comparing the profit results of trading based on the indicators
+- [x] Multi-indicator combination: When drawing a K-line chart, you can also mix signals from multiple indicators for trading, and display trading actions, holding time, and yield curve
+- [x] K-line patterns: graphically display the 61 K-line patterns provided by TALib, count the number of occurrences of each pattern in the local daily data, and verify the correctness of these patterns for trend prediction
+- [x] Indicator test: Use historical data and technical indicators to test the stocks in the stock pool and find the most effective technical indicators for each stock
 
 ## Installation
 
@@ -41,7 +41,7 @@ cd hiquant
 pip install -e .
 ```
 
-## Quick Start
+## Quick start
 
 ```bash
 hiquant create myFund
@@ -80,19 +80,19 @@ Draw stock indicators and yield curve
 ```bash
 hiquant stock 600036 -ma -macd -kdj
 ```
-![Draw stock](draw_stock_1.png)
+![Draw stock](docs/draw_stock_1.png)
 
 Draw trade signal of mixed indicators, holding time, and yield curve
 ```bash
 hiquant stock 600036 -wr -bias -mix
 ```
-![Draw stock](draw_stock_2.png)
+![Draw stock](docs/draw_stock_2.png)
 
 Backtrade with one portoflio
-![Draw stock](back_trade.png)
+![Draw stock](docs/back_trade.png)
 
 Backtrade with multiple portoflios
-![Draw stock](multi_funds.png)
+![Draw stock](docs/multi_funds.png)
 
 ## Credits
 
