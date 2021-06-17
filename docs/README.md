@@ -394,5 +394,5 @@ The backtest result will be:
 
 ## Advanced: Develop your own trading strategy
 
-Please refer to the document ["How to develop based on hiquant"] (DEV.md)
+Please refer to the document ["How to develop based on hiquant"](DEV.md)
 
