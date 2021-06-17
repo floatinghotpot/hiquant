@@ -11,6 +11,8 @@ Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及
 
 ## 功能
 
+![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/blob/master/docs/system.png)
+
 - 数据获取：获取 股票、指数 列表，从财经网站获取 财报、历史行情、实时行情数据、PE/PB数据
 - 价值分析：从 财报 提取关键财务数据，计算 年利润、ROE、净资产增长率 等指标，根据指定过滤条件，筛选出 “价值投资” 的股票
 - 估值分析：从 PE/PB 数据计算 PE/PB 百分位等，根据指定过滤条件，筛选出 “估值便宜” 的股票

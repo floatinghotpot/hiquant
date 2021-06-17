@@ -3,7 +3,7 @@
 
 ## Architecture of Hiquant
 
-TODO:
+![Hiquant system architecture](system.png)
 
 ## How to write a simple strategy
 

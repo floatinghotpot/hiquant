@@ -11,6 +11,8 @@ This software is developed on Mac, and the examples in this document are written
 
 ## Features
 
+![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/blob/master/docs/system.png)
+
 - Data acquisition: Obtain the list of stocks and indices, and obtain financial reports, historical market quotations, real-time market data, and PE/PB data from financial websites
 - Value analysis: extract key financial data from financial reports, calculate annual profit, ROE, net asset growth rate and other indicators, and screen out "value investment" stocks based on specified filter conditions
 - Valuation analysis: Calculate PE/PB percentiles from PE/PB data, and select “cheap valuation” stocks based on specified filter conditions
