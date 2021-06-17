@@ -18,7 +18,6 @@ class Callback:
         self.called = False
 
 class Trader:
-    global_config = None
     market = None
     date_start = None
     date_end = None
@@ -29,8 +28,12 @@ class Trader:
 
     verbose = False
 
-    def __init__(self, config, market):
-        self.global_config = config
+    def set_verbose(self, verbose = True):
+        self.verbose = verbose
+        for fund in self.funds:
+            fund.set_verbose(verbose)
+
+    def __init__(self, market):
         self.market = market
 
     def run_daily(self, func, context, time='open'):
@@ -69,8 +72,8 @@ class Trader:
 
         while date < date_end:
             # print the date at bottom of screen, but do not change line
-            if not fund.verbose:
-                print('\r... {} ...'.format(date.strftime('%Y-%m-%d %H:%M:%S')), end='', flush=True)
+            #if not fund.verbose:
+            print('\r... {} ...'.format(date.strftime('%Y-%m-%d %H:%M:%S')), end='', flush=True)
 
             next_date = date + dt.timedelta(days=1)
 
@@ -116,7 +119,7 @@ class Trader:
                 market.keep_daily_uptodate()
 
                 market.current_time = dt.datetime.now()
-                next_time_tick = market.current_time + dt.timedelta(seconds = tick_period)
+                next_time_tick = market.current_time
 
                 # loop until end of this day
                 while market.current_time < next_date:
@@ -199,11 +202,6 @@ class Trader:
 
             value = stat_df['value']
             df[ fund.fund_name ] = (value / value.iloc[0] - 1) * 100.0
-
-        # compare with index, for example, sh000300
-        main_conf = {}
-        for k, v in self.global_config.items('main'):
-            main_conf[k] = v
 
         if compare_index:
             index_name = dict_from_df(get_all_index_list_df(), 'symbol', 'name')

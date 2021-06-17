@@ -40,12 +40,16 @@ class BasicStrategy( Strategy ):
     def __init__(self, fund, strategy_file):
         super().__init__(fund, strategy_file)
 
-        agent = fund.agent
-        #portfolio = agent.get_portfolio()
-        #market = fund.market
-
         self.targets = self.select_stock()
         self.symbol_signal = {}
+
+        market = fund.market
+        agent = fund.agent
+        portfolio = agent.get_portfolio()
+
+        concerned_stocks = list(set(self.targets) | set(portfolio.positions.keys()))
+        concerned_stocks.sort()
+        market.watch( concerned_stocks )
 
     def select_stock(self):
         pass
@@ -72,6 +76,8 @@ class BasicStrategy( Strategy ):
         market.watch( concerned_stocks )
         for symbol in concerned_stocks:
             if not (symbol in self.symbol_signal):
+                if self.fund.verbose:
+                    print('\tinit history trade signal:', symbol)
                 self.symbol_signal[ symbol ] = self.gen_trade_signal(symbol, init_data=True)
 
         # find out the stocks to sell or buy

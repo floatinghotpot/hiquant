@@ -26,7 +26,6 @@ def list_signal_indicators():
     return _registered_signal_indicators.keys()
 
 def register_signal_indicator(id, func, cols, label, ind_type):
-    #_registered_signal_indicators[ id ] = [func, ind_type, label, cols]
     _registered_signal_indicators[ id ] = {
         'func': func,
         'cols': cols,

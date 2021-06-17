@@ -32,7 +32,7 @@ def download_stock_daily( symbol, adjust = '' ):
     start = '20000101'
     end = dt.datetime.now().strftime('%Y%m%d')
 
-    print('    Fetching stock daily history ...', symbol)
+    print('    Fetching stock daily history {} {} ...'.format(symbol, adjust))
     if symbol.startswith('hk') or symbol.startswith('HK'):
         symbol = '0' + symbol[-4:]
         df = ak.stock_hk_daily(symbol=symbol, adjust = adjust)

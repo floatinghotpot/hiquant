@@ -12,6 +12,8 @@ class StrategyStockIndicator( BasicStrategy ):
     def select_stock(self):
         # read stock from stock pool
         stock_df = get_stockpool_df(self.conf['stock_pool'])
+        if self.fund.verbose:
+            print(stock_df)
 
         for i, row in stock_df.iterrows():
             self.symbol_indicators[row['symbol']] = row['indicators'].replace(' ','').split('+')

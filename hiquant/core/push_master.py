@@ -5,22 +5,15 @@ from .push_email import *
 class MasterPush:
     services = []
 
-    def __init__(self, global_config, str_services):
+    def __init__(self):
         self.services = []
-        items = str_services.replace(' ','').split('.')
-        for k in items:
-            conf = {}
-            for k, v in global_config.items(k):
-                conf[k] = v
-            push_type = conf['push_type']
-            if push_type == 'email':
-                self.services.append( EmailPush(conf.copy()) )
-            elif push_type == 'wechat':
-                #self.services.append( WeChatPush(conf.copy()) )
-                pass
-            elif push_type == 'sms':
-                #self.services.append( SmsPush(conf.copy()) )
-                pass
+
+    def add_service(self, push_service):
+        self.services.append(push_service)
+
+    def set_verbose(self, verbose = True):
+        for k in self.services:
+            k.set_verbose(verbose)
 
     def add_msg(self, msg):
         for k in self.services:

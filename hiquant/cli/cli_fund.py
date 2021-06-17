@@ -5,8 +5,9 @@ import sys
 import datetime as dt
 import configparser
 
+from ..utils import datetime_today, dict_from_config_items
 from ..core import seconds_from_str, date_from_str
-from ..core import Market, Trader, Fund
+from ..core import Market, Trader, Fund, OrderCost, EmailPush, SimulatedAgent, HumanAgent
 
 def get_fund_conf_template():
     return '''
@@ -56,6 +57,8 @@ def cli_fund_create(params, options):
     print( '\nPlease edit file content before running.' )
 
 def cli_run_fund(config_file, start, end, options):
+    verbose = '-d' in options
+
     # read config file
     print( 'reading config from from:', config_file)
     if not os.path.isfile(config_file):
@@ -65,39 +68,67 @@ def cli_run_fund(config_file, start, end, options):
     global_config = configparser.ConfigParser()
     global_config.read(config_file, encoding='utf-8')
 
-    print('-' * 80)
-    main_conf = {}
-    print('[main]')
-    for k, v in global_config.items('main'):
-      main_conf[ k ] = v
-      print(k, '=', v)
-
-    fund_list_conf = {}
-    print('[fund]')
-    for k, v in global_config.items('fund_list'):
-      fund_list_conf[ k ] = v
-      print(k, '=', v)
-    print('-' * 80)
+    main_conf = dict_from_config_items(global_config.items('main'), verbose= verbose)
 
     date_start = date_from_str( start )
     date_end = date_from_str( end )
 
     start_tick = dt.datetime.now()
 
+    order_cost_conf = None
+    if 'order_cost' in global_config.sections():
+        order_cost_conf = dict_from_config_items(global_config.items('order_cost'))
+    else:
+        hiquant_conf_file = 'hiquant.conf'
+        if os.path.isfile(hiquant_conf_file):
+            config = configparser.ConfigParser()
+            config.read(hiquant_conf_file, encoding='utf-8')
+            order_cost_conf = dict_from_config_items(config.items('order_cost'))
+    if order_cost_conf is not None:
+        order_cost = OrderCost(
+            float(order_cost_conf['close_tax']),
+            float(order_cost_conf['open_commission']),
+            float(order_cost_conf['close_commission']),
+            float(order_cost_conf['min_commission']),
+        )
+    else:
+        order_cost = OrderCost(0.001, 0.0003, 0.0003, 5.0)
+
     # market is a global singleton
     market = Market(date_start - dt.timedelta(days=90), date_end)
-    market.verbose = '-v' in options
+    trader = Trader(market)
 
-    trader = Trader(global_config, market)
-    trader.verbose = '-v' in options
+    for k, fund_id in global_config.items('fund_list'):
+        fund_conf = dict_from_config_items(global_config.items(fund_id), verbose= verbose)
+        fund = Fund(market, trader, fund_id, fund_conf)
 
-    for k, fund_id in fund_list_conf.items():
-        fund = Fund(global_config, market, trader, fund_id)
-        # Fund.set_agent()
-        # Fund.add_strategy()
+        agent = None
+        if (date_end > datetime_today()) and ('agent' in fund_conf):
+            agent_conf = dict_from_config_items(global_config.items(fund_conf['agent']))
+            agent_type = agent_conf['agent_type']
+            if agent_type == 'human':
+                agent = HumanAgent(market, agent_conf)
+            #elif agent_type == 'automated':
+            #    agent = AutomatedAgent(market, agent_conf)
+            else:
+                agent = SimulatedAgent(market, agent_conf)
 
-        fund.verbose = '-v' in options
+            if (agent is not None) and ('push_to' in agent_conf):
+                push_list = agent_conf['push_to'].replace(' ','').split(',')
+                for push_to in push_list:
+                    push_conf = dict_from_config_items(global_config.items(push_to))
+                    push_type = push_conf['push_type']
+                    if push_type == 'email':
+                        agent.add_push_service(EmailPush(push_conf))
+
+        if agent is None:
+            agent = SimulatedAgent(market, None)
+        fund.set_agent( agent, order_cost )
+
         trader.add_fund(fund)
+
+    market.set_verbose( verbose )
+    trader.set_verbose( verbose )
 
     tick_period = seconds_from_str( main_conf['tick_period'] ) if ('tick_period' in main_conf) else 60
     trader.run_fund(date_start, date_end, tick_period = tick_period)

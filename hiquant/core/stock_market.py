@@ -24,8 +24,11 @@ class Market:
     current_date = None
     current_time = None
 
+    def set_verbose(self, verbose = True):
+        self.verbose = verbose
+
     def is_open(self):
-        #return True
+        return True
         now = dt.datetime.now()
         wday = now.weekday() +1
         # monday to friday, 9:00 - 15:00 treat as open time
@@ -82,6 +85,7 @@ class Market:
         if now > next_spot_time:
             spot_df = get_stock_spot(self.watching_symbols, verbose)
             if verbose:
+                print('')
                 print(spot_df)
             self.last_spot_time = now
 

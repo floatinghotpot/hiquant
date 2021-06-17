@@ -9,7 +9,6 @@ from .portfolio import *
 from .strategy import *
 from .agent_simulated import *
 from .agent_human import *
-from .agent_master import *
 from .fund import *
 from .trader import *
 from .push_base import *

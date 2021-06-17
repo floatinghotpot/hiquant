@@ -41,13 +41,15 @@ class EmailPush( PushBase ):
         if not self.msg_queue:
             return
 
-        subject = '[hiquant] ' + self.msg_queue[0]
+        subject = '[Hiquant] ' + self.msg_queue[0]
 
         line = '-' * 40
         content = '\n\n'.join(self.msg_queue)
         content += '\n' + line + '\n' + dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n'
 
         self.send(subject, content)
-        print('email sent')
+        if self.verbose:
+            print('Email sent')
+            print(subject, '\n', content)
 
         self.msg_queue = []

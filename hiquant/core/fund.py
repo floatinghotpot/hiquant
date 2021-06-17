@@ -6,10 +6,8 @@ import importlib.util
 from ..utils import *
 from .agent_simulated import *
 from .agent_human import *
-from .agent_master import *
 
 class Fund:
-    global_config = None
     market = None
     trader = None
     fund_id = None
@@ -22,45 +20,47 @@ class Fund:
 
     verbose = False
 
-    def __init__(self, global_config, market, trader, fund_id):
-        self.global_config = global_config
+    def set_verbose(self, verbose = True):
+        self.verbose = verbose
+        if self.agent is not None:
+            self.agent.set_verbose(verbose)
+
+    def __init__(self, market, trader, fund_id, fund_conf):
         self.market = market
         self.trader = trader
         self.fund_id = fund_id
-        self.conf = {}
+        self.conf = fund_conf
+
+    def set_agent(self, agent, order_cost):
+        self.agent = agent
+        self.agent.order_cost = order_cost
 
     def load_module(self, strategy_file):
         mod_name = os.path.basename(strategy_file).replace('.py', '')
         mod_filepath = os.path.abspath(strategy_file)
-        print('dynamically loading strategy:', mod_filepath)
+        if self.verbose:
+            print('dynamically loading strategy:', mod_filepath)
         spec = importlib.util.spec_from_file_location(mod_name, mod_filepath)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module
 
-    def init_fund(self, realtime_trade = False):
-        for k, v in self.global_config.items( self.fund_id ):
-            self.conf[k] = v
+    def load_strategy(self, strategy_file):
+        self.strategy_file = strategy_file
 
+        mod = self.load_module( strategy_file )
+        mod.init( self )
+
+    def init_fund(self, realtime_trade = False):
         self.fund_name = self.conf['name']
-        self.strategy_file = self.conf['strategy']
         self.start_cash = float(self.conf['start_cash'])
 
-        if realtime_trade and ('agent' in self.conf):
-            #self.agent = MasterAgent(self, self.conf['agent'])
-            agent_conf = {}
-            for k, v in self.global_config.items( self.conf['agent'] ):
-                agent_conf[k] = v
-            agent_type = agent_conf['agent_type']
-            if agent_type == 'simulated':
-                self.agent = SimulatedAgent(self, agent_conf)
-            elif agent_type == 'human':
-                self.agent = HumanAgent(self, agent_conf)
-            elif agent_type == 'automated':
-                #self.agent = AutomatedAgent(fund, agent_conf)
-                pass
-        else:
-            self.agent = SimulatedAgent( self, None )
+        if self.agent is None:
+            self.set_agent(SimulatedAgent(self.market, None), OrderCost())
+
+        # for backtrade, we force to use simulated agent
+        if (not realtime_trade) and (self.agent.agent_type != 'simulated'):
+            self.set_agent(SimulatedAgent(self.market, None), self.agent.order_cost)
 
         self.agent.init_portfolio( self.start_cash )
 
@@ -70,8 +70,7 @@ class Fund:
         self.stat_df = pd.DataFrame([], columns = columns, index = pd.to_datetime([]))
         self.update_stat(self.market.current_date - dt.timedelta(days=1))
 
-        mod = self.load_module( self.strategy_file )
-        mod.init( self )
+        self.load_strategy( self.conf['strategy'] )
 
     def update_stat(self, date = None):
         # calculate current value of today, save to dataframe
@@ -102,6 +101,8 @@ class Fund:
 
     def get_summary(self):
         df = self.stat_df
+        if self.verbose:
+            print(df)
 
         start_value = df.value.iloc[0]
         current_value = df.value.iloc[-1]

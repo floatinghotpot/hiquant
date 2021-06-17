@@ -4,26 +4,26 @@ import pandas as pd
 from .stock import *
 
 class Portfolio:
-    fund = None
+    market = None
     available_cash = 0.0
     positions = {}
     history = {}
 
-    def __init__(self, fund):
-        self.fund = fund
+    def __init__(self, market):
+        self.market = market
         self.available_cash = 0.0
         self.positions = {}
         self.history = {}
 
     def total_value(self):
-        market = self.fund.market
+        market = self.market
         value = self.available_cash
         for symbol, stock in self.positions.items():
             value += stock.shares * market.get_price(symbol)
         return value
 
     def to_dataframe(self, use_real_price = True):
-        market = self.fund.market
+        market = self.market
 
         table = [['cash', '-', self.available_cash, 1.0]]
         for symbol, stock in self.positions.items():
@@ -39,7 +39,7 @@ class Portfolio:
         return pd.DataFrame(table,columns=['symbol','name','amount','cost'])
 
     def from_dataframe(self, df, use_real_price = True):
-        market = self.fund.market
+        market = self.market
 
         self.available_cash = 0
         self.positions = {}

@@ -26,3 +26,11 @@ def parse_arg(argv, required, defaults, syntax_tips):
         params = params + vals[n:]
 
     return params[0:m], options
+
+def dict_from_config_items(items, verbose = False):
+    mapping = {}
+    for k, v in items:
+        mapping[ k ] = v
+        if verbose:
+            print(k, '=', v)
+    return mapping

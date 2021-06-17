@@ -11,6 +11,9 @@ class StrategyMacd( BasicStrategy ):
     def select_stock(self):
         # read stock from stock pool
         stock_df = get_stockpool_df(self.conf['stock_pool'])
+        if self.fund.verbose:
+            print(stock_df)
+
         return stock_df['symbol'].tolist()
 
     def gen_trade_signal(self, symbol, init_data = False):

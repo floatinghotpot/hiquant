@@ -6,30 +6,37 @@ from ..utils import *
 from .agent_simulated import *
 
 class HumanAgent(SimulatedAgent):
-    fund = None
+    market = None
     conf = None
 
     last_load_modified_time = None
     last_order_time = None
-    push_notify = False
+
     order_file = ''
     transaction_file = ''
     human_position_file = ''
     bot_position_file = ''
-    def __init__(self, fund, agent_conf = None):
-        super().__init__(fund, agent_conf)
+
+    push_service = None
+
+    def set_verbose(self, verbose = True):
+        super().set_verbose(verbose)
+        if self.push_service is not None:
+            self.push_service.set_verbose(verbose)
+
+    def __init__(self, market, agent_conf = None):
+        super().__init__(market, agent_conf)
+
+        self.agent_type = 'simulated'
 
         self.account = self.conf['account']
-        self.order_file = self.conf['order'].replace('{name}', self.account)
-        self.portfolio_load_file = self.conf['portfolio_load'].replace('{name}', self.account)
-        self.portfolio_save_file = self.conf['portfolio_save'].replace('{name}', self.account)
+        self.order_file = self.conf['order'].replace('{account}', self.account)
+        self.portfolio_load_file = self.conf['portfolio_load'].replace('{account}', self.account)
+        self.portfolio_save_file = self.conf['portfolio_save'].replace('{account}', self.account)
 
     def init_portfolio(self, start_cash):
-        print('[human agent] init portfolio')
-        fund = self.fund
-        market = fund.market
-        self.portfolio = Portfolio(fund)
-        self.last_order_time = market.current_time
+        self.portfolio = Portfolio(self.market)
+        self.last_order_time = self.market.current_time
         if os.path.isfile(self.portfolio_load_file):
             load_modified_time = self.get_file_modify_time(self.portfolio_load_file)
             self.portfolio.from_csv( self.portfolio_load_file )
@@ -70,7 +77,7 @@ class HumanAgent(SimulatedAgent):
                 print('\n... {} |'.format(str_now()), 'reloaded:', self.portfolio_load_file, load_modified_time)
 
     def exec_order(self, symbol, real_count, real_price, earn_str = '', comment = ''):
-        market = self.fund.market
+        market = self.market
         name = market.get_name(symbol)
 
         self.last_order_time = market.current_time
@@ -78,8 +85,8 @@ class HumanAgent(SimulatedAgent):
         str_now = market.current_time.strftime('%Y-%m-%d %H:%M:%S')
         trade = '买入' if real_count > 0 else '卖出'
         msg = '{} | {} {} | {}: {} * {} | {} {}'.format(str_now, symbol, name, trade, round(real_count), round(real_price,2), earn_str, comment)
-
-        print('\r'+msg)
+        if self.verbose:
+            print('\r'+msg)
 
         if self.order_file:
             fp = open(self.order_file, 'a+')

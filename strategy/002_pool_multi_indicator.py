@@ -11,6 +11,9 @@ class StrategyMultiIndicator( BasicStrategy ):
     def select_stock(self):
         # read stock from stock pool
         stock_df = get_stockpool_df(self.conf['stock_pool'])
+        if self.fund.verbose:
+            print(stock_df)
+
         return stock_df['symbol'].tolist()
 
     def gen_trade_signal(self, symbol, init_data = False):
@@ -28,7 +31,6 @@ class StrategyMultiIndicator( BasicStrategy ):
 def init(fund):
     strategy = StrategyMultiIndicator(fund, __file__)
 
-    # set call back timer
     trader = fund.trader
     trader.run_daily(before_market_open, strategy, time='before_open')
     trader.run_on_bar_update(trade, strategy)
