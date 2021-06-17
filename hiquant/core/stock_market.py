@@ -28,7 +28,7 @@ class Market:
         self.verbose = verbose
 
     def is_open(self):
-        return True
+        # return True
         now = dt.datetime.now()
         wday = now.weekday() +1
         # monday to friday, 9:00 - 15:00 treat as open time
