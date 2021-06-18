@@ -106,7 +106,7 @@ Logic of the filter conditions:
 
 Note: each column key can be used as filter or sort key
 
-The selected stocks are exported into file: good_stock.csv
+The selected stocks are exported into file: stockpool/good_stock.csv
 
 It's a "Stock pool" CSV file, containing symbol and name, in following file format:
 ```
@@ -128,8 +128,8 @@ hiquant pepb view good_stock.csv -pb_pos=0-70 -sortby=pb_pos -out=stockpool/good
 Comments on arguments:
 ```
 -pb_pos=0-70                           PB historical percentile is between 0-70%
--sortby=pb_pos                         按Sort by PB historical percentile
--out=stockpool/good_cheap_stock.csv    Export result into file: stockpool/good_cheap_stock.csv
+-sortby=pb_pos                         sort by PB historical percentile
+-out=stockpool/good_cheap_stock.csv    export result into file: stockpool/good_cheap_stock.csv
 ```
 
 ```bash
@@ -140,13 +140,13 @@ cp stockpool/good_cheap_stock.csv stockpool/mystocks.csv
 
 #### Daily OHCL data
 
-We need to use stock historical market data to simulate trading and calculate stock growth, so we need to download the K-line historical market data of individual stocks and post-restoration factors.
+We need stock historical market data to backtrade testing the strategy, so we need to download the historical market data of individual stocks and post-restoration factors.
 
-Since the stock historical market data is updated daily, usually only download the daily data of some stocks that you care about.
+Since the stock historical market data is updated daily, usually we only download the daily data of some stocks that we care about.
 
-In order to avoid being banned by the financial website as a web crawler, this download process is also delayed for 3 seconds, and each stock download is about 6 seconds.
+In order to avoid being banned by the financial website as a web crawler, this download process is also delayed for 3 seconds, hence download time for each stock is about 6 seconds.
 
-There is no need to manually download the daily stock data, the program will automatically download and cache it in the cache/market directory when it is used.
+There is no need to manually download the daily data, the program will automatically download latest daily data and cache it in the cache/market directory when it is to be used.
 
 #### Technical indicators
 
@@ -177,9 +177,9 @@ Some moving average algorithms and trading indicators are pre-defined in the pro
 ```bash
 hiquant indicator bench stockpool/mystocks.csv -out=stockpool/mystocks_ind.csv
 ```
-By executing this command, you can filter the best-performing indicators for each stock, sort them according to their returns, and output them to stockpool/mystocks_ind.csv
+By executing this command, we can filter the best-performing indicators for each stock, sort them according to their returns, and output them to stockpool/mystocks_ind.csv
 
-In addition, you can also view the performance of a certain stock's technical indicators more intuitively through the visualization of the drawing alone.
+In addition, we can also view the performance of a certain stock's technical indicators more intuitively through the visualization of the drawing alone.
 
 For example: plot a single or multiple indicators, and the performance of these indicators signal trading results:
 ```bash
@@ -304,7 +304,7 @@ push_to = email_1
 
 [email_1]
 push_type = email
-mailto = your_name@gmail.com
+mailto = my_name@gmail.com
 sender = no-reply@gmail.com
 server = 192.168.0.200
 user = 
@@ -318,7 +318,7 @@ Historical market data can be used to backtrade the investment portfolio (the de
 hiquant fund backtrade etc/myfund.conf
 ```
 
-You can also specify any time period (year, month, day format: YYYYMMDD) for backtrade testing:
+We can also specify any time period (year, month, day format: YYYYMMDD) for backtrade testing:
 ```bash
 hiquant fund backtrade etc/myfund 20160101 20210101
 ```
@@ -326,7 +326,7 @@ hiquant fund backtrade etc/myfund 20160101 20210101
 The results of the backtrade testing are shown with plot:
 ![Back trade](back_trade.png)
 
-If you describe multiple portfolios in fund_list, you can test multiple portfolios at the same time and compare the results together with plotting:
+If we describe multiple portfolios in fund_list, we can test multiple portfolios at the same time and compare the results together with plotting:
 ![Multi funds](multi_funds.png)
 
 ### Step 9, Real-market simulation, monitor market changes and remind to buy/sell
@@ -335,7 +335,7 @@ In order to receive email reminders, please modify the email parameter configura
 ```
 [email_1]
 push_type = email
-mailto = your_name@gmail.com
+mailto = my_name@gmail.com
 sender = no-reply@gmail.com
 server = 192.168.0.200
 user = 
@@ -349,7 +349,7 @@ hiquant fund run etc/myfund.conf
 
 It will pull the related stock daily data first. If the stock market is not yet opened, it will wait. If it is at the opening time, it will pull the latest stock price/volume data every few minutes, make judgments with the specified strategy.
 
-Once the trading conditions are triggered, the transaction will be simulated, and an email will be sent to remind you to buy or sell stocks.
+Once the trading conditions are triggered, the transaction will be simulated, and an email will be sent to remind us to buy or sell stocks.
 
 ### Step 10, Strategy and parameter tuning
 
