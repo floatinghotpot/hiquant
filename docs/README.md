@@ -69,8 +69,8 @@ Notice:
 
 Advice:
 1. Download the financial reports once a quarter, as they are not updated frequently.
-2. nly download daily data of those stocks concerned, no need to download every stock.
-3. rrange the download task to executed in nights.
+2. Only download daily data of those stocks concerned, no need to download every stock.
+3. Arrange the download task to executed in nights.
 
 ```bash
 # download financial reports (balance, income, cashflow, ipo info, dividend history)
@@ -92,7 +92,7 @@ Comments on arguments:
 -ipo_years=3-         filter condition: IPO > 3 years
 -earn_ttm=1.0-        filter condition: Earn TTM > 0.1 Billion
 -roe=0.20-1.0         filter condition: 20% < ROE < 100%
--3yr_grow_rate=0.20-  filter condition: Grow rate of net assets in recent 3 years > 20%
+-3yr_grow_rate=0.20-  filter condition: Annual grow rate of net assets in recent 3 years > 20%
 
 -sortby=roe                     Sort by ROE
 -desc                           Sort descending, else ascending
@@ -102,7 +102,7 @@ Logic of the filter condition:
 1, Must on market for over 3 years.
 2, Must earn money, annual profit no less than 0.1 Billion.
 3, ROE > 20% (It is said that Buffett’s stock picking requirements are like this）
-4, Grow rate of net assets in recent 3 years > 20%
+4, Annual grow rate of net assets in recent 3 years > 20%
 
 Note: each column key can be used as filter or sort key
 
@@ -313,25 +313,25 @@ passwd =
 
 ### Step 8, Simulated backtrade
 
-Historical market data can be used to test the investment portfolio back and forth (the default is to back-test for 3 years):
+Historical market data can be used to backtrade the investment portfolio (the default testing period is 3 years):
 ```bash
 hiquant fund backtrade etc/myfund.conf
 ```
 
-You can also specify any time period (year, month, day format: YYYYMMDD) for backtesting:
+You can also specify any time period (year, month, day format: YYYYMMDD) for backtrade testing:
 ```bash
 hiquant fund backtrade etc/myfund 20160101 20210101
 ```
 
-The results of the back test are shown with plot:
+The results of the backtrade testing are shown with plot:
 ![Back trade](back_trade.png)
 
-If you describe multiple portfolio configuration information in fund_list, you can test multiple portfolio strategies at the same time and compare the results together:
+If you describe multiple portfolios in fund_list, you can test multiple portfolios at the same time and compare the results together with plotting:
 ![Multi funds](multi_funds.png)
 
 ### Step 9, Real-market simulation, monitor market changes and remind to buy/sell
 
-In order to receive email reminders, please modify the email parameter configuration in myfund.conf (recipient, sender, server, etc.)
+In order to receive email reminders, please modify the email parameter configuration in myfund.conf (mailto, sender, server, etc.)
 ```
 [email_1]
 push_type = email
@@ -342,14 +342,14 @@ user =
 passwd =
 ```
 
-Then, run following command:
+Then, run following command to run realtime simulation:
 ```bash
 hiquant fund run etc/myfund.conf
 ```
 
-If the stock market has not yet opened, it will wait; if it is at the opening time, it will obtain the latest stock price from the financial website every few minutes and make judgments based on the specified strategy.
+It will pull the related stock daily data first. If the stock market is not yet opened, it will wait. If it is at the opening time, it will pull the latest stock price/volume data every few minutes, make judgments with the specified strategy.
 
-If the trading conditions are triggered, the transaction will be simulated and an email will be sent to remind you to buy or sell stocks.
+Once the trading conditions are triggered, the transaction will be simulated, and an email will be sent to remind you to buy or sell stocks.
 
 ### Step 10, Strategy and parameter tuning
 
