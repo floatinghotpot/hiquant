@@ -98,11 +98,11 @@ Comments on arguments:
 -desc                           Sort descending, else ascending
 -out=stockpool/good_stock.csv   Export result into file: stockpool/good_stock.csv
 ```
-Logic of the filter condition:
-1, Must on market for over 3 years.
-2, Must earn money, annual profit no less than 0.1 Billion.
-3, ROE > 20% (It is said that Buffett’s stock picking requirements are like this）
-4, Annual grow rate of net assets in recent 3 years > 20%
+Logic of the filter conditions:
+1. Must on market for over 3 years.
+2. Must earn money, annual profit no less than 0.1 Billion.
+3. ROE > 20% (It is said that Buffett’s stock picking requirements are like this）
+4. Annual grow rate of net assets in recent 3 years > 20%
 
 Note: each column key can be used as filter or sort key
 
