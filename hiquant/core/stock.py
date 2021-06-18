@@ -88,7 +88,7 @@ class Stock:
 
     # Visualization
     # --------------------------------------------------------------------------------
-    def plot(self):
+    def plot(self, red_up = True, to_file = None):
         # to correctly display Chinese text
         # download TTF files:
         # https://raw.githubusercontent.com/StellarCN/scp_zh/master/fonts/SimHei.ttf
@@ -108,11 +108,11 @@ class Stock:
 
         # China market candle color, red for up, green for down
         mc = mpf.make_marketcolors(
-            up = "red",
-            down = "green",
-            edge = "i",
-            wick = "i",
-            volume = "in",
+            up = 'red' if red_up else 'green',
+            down = 'green' if red_up else 'red',
+            edge = 'i',
+            wick = 'i',
+            volume = 'in',
             inherit = True
         )
         style = mpf.make_mpf_style(
@@ -196,23 +196,26 @@ class Stock:
             next_panel = next_panel +1
             panel_ratios.append(1.0 if (len(ret_cols)>1) else 1.0)
 
-        fig, axes = mpf.plot(df[['open','close','high','low','volume']],
-            title = self.symbol + ' - ' + self.name,
-            type = "candle",
-            volume = True,
-            datetime_format = '%Y-%m-%d',
-            ylabel = "price",
-            ylabel_lower = "volume",
-            figratio = (10,6),
-            figscale = 1.0,
-            panel_ratios = panel_ratios,
-            tight_layout = True,
-            style = style,
-            addplot = more_plot,
-            returnfig = True,
-            warn_too_much_data = 244 * 5,
-            #savefig = 'output/candle.jpg',
-            )
+        kwargs = {
+            'title': self.symbol + ' - ' + self.name,
+            'type': "candle",
+            'volume': True,
+            'datetime_format': '%Y-%m-%d',
+            'ylabel': "price",
+            'ylabel_lower': "volume",
+            'figratio': (10,6),
+            'figscale': 1.0,
+            'panel_ratios': panel_ratios,
+            'tight_layout': True,
+            'style': style,
+            'addplot': more_plot,
+            'returnfig': True,
+            'warn_too_much_data': 244 * 5,
+        }
+        if to_file is not None:
+            kwargs[ 'savefig' ] = to_file
+
+        fig, axes = mpf.plot(df[['open','close','high','low','volume']], **kwargs)
 
         # matplotlib subplot does not support legend, we do it by ourselves
         if(len(ret_cols) > 1):

@@ -20,16 +20,16 @@ class Fund:
 
     verbose = False
 
-    def set_verbose(self, verbose = True):
-        self.verbose = verbose
-        if self.agent is not None:
-            self.agent.set_verbose(verbose)
-
     def __init__(self, market, trader, fund_id, fund_conf):
         self.market = market
         self.trader = trader
         self.fund_id = fund_id
         self.conf = fund_conf
+
+    def set_verbose(self, verbose = True):
+        self.verbose = verbose
+        if self.agent is not None:
+            self.agent.set_verbose(verbose)
 
     def set_agent(self, agent, order_cost):
         self.agent = agent

@@ -18,9 +18,8 @@ def REF(data, length):
 
 # --------------------------------------------
 def NON_ZERO(data):
-    data = data.copy()
-    if data.eq(0).any().any():
-        data += sflt.epsilon
+    if data.eq(0).any():
+        return data + sflt.epsilon
     return data
 
 # --------------------------------------------

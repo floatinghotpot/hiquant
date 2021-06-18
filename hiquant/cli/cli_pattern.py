@@ -208,7 +208,7 @@ def get_k_value(price, pattern_date, length):
 
     return price
 
-def show_bar(data, title='None'):
+def show_bar(data, title='None', to_file = None):
     '''将价格数据按实体与影线进行组合
     Args:
         data: 处理好的价格数据，df类型
@@ -246,7 +246,11 @@ def show_bar(data, title='None'):
     plt.margins(x=0.0, y=0.05)
     plt.title(title)
     plt.xticks(rotation=45)
-    plt.show()
+
+    if to_file is None:
+        plt.show()
+    else:
+        plt.savefig(to_file)
 
 # 检查某标的在某日形成的形态，返回形态描述
 def discern_pattern(daily_df, date):
@@ -258,7 +262,7 @@ def discern_pattern(daily_df, date):
         if signal_series[-1] != 0:
             yield func.info['display_name']
 
-def cli_pattern_demo(pattern):
+def cli_pattern_demo(pattern, to_file = None):
     all_patterns = tl.get_function_groups()['Pattern Recognition']
     pattern = all_patterns[int(pattern) % len(all_patterns)] if pattern.isdigit() else pattern
     if pattern not in all_patterns:
@@ -281,7 +285,7 @@ def cli_pattern_demo(pattern):
         length = _talib_pattern_length[pattern]
         k_value = get_k_value(df, signal.index[0], length)
         title = '{} - {} : {}'.format(symbol, name, func.info['display_name'])
-        show_bar(k_value, title)
+        show_bar(k_value, title, to_file= to_file)
 
     else:
         print('\nPattern "{}" not found after searching all daily data in cache/market .'.format(pattern))
@@ -321,8 +325,13 @@ Example:
         cli_pattern_stat()
 
     elif action == 'demo':
+        to_file = None
+        for option in options:
+            if option.startswith('-to_file=') and (option.endswith('.png') or option.endswith('.jpg')):
+                to_file = option.replace('-to_file=', '')
+
         if len(params) > 0:
-            cli_pattern_demo(params[0])
+            cli_pattern_demo(params[0], to_file= to_file)
         else:
             print('\nError: pattern index or name exptected.')
 

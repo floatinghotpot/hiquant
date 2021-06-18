@@ -9,6 +9,7 @@ from ..utils import *
 
 def download_stock_list(param, verbose = False):
     df = ak.stock_info_a_code_name()
+    time.sleep(2)
     df.columns = ['symbol', 'name']
     if verbose:
         print(df)
@@ -16,6 +17,7 @@ def download_stock_list(param, verbose = False):
 
 def download_index_list(param, verbose = False):
     df = ak.stock_zh_index_spot()
+    time.sleep(2)
     df.columns = ['symbol', 'name', 'close', 'amount_diff', 'volume_diff', 'last_close', 'open', 'high', 'low', 'volume', 'amount']
     df = df[['symbol', 'name']]
     if verbose:
@@ -24,6 +26,7 @@ def download_index_list(param, verbose = False):
 
 def download_index_daily( symbol ):
     daily_df = ak.stock_zh_index_daily(symbol = symbol)
+    time.sleep(2)
     daily_df['date'] = pd.to_datetime(daily_df.index.date)
     daily_df.set_index('date', inplace=True, drop=True)
     return daily_df
@@ -416,6 +419,7 @@ def download_macro_bank_interest_rate(country):
     if country in funcs:
         func = funcs[ country ]
         data = func()
+        time.sleep(2)
         return pd.DataFrame({'date':data.index, 'rate':data.values})
     else:
         raise ValueError('Invalid country, not supported yet: ' + country)

@@ -84,7 +84,7 @@ class SimulatedAgent:
         name = market.get_name(symbol)
 
         str_now = market.current_time.strftime('%Y-%m-%d %H:%M:%S')
-        trade = '买入' if real_count > 0 else '卖出'
+        trade = 'buy' if real_count > 0 else 'sell'
         msg = '{} | {} {} | {}: {} * {} | {} {}'.format(str_now, symbol, name, trade, round(real_count), round(real_price,2), earn_str, comment)
         if self.verbose:
             print('\r'+msg)

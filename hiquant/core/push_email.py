@@ -24,6 +24,10 @@ class EmailPush( PushBase ):
         self.passwd = conf['passwd']
 
     def send(self, subject = 'HELLO', content = 'hello, world'):
+        if not self.mailto:
+            print('Error: email configuration missing.')
+            return
+
         msg = MIMEMultipart("alternative")
         msg['From'] = self.sender
         msg['To'] = self.mailto

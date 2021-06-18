@@ -28,13 +28,13 @@ class Trader:
 
     verbose = False
 
+    def __init__(self, market):
+        self.market = market
+
     def set_verbose(self, verbose = True):
         self.verbose = verbose
         for fund in self.funds:
             fund.set_verbose(verbose)
-
-    def __init__(self, market):
-        self.market = market
 
     def run_daily(self, func, context, time='open'):
         # map to time
@@ -75,7 +75,7 @@ class Trader:
             #if not fund.verbose:
             print('\r... {} ...'.format(date.strftime('%Y-%m-%d %H:%M:%S')), end='', flush=True)
 
-            next_date = date + dt.timedelta(days=1)
+            next_date = min(date + dt.timedelta(days=1), date_end)
 
             for fund in self.funds:
                 fund.before_day()
@@ -191,7 +191,7 @@ class Trader:
         print(report_df)
         print('-' * 80)
 
-    def plot(self, compare_index = None):
+    def plot(self, compare_index = None, out_file= None):
         df = pd.DataFrame([], index=pd.date_range(start = self.date_start, end = self.date_end))
         for fund in self.funds:
             stat_df = fund.get_stat()
@@ -235,4 +235,8 @@ class Trader:
             df[['drawdown']].plot(ax=axes[2], grid = True, sharex=axes[0], ylabel = 'drawdown (%)', legend=False)
 
             plt.xticks(rotation=45)
-            plt.show()
+
+            if out_file is not None:
+                plt.savefig(out_file)
+            else:
+                plt.show()

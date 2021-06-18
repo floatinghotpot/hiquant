@@ -83,7 +83,7 @@ class HumanAgent(SimulatedAgent):
         self.last_order_time = market.current_time
 
         str_now = market.current_time.strftime('%Y-%m-%d %H:%M:%S')
-        trade = '买入' if real_count > 0 else '卖出'
+        trade = LANG('buy') if real_count > 0 else LANG('sell')
         msg = '{} | {} {} | {}: {} * {} | {} {}'.format(str_now, symbol, name, trade, round(real_count), round(real_price,2), earn_str, comment)
         print('\r'+msg)
 

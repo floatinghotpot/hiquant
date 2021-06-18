@@ -2,6 +2,7 @@
 
 import os
 from ..utils import datetime_today
+from .lang import LANG
 
 class Strategy:
     fund = None
@@ -100,19 +101,19 @@ class BasicStrategy( Strategy ):
                 cost = portfolio.positions[ symbol ].cost
                 if price <= cost * self.stop_loss:
                     diff = price / cost - 1
-                    sell_list[ symbol ] = '止损: {} %'.format(round(100*diff,2))
+                    sell_list[ symbol ] = LANG('stop loss') + ': {} %'.format(round(100*diff,2))
                 elif price >= cost * self.stop_earn:
                     diff = price / cost - 1
-                    sell_list[ symbol ] = '止盈: {} %'.format(round(100*diff,2))
+                    sell_list[ symbol ] = LANG('stop earn') + ' {} %'.format(round(100*diff,2))
                 elif (trade_signal < 0):
-                    sell_list[ symbol ] = '卖出信号: ' + self.get_signal_comment(symbol, trade_signal)
+                    sell_list[ symbol ] = LANG('signal') + self.get_signal_comment(symbol, trade_signal)
 
             if (trade_signal > 0) and (symbol in self.targets) and (not symbol in sell_list):
                 stock_value = 0.0
                 if symbol in portfolio.positions:
                     stock_value = price * portfolio.positions[ symbol ].shares
                 if stock_value < max_pos_per_stock:
-                    buy_list[ symbol ] = '买入信号: ' + self.get_signal_comment(symbol, trade_signal)
+                    buy_list[ symbol ] = LANG('signal') + self.get_signal_comment(symbol, trade_signal)
 
         # now sell first, we may need the cash to buy other stocks
         for symbol, reason in sell_list.items():

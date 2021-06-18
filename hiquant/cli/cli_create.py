@@ -5,6 +5,10 @@ from ..core.data_cache import *
 
 def init_hiquant_conf(config_file):
     hiquant_conf_template = '''
+[main]
+lang = zh
+market = cn, hk
+
 [order_cost]
 close_tax = 0.001
 open_commission = 0.0003

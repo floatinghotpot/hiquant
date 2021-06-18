@@ -1,5 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
+from hiquant.utils.args import dict_from_config_items
 import os
 import sys
 from tabulate import tabulate
@@ -66,9 +67,12 @@ Example:
     indicators = []
     topN = 5
     inplace = True
+    to_file = None
     for option in options:
         if option.startswith('-top'):
             topN = int(option.replace('-top',''))
+        if option.startswith('-to_file=') and (option.endswith('.png') or option.endswith('.jpg')):
+            to_file = option.replace('-to_file=', '')
         else:
             k = option.replace('-','')
             if (k in all_indicators) and (not k in indicators):
@@ -84,12 +88,7 @@ Example:
         print( 'reading config from from:', config_file)
         config = configparser.ConfigParser()
         config.read(config_file, encoding='utf-8')
-        order_cost_conf = {}
-        print('[order_cost]')
-        for k, v in config.items('order_cost'):
-            order_cost_conf[k] = v
-            print(k, '=', v)
-        print('-' * 80)
+        order_cost_conf = dict_from_config_items(config.items('order_cost'))
         order_cost = OrderCost(
             float(order_cost_conf['close_tax']),
             float(order_cost_conf['open_commission']),
@@ -111,4 +110,4 @@ Example:
     other_indicators = ranked_indicators[topN:]
     df.drop(columns = other_indicators, inplace=True)
 
-    stock.plot()
+    stock.plot(to_file= to_file)

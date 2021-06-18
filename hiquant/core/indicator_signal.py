@@ -17,7 +17,14 @@ def signal_to_long(signal, long_value = 1, short_value = 0):
 def long_to_signal(trend):
     return trend.diff(1).fillna(0)
 
-_registered_signal_indicators = {}
+_registered_signal_indicators = {
+    # id: {
+    # 'func': function(),
+    # 'cols': [],
+    # 'type': '',
+    # 'label': '',
+    # }
+}
 
 def get_all_signal_indicators():
     return _registered_signal_indicators

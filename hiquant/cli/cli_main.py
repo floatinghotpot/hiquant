@@ -7,8 +7,11 @@ import sys
 import os
 sys.path.append(os.getcwd())
 
-from ..core import parse_params_options
+import configparser
+
 from ..version import __version__
+from ..utils import parse_params_options, dict_from_config_items
+from ..core import set_lang
 
 from .cli_create import cli_create
 from .cli_finance import cli_finance
@@ -22,7 +25,7 @@ from .cli_index import cli_index
 from .cli_pattern import cli_pattern
 from .cli_indicator import cli_indicator
 
-def cli_main():
+def cli_main_params_options(params, options):
     # parse command line arguments
     syntax_tips = '''Syntax:
     __argv0__ <command> [options]
@@ -86,7 +89,6 @@ Example:
         'pattern': cli_pattern,
     }
 
-    params, options = parse_params_options(sys.argv)
     if ('-v' in options) or ('--version' in options):
         print( __version__ )
         return
@@ -94,6 +96,15 @@ Example:
     if len(params) == 0:
         print( syntax_tips )
         return
+
+    config_file = 'hiquant.conf'
+    if os.path.isfile(config_file):
+        print( 'reading config from from:', config_file)
+        config = configparser.ConfigParser()
+        config.read(config_file, encoding='utf-8')
+        main_conf = dict_from_config_items(config.items('main'))
+        if 'lang' in main_conf:
+            set_lang(main_conf['lang'])
 
     command, params = params[0], params[1:]
 
@@ -121,6 +132,10 @@ Example:
         print( syntax_tips )
 
     print('')
+
+def cli_main():
+    params, options = parse_params_options(sys.argv)
+    cli_main_params_options(params, options)
 
 if __name__ == "__main__":
     cli_main()

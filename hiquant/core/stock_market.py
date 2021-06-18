@@ -24,27 +24,39 @@ class Market:
     current_date = None
     current_time = None
 
-    def set_verbose(self, verbose = True):
-        self.verbose = verbose
-
-    def is_open(self):
-        # return True
-        now = dt.datetime.now()
-        wday = now.weekday() +1
-        # monday to friday, 9:00 - 15:00 treat as open time
-        return (wday>=1) and (wday<=5) and (now.hour>=9 and now.hour<15)
+    force_open = False
 
     def __init__(self, start, end, adjust = 'hfq'):
         self.date_start = start
         self.date_end = end
+        self.current_date = self.current_time = start
 
         self.all_symbol_name = dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
 
         self.adjust = adjust
         self.last_spot_time = dt.datetime.now() - dt.timedelta(minutes =10)
 
-        self.default_order_cost = OrderCost(0.001, 0.0003, 0.0003, 5.0)
-        self.symbol_order_cost = {}
+    def set_verbose(self, verbose = True):
+        self.verbose = verbose
+
+    # for testing purpose
+    def set_force_open(self, force_open = True):
+        self.force_open = force_open
+
+    # for testing purpose
+    def set_date_range(self, start, end):
+        self.date_start = start
+        self.date_end = end
+        self.current_date = self.current_time = start
+
+    def is_open(self):
+        if self.force_open:
+            return True
+
+        now = dt.datetime.now()
+        wday = now.weekday() +1
+        # monday to friday, 9:00 - 15:00 treat as open time
+        return (wday>=1) and (wday<=5) and (now.hour>=9 and now.hour<15)
 
     def load_history_price(self, symbol):
         if symbol.startswith('sh') or symbol.startswith('sz'):
