@@ -67,12 +67,12 @@ Example:
     indicators = []
     topN = 5
     inplace = True
-    to_file = None
+    out_file = None
     for option in options:
         if option.startswith('-top'):
             topN = int(option.replace('-top',''))
-        elif option.startswith('-to_file=') and (option.endswith('.png') or option.endswith('.jpg')):
-            to_file = option.replace('-to_file=', '')
+        elif option.startswith('-out=') and (option.endswith('.png') or option.endswith('.jpg')):
+            out_file = option.replace('-out=', '')
         else:
             k = option.replace('-','')
             if (k in all_indicators) and (not k in indicators):
@@ -110,4 +110,4 @@ Example:
     other_indicators = ranked_indicators[topN:]
     df.drop(columns = other_indicators, inplace=True)
 
-    stock.plot(to_file= to_file)
+    stock.plot(out_file= out_file)

@@ -138,9 +138,14 @@ def cli_run_fund(config_file, start, end, options):
     end_tick = dt.datetime.now()
     print('time used:', (end_tick - start_tick))
 
+    out_file = None
+    for option in options:
+        if option.startswith('-out=') and option.endswith('.png'):
+            out_file = option.replace('-out=', '')
+
     # compare with an index
     compare_index = main_conf['compare_index'] if ('compare_index' in main_conf) else None
-    trader.plot(compare_index= compare_index)
+    trader.plot(compare_index= compare_index, out_file= out_file)
 
     print('Done.\n')
 

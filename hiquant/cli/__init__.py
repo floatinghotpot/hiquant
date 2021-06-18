@@ -11,4 +11,4 @@ from .cli_indicator import cli_indicator
 from .cli_pattern import cli_pattern
 from .cli_strategy import cli_strategy
 from .cli_fund import cli_fund
-from .cli_main import cli_main
+from .cli_main import cli_main_params_options, cli_main

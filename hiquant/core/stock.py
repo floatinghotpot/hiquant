@@ -88,7 +88,7 @@ class Stock:
 
     # Visualization
     # --------------------------------------------------------------------------------
-    def plot(self, red_up = True, to_file = None):
+    def plot(self, red_up = True, out_file = None):
         # to correctly display Chinese text
         # download TTF files:
         # https://raw.githubusercontent.com/StellarCN/scp_zh/master/fonts/SimHei.ttf
@@ -212,8 +212,8 @@ class Stock:
             'returnfig': True,
             'warn_too_much_data': 244 * 5,
         }
-        if to_file is not None:
-            kwargs[ 'savefig' ] = to_file
+        if out_file is not None:
+            kwargs[ 'savefig' ] = out_file
 
         fig, axes = mpf.plot(df[['open','close','high','low','volume']], **kwargs)
 

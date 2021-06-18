@@ -11,5 +11,4 @@ def test_stock():
 
     stock = Stock('600036', '招商银行', df)
     stock.add_indicator(['macd', 'kdj', 'ma'], inplace= True)
-    #stock.plot()
-    stock.plot(to_file = 'output/test_stock.png')
+    stock.plot(out_file = 'output/test_stock.png')

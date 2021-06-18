@@ -3,7 +3,7 @@
 import datetime as dt
 from hiquant import *
 
-def test_backtrade():
+def XXXtest_backtrade():
     # test back trade
     date_start = date_from_str('1 months ago')
     date_end = date_from_str('yesterday')
@@ -26,7 +26,7 @@ def test_backtrade():
     trader.print_report()
     trader.plot(compare_index= 'sh000300', out_file='output/test_trader.png')
 
-def test_run():
+def XXXtest_run():
     date_start = date_from_str('today')
     date_end = date_from_str('tomorrow')
     market = Market(date_start, date_end)

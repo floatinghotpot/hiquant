@@ -208,7 +208,7 @@ def get_k_value(price, pattern_date, length):
 
     return price
 
-def show_bar(data, title='None', to_file = None):
+def show_bar(data, title='None', out_file = None):
     '''将价格数据按实体与影线进行组合
     Args:
         data: 处理好的价格数据，df类型
@@ -247,10 +247,10 @@ def show_bar(data, title='None', to_file = None):
     plt.title(title)
     plt.xticks(rotation=45)
 
-    if to_file is None:
+    if out_file is None:
         plt.show()
     else:
-        plt.savefig(to_file)
+        plt.savefig(out_file)
 
 # 检查某标的在某日形成的形态，返回形态描述
 def discern_pattern(daily_df, date):
@@ -262,12 +262,12 @@ def discern_pattern(daily_df, date):
         if signal_series[-1] != 0:
             yield func.info['display_name']
 
-def cli_pattern_demo(pattern, to_file = None):
+def cli_pattern_plot(pattern, out_file = None):
     all_patterns = tl.get_function_groups()['Pattern Recognition']
     pattern = all_patterns[int(pattern) % len(all_patterns)] if pattern.isdigit() else pattern
     if pattern not in all_patterns:
         print('\nError: pattern "{}" not exists'.format(pattern))
-        return
+        return False
 
     func = abstract.Function(pattern)
     symbol, signal, df = find_pattern(func)
@@ -285,11 +285,13 @@ def cli_pattern_demo(pattern, to_file = None):
         length = _talib_pattern_length[pattern]
         k_value = get_k_value(df, signal.index[0], length)
         title = '{} - {} : {}'.format(symbol, name, func.info['display_name'])
-        show_bar(k_value, title, to_file= to_file)
+        show_bar(k_value, title, out_file= out_file)
+        return True
 
     else:
         print('\nPattern "{}" not found after searching all daily data in cache/market .'.format(pattern))
         print('You can try again after download more daily data.\n')
+        return False
 
 def cli_pattern(params, options):
     syntax_tips = '''Syntax:
@@ -324,14 +326,21 @@ Example:
     elif action == 'stat':
         cli_pattern_stat()
 
-    elif action == 'demo':
-        to_file = None
+    elif action in ['demo', 'plot']:
+        out_file = None
         for option in options:
-            if option.startswith('-to_file=') and (option.endswith('.png') or option.endswith('.jpg')):
-                to_file = option.replace('-to_file=', '')
+            if option.startswith('-out=') and option.endswith('.png'):
+                out_file = option.replace('-out=', '')
 
         if len(params) > 0:
-            cli_pattern_demo(params[0], to_file= to_file)
+            if params[0] == 'all':
+                all_patterns = tl.get_function_groups()['Pattern Recognition']
+                for pattern in all_patterns:
+                    out_file = 'output/{}.png'.format(pattern)
+                    if cli_pattern_plot(pattern, out_file= out_file):
+                        print('pattern "{}" saved to: {}'.format(pattern, out_file))
+            else:
+                cli_pattern_plot(params[0], out_file= out_file)
         else:
             print('\nError: pattern index or name exptected.')
 
