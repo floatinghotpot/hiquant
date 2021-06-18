@@ -71,7 +71,7 @@ Example:
     for option in options:
         if option.startswith('-top'):
             topN = int(option.replace('-top',''))
-        if option.startswith('-to_file=') and (option.endswith('.png') or option.endswith('.jpg')):
+        elif option.startswith('-to_file=') and (option.endswith('.png') or option.endswith('.jpg')):
             to_file = option.replace('-to_file=', '')
         else:
             k = option.replace('-','')
