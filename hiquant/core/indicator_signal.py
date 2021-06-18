@@ -2,19 +2,19 @@
 
 import pandas as pd
 
-def SIGNAL_2_TREND(signal):
+def signal_to_long(signal, long_value = 1, short_value = 0):
     trend = [0 for i in range(signal.size)]
     for i in range(0, signal.size):
         s = signal.iloc[i]
         if s > 0:
-            trend[i] = 1
+            trend[i] = long_value
         elif s < 0:
-            trend[i] = 0
+            trend[i] = short_value
         elif i > 0:
             trend[i] = trend[i-1]
     return pd.Series(trend, index=signal.index)
 
-def TREND_2_SIGNAL(trend):
+def long_to_signal(trend):
     return trend.diff(1).fillna(0)
 
 _registered_signal_indicators = {}
@@ -46,5 +46,5 @@ def gen_indicator_signal(df, indicators, inplace=False):
         else:
             print(k, 'not found in registered indicators')
 
-    long = SIGNAL_2_TREND(signal)
+    long = signal_to_long(signal)
     return long.diff(1).fillna(0)

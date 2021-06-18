@@ -8,10 +8,10 @@ from ..core.indicator_signal import register_signal_indicator
 
 # Vertical Horizontal Filter
 # --------------------------------------------
-def VHF(close, period = 28):
-    hcp = close.rolling(period, min_periods=1).max()
-    lcp = close.rolling(period, min_periods=1).min()
-    sm = (close - close.shift(1)).abs().rolling(period, min_periods=1).sum()
+def VHF(close, length = 28):
+    hcp = close.rolling(length, min_periods=1).max()
+    lcp = close.rolling(length, min_periods=1).min()
+    sm = (close - close.shift(1)).abs().rolling(length, min_periods=1).sum()
     vhf = (hcp - lcp) / sm
     return vhf
 

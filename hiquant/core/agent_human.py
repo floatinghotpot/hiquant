@@ -38,7 +38,7 @@ class HumanAgent(SimulatedAgent):
         self.portfolio = Portfolio(self.market)
         self.last_order_time = self.market.current_time
         if os.path.isfile(self.portfolio_load_file):
-            load_modified_time = self.get_file_modify_time(self.portfolio_load_file)
+            load_modified_time = get_file_modify_time(self.portfolio_load_file)
             self.portfolio.from_csv( self.portfolio_load_file )
             self.last_load_modified_time = load_modified_time
             print('\n... {} |'.format(str_now()), 'loaded:', self.portfolio_load_file, load_modified_time)
@@ -85,8 +85,7 @@ class HumanAgent(SimulatedAgent):
         str_now = market.current_time.strftime('%Y-%m-%d %H:%M:%S')
         trade = '买入' if real_count > 0 else '卖出'
         msg = '{} | {} {} | {}: {} * {} | {} {}'.format(str_now, symbol, name, trade, round(real_count), round(real_price,2), earn_str, comment)
-        if self.verbose:
-            print('\r'+msg)
+        print('\r'+msg)
 
         if self.order_file:
             fp = open(self.order_file, 'a+')

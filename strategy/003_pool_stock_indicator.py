@@ -3,11 +3,11 @@ from hiquant import *
 
 class StrategyStockIndicator( BasicStrategy ):
     symbol_indicators = {}
-    default_indicators = []
+    indicators = []
 
     def __init__(self, fund, strategy_file):
         super().__init__(fund, strategy_file)
-        self.default_indicators = self.conf['default_indicators'].replace(' ','').split('+')
+        self.default_indicators = self.conf['indicators'].replace(' ','').split('+')
 
     def select_stock(self):
         # read stock from stock pool
@@ -27,7 +27,7 @@ class StrategyStockIndicator( BasicStrategy ):
         else:
             df = market.get_daily(symbol, end = market.current_date, count = 60)
 
-        indicators = self.symbol_indicators[symbol] if (symbol in self.symbol_indicators) else self.default_indicators
+        indicators = self.symbol_indicators[symbol] if (symbol in self.symbol_indicators) else self.indicators
         return gen_indicator_signal(df, indicators)
 
     def get_signal_comment(self, symbol, signal):
