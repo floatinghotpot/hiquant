@@ -8,14 +8,14 @@ def test_fund():
     market = Market(date_start, date_end)
 
     df = get_stockpool_df(['600036', '000002'])
-    df.to_csv('stockpool/mytest.csv', index= False)
+    df.to_csv('output/mytest.csv', index= False)
 
     trader = Trader(market)
     fund = Fund(market, trader, 'fund_1', {
         'name': 'fund no.1',
         'start_cash': '1000000.00',
         'strategy': 'strategy/001_pool_macd.py',
-        'stock_pool': 'stockpool/mytest.csv',
+        'stock_pool': 'output/mytest.csv',
     })
     fund.set_verbose()
     fund.init_fund()

@@ -9,12 +9,15 @@ def test_backtrade():
     date_end = date_from_str('yesterday')
     market = Market(date_start, date_end)
 
+    df = get_stockpool_df(['600036', '000002'])
+    df.to_csv('output/mytest.csv', index= False)
+
     trader = Trader(market)
     fund = Fund(market, trader, 'fund_1', {
         'name': 'fund no.1',
         'start_cash': '1000000.00',
         'strategy': 'strategy/001_pool_macd.py',
-        'stock_pool': 'stockpool/example.csv',
+        'stock_pool': 'output/mytest.csv',
     })
     trader.add_fund(fund)
     market.set_verbose()
@@ -34,7 +37,7 @@ def test_run():
         'name': 'fund no.1',
         'start_cash': '1000000.00',
         'strategy': 'strategy/001_pool_macd.py',
-        'stock_pool': 'stockpool/example.csv',
+        'stock_pool': 'output/mytest.csv',
     })
     trader.add_fund(fund)
     market.set_verbose()
