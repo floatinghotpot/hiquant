@@ -27,7 +27,7 @@ class Stock:
         df['daily_return'] = df.close.pct_change()
         if mix:
             signal = gen_indicator_signal(df, indicators, inplace=inplace)
-            long_trend = SIGNAL_2_TREND(signal)
+            long_trend = signal_to_long(signal)
             df['trade_signal'] = signal
             df['long_pos'] = long_trend.shift(1).fillna(0)
             df['act_return'] = df.long_pos * df.daily_return
@@ -48,7 +48,7 @@ class Stock:
         else:
             for k in indicators:
                 signal = gen_indicator_signal(df, [k], inplace=inplace)
-                long_trend = SIGNAL_2_TREND(signal)
+                long_trend = signal_to_long(signal)
                 long_pos = long_trend.shift(1).fillna(0)
                 act_return = long_pos * df.daily_return
 
