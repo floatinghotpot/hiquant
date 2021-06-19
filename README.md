@@ -3,7 +3,7 @@
 
 [阅读此文档的中文版本](https://github.com/floatinghotpot/hiquant/blob/master/README_zh.md)
 
-Hiquant is an out-of-box toolset for assiting stock investment and a library for study on quantitative trading.
+Hiquant is an out-of-box tool and framework for quantitative trading and study.
 
 It can run on any OS with Python 3, suggest Python v3.7+. 
 
