@@ -44,7 +44,7 @@ setuptools.setup(
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
     version = __version__,
-    description = 'Hiquant is an outbox python tool and libraries for quant trade and study',
+    description = 'Out-of-box python tool and framework for quantitative trading and study',
     long_description = long_description,
     long_description_content_type='text/markdown',
 
