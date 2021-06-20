@@ -196,22 +196,22 @@ class Stock:
             next_panel = next_panel +1
             panel_ratios.append(1.0 if (len(ret_cols)>1) else 1.0)
 
-        kwargs = {
-            'title': self.symbol + ' - ' + self.name,
-            'type': "candle",
-            'volume': True,
-            'datetime_format': '%Y-%m-%d',
-            'ylabel': "price",
-            'ylabel_lower': "volume",
-            'figratio': (10,6),
-            'figscale': 1.0,
-            'panel_ratios': panel_ratios,
-            'tight_layout': True,
-            'style': style,
-            'addplot': more_plot,
-            'returnfig': True,
-            'warn_too_much_data': 244 * 5,
-        }
+        kwargs = dict(
+            title = self.symbol + ' - ' + self.name,
+            type = "candle",
+            volume = True,
+            datetime_format = '%Y-%m-%d',
+            ylabel = "price",
+            ylabel_lower = "volume",
+            figratio = (10,6),
+            figscale = 1.0,
+            panel_ratios = panel_ratios,
+            tight_layout = True,
+            style = style,
+            addplot = more_plot,
+            returnfig = True,
+            warn_too_much_data = 244 * 5,
+        )
         if out_file is not None:
             kwargs[ 'savefig' ] = out_file
 
