@@ -31,21 +31,11 @@ class StrategyMacd( BasicStrategy ):
     def get_signal_comment(self, symbol, signal):
         return 'MACD 金叉' if (signal > 0) else 'MACD 死叉'
 
+    def before_market_open(self, param = None):
+        pass
+
+    def after_market_close(self, param = None):
+        pass
+
 def init(fund):
     strategy = StrategyMacd(fund, __file__)
-
-    # set call back timer
-    trader = fund.trader
-    trader.run_daily(before_market_open, strategy, time='before_open')
-    trader.run_on_bar_update(trade, strategy)
-    trader.run_daily(trade, strategy, time='14:30')
-    trader.run_daily(after_market_close, strategy, time='after_close')
-
-def before_market_open(strategy):
-    pass
-
-def trade(strategy):
-    strategy.trade()
-
-def after_market_close(strategy):
-    pass

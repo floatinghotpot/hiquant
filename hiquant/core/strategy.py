@@ -52,6 +52,12 @@ class BasicStrategy( Strategy ):
         concerned_stocks.sort()
         market.watch( concerned_stocks )
 
+        trader = fund.trader
+        trader.run_daily(self.before_market_open, None, time='before_open')
+        trader.run_on_bar_update(self.trade, None)
+        trader.run_daily(self.trade, None, time='14:30')
+        trader.run_daily(self.after_market_close, None, time='after_close')
+
     def select_stock(self):
         pass
 
@@ -61,7 +67,7 @@ class BasicStrategy( Strategy ):
     def get_signal_comment(self, symbol, signal):
         pass
 
-    def trade(self):
+    def trade(self, param = None):
         fund = self.fund
         market = fund.market
         agent = fund.agent
@@ -122,3 +128,9 @@ class BasicStrategy( Strategy ):
         # now buy
         for symbol, reason in buy_list.items():
             agent.order_target_value(symbol, max_pos_per_stock, comment = reason)
+
+    def before_market_open(self, param = None):
+        pass
+
+    def after_market_close(self, param = None):
+        pass
