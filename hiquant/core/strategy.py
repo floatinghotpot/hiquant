@@ -105,14 +105,20 @@ class BasicStrategy( Strategy ):
 
             if (symbol in portfolio.positions):
                 cost = portfolio.positions[ symbol ].cost
-                if price <= cost * self.stop_loss:
-                    diff = price / cost - 1
-                    sell_list[ symbol ] = LANG('stop loss') + ': {} %'.format(round(100*diff,2))
-                elif price >= cost * self.stop_earn:
-                    diff = price / cost - 1
-                    sell_list[ symbol ] = LANG('stop earn') + ' {} %'.format(round(100*diff,2))
-                elif (trade_signal < 0):
+                if (trade_signal < 0):
                     sell_list[ symbol ] = LANG('signal') + self.get_signal_comment(symbol, trade_signal)
+                elif (trade_signal > 0):
+                    # will handle it below
+                    pass
+                else:
+                    # only stop loss/earn when no signal to buy or sell
+                    # or else, may need buy again after sell
+                    if price <= cost * self.stop_loss:
+                        diff = price / cost - 1
+                        sell_list[ symbol ] = LANG('stop loss') + ': {} %'.format(round(100*diff,2))
+                    elif price >= cost * self.stop_earn:
+                        diff = price / cost - 1
+                        sell_list[ symbol ] = LANG('stop earn') + ' {} %'.format(round(100*diff,2))
 
             if (trade_signal > 0) and (symbol in self.targets) and (not symbol in sell_list):
                 stock_value = 0.0

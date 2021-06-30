@@ -8,4 +8,6 @@ add_lang('zh', {
     'stop loss': '止损',
     'stop earn': '止盈',
     'signal': '信号',
+    'You can buy': '建议买入',
+    'You can sell': '建议卖出',
 })

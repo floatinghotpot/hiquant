@@ -71,7 +71,7 @@ class HumanAgent(SimulatedAgent):
             load_modified_time = get_file_modify_time(self.portfolio_load_file)
             need_load = (load_modified_time > self.last_load_modified_time)
             if need_load:
-                self.portfolio = Portfolio(self.fund)
+                self.portfolio = Portfolio(self.market)
                 self.portfolio.from_csv( self.portfolio_load_file )
                 self.last_load_modified_time = load_modified_time
                 print('\n... {} |'.format(str_now()), 'reloaded:', self.portfolio_load_file, load_modified_time)

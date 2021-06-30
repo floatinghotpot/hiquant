@@ -8,4 +8,6 @@ add_lang('en', {
     'stop loss': 'stop loss',
     'stop earn': 'stop earn',
     'signal': 'signal',
+    'You can buy': 'You can buy',
+    'You can sell': 'You can sell',
 })
