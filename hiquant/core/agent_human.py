@@ -44,13 +44,11 @@ class HumanAgent(SimulatedAgent):
     def init_portfolio(self, start_cash):
         self.portfolio = Portfolio(self.market)
         self.last_order_time = self.market.current_time
-        if os.path.isfile(self.portfolio_load_file):
-            self.load_portoflio_from_file()
-        else:
-            self.portfolio.available_cash = start_cash
+        self.portfolio.available_cash = start_cash
 
     def before_day(self):
         super().before_day()
+        self.load_portoflio_from_file()
 
     def after_day(self):
         super().after_day()
