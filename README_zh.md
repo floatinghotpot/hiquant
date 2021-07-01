@@ -81,7 +81,7 @@ trader = Trader(market)
 fund = Fund(market, trader, 'fund_1', {
     'name': 'fund no.1',
     'start_cash': '1000000.00',
-    'strategy': 'strategy/001_pool_macd.py',
+    'strategy': 'strategy/stra_001_pool_macd.py',
     'stock_pool': 'output/mystock.csv',
 })
 trader.add_fund(fund)

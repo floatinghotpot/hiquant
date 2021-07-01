@@ -67,6 +67,45 @@ class BasicStrategy( Strategy ):
     def get_signal_comment(self, symbol, signal):
         pass
 
+    def get_trade_decision(self, symbol, market, portfolio, max_pos_per_stock):
+        if not market.allow_trading(symbol, market.current_date):
+            return symbol, 0, ''
+
+        price = market.get_price(symbol, market.current_date)
+        if price < 0.01:
+            return symbol, 0, ''
+
+        if market.current_date < datetime_today():
+            trade_signal = self.symbol_signal[ symbol ].loc[ market.current_date ]
+        else:
+            trade_signal = self.gen_trade_signal(symbol, init_data=False).iloc[-1]
+
+        if (symbol in portfolio.positions):
+            cost = portfolio.positions[ symbol ].cost
+            if (trade_signal < 0):
+                return symbol, -1, LANG('signal') + self.get_signal_comment(symbol, trade_signal)
+            elif (trade_signal > 0):
+                # will handle it below
+                pass
+            else:
+                # only stop loss/earn when no signal to buy or sell
+                # or else, may need buy again after sell
+                if price <= cost * self.stop_loss:
+                    diff = price / cost - 1
+                    return symbol, -1, LANG('stop loss') + ': {} %'.format(round(100*diff,2))
+                elif price >= cost * self.stop_earn:
+                    diff = price / cost - 1
+                    return symbol, -1, LANG('stop earn') + ' {} %'.format(round(100*diff,2))
+
+        if (trade_signal > 0) and (symbol in self.targets):
+            stock_value = 0.0
+            if symbol in portfolio.positions:
+                stock_value = price * portfolio.positions[ symbol ].shares
+            if stock_value < max_pos_per_stock:
+                return symbol, 1, LANG('signal') + self.get_signal_comment(symbol, trade_signal)
+
+        return symbol, 0, ''
+
     def trade(self, param = None):
         fund = self.fund
         market = fund.market
@@ -81,59 +120,25 @@ class BasicStrategy( Strategy ):
         concerned_stocks = list(set(self.targets) | set(portfolio.positions.keys()))
         concerned_stocks.sort()
         market.watch( concerned_stocks )
-        for symbol in concerned_stocks:
-            if not (symbol in self.symbol_signal):
-                if self.fund.verbose:
-                    print('\tinit history trade signal:', symbol)
-                self.symbol_signal[ symbol ] = self.gen_trade_signal(symbol, init_data=True)
+
+        stock_list = list(set(concerned_stocks) - self.symbol_signal.keys())
+        for symbol in stock_list:
+            if self.fund.verbose:
+                print('\tinit history trade signal:', symbol)
+            self.symbol_signal[ symbol ] = self.gen_trade_signal(symbol, True)
 
         # find out the stocks to sell or buy
-        sell_list = {}
-        buy_list = {}
-        for symbol in concerned_stocks:
-            if not market.allow_trading(symbol, market.current_date):
-                continue
-
-            price = market.get_price(symbol, market.current_date)
-            if price < 0.01:
-                continue
-
-            if market.current_date < datetime_today():
-                trade_signal = self.symbol_signal[ symbol ].loc[ market.current_date ]
-            else:
-                trade_signal = self.gen_trade_signal(symbol, init_data=False).iloc[-1]
-
-            if (symbol in portfolio.positions):
-                cost = portfolio.positions[ symbol ].cost
-                if (trade_signal < 0):
-                    sell_list[ symbol ] = LANG('signal') + self.get_signal_comment(symbol, trade_signal)
-                elif (trade_signal > 0):
-                    # will handle it below
-                    pass
-                else:
-                    # only stop loss/earn when no signal to buy or sell
-                    # or else, may need buy again after sell
-                    if price <= cost * self.stop_loss:
-                        diff = price / cost - 1
-                        sell_list[ symbol ] = LANG('stop loss') + ': {} %'.format(round(100*diff,2))
-                    elif price >= cost * self.stop_earn:
-                        diff = price / cost - 1
-                        sell_list[ symbol ] = LANG('stop earn') + ' {} %'.format(round(100*diff,2))
-
-            if (trade_signal > 0) and (symbol in self.targets) and (not symbol in sell_list):
-                stock_value = 0.0
-                if symbol in portfolio.positions:
-                    stock_value = price * portfolio.positions[ symbol ].shares
-                if stock_value < max_pos_per_stock:
-                    buy_list[ symbol ] = LANG('signal') + self.get_signal_comment(symbol, trade_signal)
+        decision_list = [self.get_trade_decision(symbol, market, portfolio, max_pos_per_stock) for symbol in concerned_stocks]
 
         # now sell first, we may need the cash to buy other stocks
-        for symbol, reason in sell_list.items():
-            agent.order_target(symbol, 0, comment = reason)
+        for symbol, signal, reason in decision_list:
+            if signal < 0:
+                agent.order_target(symbol, 0, comment = reason)
 
         # now buy
-        for symbol, reason in buy_list.items():
-            agent.order_target_value(symbol, max_pos_per_stock, comment = reason)
+        for symbol, signal, reason in decision_list:
+            if signal > 0:
+                agent.order_target_value(symbol, max_pos_per_stock, comment = reason)
 
     def before_market_open(self, param = None):
         pass

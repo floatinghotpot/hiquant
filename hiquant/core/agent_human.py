@@ -34,14 +34,18 @@ class HumanAgent(SimulatedAgent):
         self.portfolio_load_file = self.conf['portfolio_load'].replace('{account}', self.account)
         self.portfolio_save_file = self.conf['portfolio_save'].replace('{account}', self.account)
 
-    def init_portfolio(self, start_cash):
-        self.portfolio = Portfolio(self.market)
-        self.last_order_time = self.market.current_time
+    def load_portoflio_from_file(self):
         if os.path.isfile(self.portfolio_load_file):
             load_modified_time = get_file_modify_time(self.portfolio_load_file)
             self.portfolio.from_csv( self.portfolio_load_file )
             self.last_load_modified_time = load_modified_time
             print('\n... {} |'.format(str_now()), 'loaded:', self.portfolio_load_file, load_modified_time)
+
+    def init_portfolio(self, start_cash):
+        self.portfolio = Portfolio(self.market)
+        self.last_order_time = self.market.current_time
+        if os.path.isfile(self.portfolio_load_file):
+            self.load_portoflio_from_file()
         else:
             self.portfolio.available_cash = start_cash
 
@@ -71,10 +75,7 @@ class HumanAgent(SimulatedAgent):
             load_modified_time = get_file_modify_time(self.portfolio_load_file)
             need_load = (load_modified_time > self.last_load_modified_time)
             if need_load:
-                self.portfolio = Portfolio(self.market)
-                self.portfolio.from_csv( self.portfolio_load_file )
-                self.last_load_modified_time = load_modified_time
-                print('\n... {} |'.format(str_now()), 'reloaded:', self.portfolio_load_file, load_modified_time)
+                self.load_portoflio_from_file()
 
     def exec_order(self, symbol, real_count, real_price, earn_str = '', comment = ''):
         market = self.market
