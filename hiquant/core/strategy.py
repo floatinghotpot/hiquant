@@ -67,6 +67,11 @@ class BasicStrategy( Strategy ):
     def get_signal_comment(self, symbol, signal):
         pass
 
+    def init_trade_signal(self, symbol):
+        if self.fund.verbose:
+            print('\tinit history trade signal:', symbol)
+        return symbol, self.gen_trade_signal(symbol, True)
+
     def get_trade_decision(self, symbol, market, portfolio, max_pos_per_stock):
         if not market.allow_trading(symbol, market.current_date):
             return symbol, 0, ''
@@ -121,11 +126,10 @@ class BasicStrategy( Strategy ):
         concerned_stocks.sort()
         market.watch( concerned_stocks )
 
-        stock_list = list(set(concerned_stocks) - self.symbol_signal.keys())
-        for symbol in stock_list:
-            if self.fund.verbose:
-                print('\tinit history trade signal:', symbol)
-            self.symbol_signal[ symbol ] = self.gen_trade_signal(symbol, True)
+        symbol_list = list(set(concerned_stocks) - self.symbol_signal.keys())
+        symbol_signal_list = [self.init_trade_signal(symbol) for symbol in symbol_list]
+        for symbol, signal in symbol_signal_list:
+            self.symbol_signal[ symbol ] = signal
 
         # find out the stocks to sell or buy
         decision_list = [self.get_trade_decision(symbol, market, portfolio, max_pos_per_stock) for symbol in concerned_stocks]
