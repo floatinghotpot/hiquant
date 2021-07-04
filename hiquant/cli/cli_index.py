@@ -3,11 +3,10 @@
 import os
 import sys
 from tabulate import tabulate
-import configparser
 
-from ..core import date_from_str, dict_from_df, get_all_index_list_df
+from ..core import date_from_str, dict_from_df, get_all_index_list_df, get_order_cost
 from ..core import list_signal_indicators
-from ..core import Market, Stock, OrderCost
+from ..core import Market, Stock
 
 def cli_index(params, options):
     syntax_tips = '''Syntax:
@@ -57,26 +56,6 @@ Example:
     date_start = date_from_str(params[1] if len(params) > 1 else '3 years ago')
     date_end = date_from_str(params[2] if len(params) > 2 else 'yesterday')
 
-    config_file = 'hiquant.conf'
-    if os.path.isfile(config_file):
-        print( 'reading config from from:', config_file)
-        config = configparser.ConfigParser()
-        config.read(config_file, encoding='utf-8')
-        order_cost_conf = {}
-        print('[order_cost]')
-        for k, v in config.items('order_cost'):
-            order_cost_conf[k] = v
-            print(k, '=', v)
-        print('-' * 80)
-        order_cost = OrderCost(
-            float(order_cost_conf['close_tax']),
-            float(order_cost_conf['open_commission']),
-            float(order_cost_conf['close_commission']),
-            float(order_cost_conf['min_commission']),
-        )
-    else:
-        order_cost = OrderCost(0.001, 0.0003, 0.0003, 5.0)
-
     market = Market(date_start, date_end)
     df = market.get_daily(symbol, start = date_start, end = date_end)
     stock = Stock(symbol, name, df)
@@ -103,7 +82,7 @@ Example:
     mix = '-mix' in options
 
     # add indicators and calculate performance
-    stock.add_indicator(indicators, mix=mix, inplace= inplace, order_cost = order_cost)
+    stock.add_indicator(indicators, mix=mix, inplace= inplace, order_cost = get_order_cost())
 
     rank_df = stock.rank_indicator(by = 'final')
     if rank_df.shape[0] > 0:

@@ -21,6 +21,9 @@ class Stock:
         self.symbol = symbol
         self.name = name
         self.daily_df = daily_df
+        self.shares = 0
+        self.cost = 0.0
+        self.price = 0.0
 
     def add_indicator(self, indicators, mix = False, inplace = False, order_cost = None):
         df = self.daily_df

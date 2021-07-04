@@ -25,6 +25,11 @@ class Fund:
         self.trader = trader
         self.fund_id = fund_id
         self.conf = fund_conf
+        self.strategy = None
+        self.agent = None
+        self.stat_df = None
+        self.fund_name = ''
+        self.start_cash = 0.0
 
     def set_verbose(self, verbose = True):
         self.verbose = verbose

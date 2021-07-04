@@ -4,10 +4,11 @@ import os
 import sys
 import datetime as dt
 import configparser
+import multiprocessing as mp
 
 from ..utils import datetime_today, dict_from_config_items
-from ..core import seconds_from_str, date_from_str
-from ..core import Market, Trader, Fund, OrderCost, EmailPush, SimulatedAgent, HumanAgent
+from ..core import seconds_from_str, date_from_str, get_order_cost
+from ..core import Market, Trader, Fund, EmailPush, SimulatedAgent, HumanAgent
 
 def get_fund_conf_template():
     return '''
@@ -75,25 +76,6 @@ def cli_run_fund(config_file, start, end, options):
 
     start_tick = dt.datetime.now()
 
-    order_cost_conf = None
-    if 'order_cost' in global_config.sections():
-        order_cost_conf = dict_from_config_items(global_config.items('order_cost'))
-    else:
-        hiquant_conf_file = 'hiquant.conf'
-        if os.path.isfile(hiquant_conf_file):
-            config = configparser.ConfigParser()
-            config.read(hiquant_conf_file, encoding='utf-8')
-            order_cost_conf = dict_from_config_items(config.items('order_cost'))
-    if order_cost_conf is not None:
-        order_cost = OrderCost(
-            float(order_cost_conf['close_tax']),
-            float(order_cost_conf['open_commission']),
-            float(order_cost_conf['close_commission']),
-            float(order_cost_conf['min_commission']),
-        )
-    else:
-        order_cost = OrderCost(0.001, 0.0003, 0.0003, 5.0)
-
     # market is a global singleton
     market = Market(date_start - dt.timedelta(days=90), date_end)
     trader = Trader(market)
@@ -123,7 +105,7 @@ def cli_run_fund(config_file, start, end, options):
 
         if agent is None:
             agent = SimulatedAgent(market, None)
-        fund.set_agent( agent, order_cost )
+        fund.set_agent( agent, get_order_cost(global_config) )
 
         trader.add_fund(fund)
 
@@ -149,6 +131,96 @@ def cli_run_fund(config_file, start, end, options):
 
     print('Done.\n')
 
+# this func is prepared for multiprocessing
+def cli_one_trader_run_one_fund(args):
+    global_config, fund_id, date_start, date_end, tick_period, verbose = args
+
+    start_tick = dt.datetime.now()
+
+    fund_conf = dict_from_config_items(global_config.items(fund_id), verbose= verbose)
+
+    market = Market(date_start, date_end)
+    trader = Trader(market)
+    fund = Fund(market, trader, fund_id, fund_conf)
+
+    agent = None
+    if (date_end > datetime_today()) and ('agent' in fund_conf):
+        agent_conf = dict_from_config_items(global_config.items(fund_conf['agent']))
+        agent_type = agent_conf['agent_type']
+        if agent_type == 'human':
+            agent = HumanAgent(m, agent_conf)
+        #elif agent_type == 'automated':
+        #    agent = AutomatedAgent(market, agent_conf)
+        else:
+            agent = SimulatedAgent(market, agent_conf)
+
+        if (agent is not None) and ('push_to' in agent_conf):
+            push_list = agent_conf['push_to'].replace(' ','').split(',')
+            for push_to in push_list:
+                push_conf = dict_from_config_items(global_config.items(push_to))
+                push_type = push_conf['push_type']
+                if push_type == 'email':
+                    agent.add_push_service(EmailPush(push_conf))
+
+    if agent is None:
+        agent = SimulatedAgent(market, None)
+
+    fund.set_agent( agent, get_order_cost(global_config) )
+
+    trader.add_fund(fund)
+
+    market.set_verbose( verbose )
+    trader.set_verbose( verbose )
+
+    trader.run_fund(date_start, date_end, tick_period = tick_period)
+
+    end_tick = dt.datetime.now()
+    print(fund_id, 'time used:', (end_tick - start_tick))
+
+    return trader.get_fund_info()
+
+def cli_run_fund_multiprocessing(config_file, start, end, options):
+    verbose = '-d' in options
+
+    # read config file
+    print( 'reading config from from:', config_file)
+    if not os.path.isfile(config_file):
+        print('Error:', config_file, 'not eixsts\n')
+        exit()
+
+    global_config = configparser.ConfigParser()
+    global_config.read(config_file, encoding='utf-8')
+
+    main_conf = dict_from_config_items(global_config.items('main'), verbose= verbose)
+    tick_period = seconds_from_str( main_conf['tick_period'] ) if ('tick_period' in main_conf) else 60
+    compare_index = main_conf['compare_index'] if ('compare_index' in main_conf) else None
+
+    date_start = date_from_str( start )
+    date_end = date_from_str( end )
+
+    start_tick = dt.datetime.now()
+    fund_id_list = [fund_id for k, fund_id in global_config.items('fund_list')]
+    fund_args = [[global_config, fund_id, date_start, date_end, tick_period, verbose] for fund_id in fund_id_list]
+    with mp.Pool( len(fund_id_list) ) as p:
+        funds_list = p.map(cli_one_trader_run_one_fund, fund_args)
+    end_tick = dt.datetime.now()
+    print('Total time used:', (end_tick - start_tick))
+
+    all_funds = []
+    for funds in funds_list:
+        all_funds += funds
+
+    out_file = None
+    for option in options:
+        if option.startswith('-out=') and option.endswith('.png'):
+            out_file = option.replace('-out=', '')
+
+    trader = Trader(Market(date_start, date_end))
+    trader.print_report(all_funds)
+    trader.plot(fund_info = all_funds, compare_index= compare_index, out_file= out_file)
+
+    print('Done.\n')
+
 def cli_fund_backtrade(params, options):
     config_file = params[0]
     start = params[1] if len(params) > 1 else '3 years ago'
@@ -156,7 +228,7 @@ def cli_fund_backtrade(params, options):
     if '-q' in options:
         start = '3 months ago'
         end = '1 week ago'
-    cli_run_fund(config_file, start, end, options)
+    cli_run_fund_multiprocessing(config_file, start, end, options)
 
 def cli_fund_run(params, options):
     config_file = params[0]

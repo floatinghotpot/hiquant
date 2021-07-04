@@ -1,13 +1,11 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from hiquant.utils.args import dict_from_config_items
 import os
 import sys
 from tabulate import tabulate
-import configparser
 
-from ..core import list_signal_indicators, dict_from_df, get_all_stock_list_df
-from ..core import date_from_str, Market, Stock, OrderCost
+from ..core import list_signal_indicators, dict_from_df, get_all_stock_list_df, get_order_cost
+from ..core import date_from_str, Market, Stock
 
 def cli_stock(params, options):
     syntax_tips = '''Syntax:
@@ -83,23 +81,8 @@ Example:
 
     mix = '-mix' in options
 
-    config_file = 'hiquant.conf'
-    if os.path.isfile(config_file):
-        print( 'reading config from from:', config_file)
-        config = configparser.ConfigParser()
-        config.read(config_file, encoding='utf-8')
-        order_cost_conf = dict_from_config_items(config.items('order_cost'))
-        order_cost = OrderCost(
-            float(order_cost_conf['close_tax']),
-            float(order_cost_conf['open_commission']),
-            float(order_cost_conf['close_commission']),
-            float(order_cost_conf['min_commission']),
-        )
-    else:
-        order_cost = OrderCost(0.001, 0.0003, 0.0003, 5.0)
-
     # add indicators and calculate performance
-    stock.add_indicator(indicators, mix=mix, inplace= inplace, order_cost = order_cost)
+    stock.add_indicator(indicators, mix=mix, inplace= inplace, order_cost = get_order_cost())
 
     rank_df = stock.rank_indicator(by = 'final')
     if rank_df.shape[0] > 0:

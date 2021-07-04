@@ -27,13 +27,16 @@ class Market:
     force_open = False
 
     def __init__(self, start, end, adjust = 'hfq'):
+        self.all_symbol_name = dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
+        self.watching_symbols = []
+        self.symbol_daily = {}
+        self.symbol_adjust_factor = {}
+        self.symbol_daily_adjusted = {}
+
+        self.adjust = adjust
         self.date_start = start
         self.date_end = end
         self.current_date = self.current_time = start
-
-        self.all_symbol_name = dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
-
-        self.adjust = adjust
         self.last_spot_time = dt.datetime.now() - dt.timedelta(minutes =10)
 
     def set_verbose(self, verbose = True):

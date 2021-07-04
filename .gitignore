@@ -2,6 +2,8 @@
 .DS_Store
 .settings
 .idea
+.pytest_cache
+__pycache__
 *.iml
 hiquant.egg-info
 build
@@ -12,10 +14,8 @@ cache/pepb
 cache/bank
 data
 output
-human
 log
 tmp
 test1
 test2
 test3
-__pycache__

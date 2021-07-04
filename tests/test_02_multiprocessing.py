@@ -1,6 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from multiprocessing import Pool
+import multiprocessing as mp
 import datetime as dt
 
 def func(i):
@@ -14,7 +14,7 @@ def test_for(n = 20):
     print(input[-1], output[-1])
 
 def test_pool(n = 20):
-    with Pool(20) as p:
+    with mp.Pool(10) as p:
         input = [i for i in range(n)]
         output = p.map(func, input)
         print(input[-1], output[-1])
@@ -25,13 +25,15 @@ class A:
 
 def test_pool_class(n = 20):
     a = A()
-    with Pool(20) as p:
+    with mp.Pool(10) as p:
         input = [i for i in range(n)]
         output = p.map(a.method, input)
         print(input[-1], output[-1])
 
 if __name__ == "__main__":
-    n = 20
+    print('cpu count:', mp.cpu_count())
+
+    n = 40
     t1 = dt.datetime.now()
     test_for(n)
     t2 = dt.datetime.now()

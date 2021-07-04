@@ -30,6 +30,11 @@ class Trader:
 
     def __init__(self, market):
         self.market = market
+        self.date_start = market.date_start
+        self.date_end = market.date_end
+        self.funds = []
+        self.bar_callbacks = []
+        self.timer_callbacks = {}
 
     def set_verbose(self, verbose = True):
         self.verbose = verbose
@@ -169,16 +174,37 @@ class Trader:
         pass
 
     def get_report(self):
+        if funds is None:
+            funds = self.funds
+
         report_df = pd.DataFrame()
-        for fund in self.funds:
+        for fund in funds:
             row = fund.get_summary()
             if report_df.shape[0] == 0:
                 report_df = pd.DataFrame([], columns = list(row.keys()))
             report_df = report_df.append(row, ignore_index = True)
         return report_df
 
-    def print_report(self):
-        report_df = self.get_report()
+    def get_fund_info(self):
+        info = []
+        for fund in self.funds:
+            info.append({
+                'name': fund.fund_name,
+                'stat': fund.get_stat(),
+                'summary': fund.get_summary(),
+            })
+        return info
+
+    def print_report(self, fund_info = None):
+        if fund_info is None:
+            fund_info = self.get_fund_info()
+
+        report_df = pd.DataFrame()
+        for fund in fund_info:
+            row = fund['summary']
+            if report_df.shape[0] == 0:
+                report_df = pd.DataFrame([], columns = list(row.keys()))
+            report_df = report_df.append(row, ignore_index = True)
 
         report_df.set_index('fund_id', inplace=True, drop=True)
         report_df = report_df.T
@@ -191,17 +217,25 @@ class Trader:
         print(report_df)
         print('-' * 80)
 
-    def plot(self, compare_index = None, out_file= None):
-        df = pd.DataFrame([], index=pd.date_range(start = self.date_start, end = self.date_end))
-        for fund in self.funds:
-            stat_df = fund.get_stat()
+    def plot(self, fund_info = None, compare_index = None, out_file= None):
+        if fund_info is None:
+            fund_info = self.get_fund_info()
+
+        date_start = self.date_start if (self.date_start is not None) else self.market.date_start
+        date_end = self.date_end if (self.date_end is not None) else self.market.date_end
+
+        df = pd.DataFrame([], index=pd.date_range(start=date_start, end=date_end))
+        for fund in fund_info:
+            fund_name = fund['name']
+            stat_df = fund['stat']
 
             # if only one strategy, we also plot the buy/sell and drawdown
-            if len(self.funds) == 1:
+            if len(fund_info) == 1:
                 df = stat_df[['buy', 'sell', 'drawdown']]
 
             value = stat_df['value']
-            df[ fund.fund_name ] = (value / value.iloc[0] - 1) * 100.0
+            df[ fund_name ] = (value / value.iloc[0] - 1) * 100.0
+            df.index = stat_df.index
 
         if compare_index:
             index_name = dict_from_df(get_all_index_list_df(), 'symbol', 'name')
@@ -216,7 +250,7 @@ class Trader:
         df.index = df.index.strftime('%Y-%m-%d')
 
         # now plot to visualize
-        if len(self.funds) > 1:
+        if len(fund_info) > 1:
             # if multi strategy, we compare the performance
             df.plot(figsize = (10,6), grid = True, xlabel = 'date', ylabel = 'return (%)', title = 'performance')
             plt.show()
@@ -224,7 +258,7 @@ class Trader:
             # if only one strategy, we also plot the buy/sell and drawdown
             fig, axes = plt.subplots(nrows=3, gridspec_kw={'height_ratios': [3, 1, 1]})
 
-            fund_name = self.funds[0].fund_name
+            fund_name = fund_info[0]['name']
             df[[fund_name, compare_index_name]].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], label = 'date', ylabel = 'return (%)', title = 'performance')
 
             axes[1].bar(df.index, df.buy, color='r')
