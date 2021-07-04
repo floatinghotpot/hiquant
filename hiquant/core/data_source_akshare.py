@@ -7,7 +7,7 @@ import akshare as ak
 
 from ..utils import *
 
-def download_stock_list(param, verbose = False):
+def download_cn_stock_list(param, verbose = False):
     df = ak.stock_info_a_code_name()
     time.sleep(2)
     df.columns = ['symbol', 'name']
@@ -15,7 +15,7 @@ def download_stock_list(param, verbose = False):
         print(df)
     return df
 
-def download_index_list(param, verbose = False):
+def download_cn_index_list(param, verbose = False):
     df = ak.stock_zh_index_spot()
     time.sleep(2)
     df.columns = ['symbol', 'name', 'close', 'amount_diff', 'volume_diff', 'last_close', 'open', 'high', 'low', 'volume', 'amount']
@@ -24,14 +24,14 @@ def download_index_list(param, verbose = False):
         print(df)
     return df
 
-def download_index_daily( symbol ):
+def download_cn_index_daily( symbol ):
     daily_df = ak.stock_zh_index_daily(symbol = symbol)
     time.sleep(2)
     daily_df['date'] = pd.to_datetime(daily_df.index.date)
     daily_df.set_index('date', inplace=True, drop=True)
     return daily_df
 
-def download_stock_daily( symbol, adjust = '' ):
+def download_cn_stock_daily( symbol, adjust = '' ):
     start = '20000101'
     end = dt.datetime.now().strftime('%Y%m%d')
 

@@ -4,7 +4,7 @@ import os
 import sys
 from tabulate import tabulate
 
-from ..core import list_signal_indicators, dict_from_df, get_all_stock_list_df, get_order_cost
+from ..core import list_signal_indicators, get_all_stock_symbol_name, get_all_stock_list_df, get_order_cost
 from ..core import date_from_str, Market, Stock
 
 def cli_stock(params, options):
@@ -44,7 +44,7 @@ Example:
         print( 'Totally', df.shape[0], 'rows.\n')
         return
 
-    symbol_name = dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
+    symbol_name = get_all_stock_symbol_name()
 
     symbol = params[0]
     if symbol in symbol_name:

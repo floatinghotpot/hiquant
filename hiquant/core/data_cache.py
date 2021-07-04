@@ -4,6 +4,7 @@ import datetime as dt
 import pandas as pd
 
 from .data_source_akshare import *
+from .data_source_yfinance import *
 from ..utils import *
 
 def get_cached_download_df(csv_file, download_func, param = None, check_date = False):
@@ -28,11 +29,72 @@ def get_cached_download_df(csv_file, download_func, param = None, check_date = F
 
     return df
 
+def get_cn_stock_list_df(force_update= False):
+    return get_cached_download_df('cache/cn_stock_list.csv', download_cn_stock_list, check_date= force_update)
+
+def get_us_stock_list_df(force_update= False):
+    return get_cached_download_df('cache/us_stock_list.csv', download_us_stock_list, check_date= force_update)
+
+def get_cn_index_list_df(force_update= False):
+    return get_cached_download_df('cache/cn_index_list.csv', download_cn_index_list, check_date= force_update)
+
+def get_us_index_list_df(force_update= False):
+    return get_cached_download_df('cache/us_index_list.csv', download_us_index_list, check_date= force_update)
+
+_market_funcs_get_stock_df = {
+    'cn': get_cn_stock_list_df,
+    'us': get_us_stock_list_df,
+}
+
+_market_funcs_get_index_df = {
+    'cn': get_cn_index_list_df,
+    'us': get_us_index_list_df,
+}
+
+_market_funcs_download_stock_daily_df = {
+    'cn': download_cn_stock_daily,
+    'us': download_us_stock_daily,
+}
+
+_market_funcs_download_index_daily_df = {
+    'cn': download_cn_index_daily,
+    'us': download_us_index_daily,
+}
+
+_enabled_markets = ['cn', 'us']
+
+def get_supported_market():
+    return list(_market_funcs_get_stock_df.keys())
+
+def enable_market(markets):
+    if len(markets) == 0:
+        raise ValueError('Must select at least one market')
+    for market in markets:
+        if market not in get_supported_market():
+            raise ValueError('Market not supported yet: ' + market)
+    _enabled_markets = markets
+
+def get_enabled_market():
+    return _enabled_markets
+
 def get_all_stock_list_df(force_update= False):
-    return get_cached_download_df('cache/all_stock_list.csv', download_stock_list, check_date= force_update)
+    df = pd.DataFrame()
+    for market in _enabled_markets:
+        func = _market_funcs_get_stock_df[ market ]
+        market_df = func(force_update= force_update)[['symbol', 'name']]
+        df = df.append(market_df, ignore_index=True)
+    return df.reset_index(drop= True)
 
 def get_all_index_list_df(force_update= False):
-    return get_cached_download_df('cache/all_index_list.csv', download_index_list, check_date= force_update)
+    df = pd.DataFrame()
+    for market in _enabled_markets:
+        func = _market_funcs_get_index_df[ market ]
+        market_df = func(force_update= force_update)[['symbol', 'name']]
+        df.append(market_df, ignore_index=True)
+    return df.reset_index(drop= True)
+
+def get_cn_stock_symbol_name():
+    return dict_from_df(get_cn_stock_list_df(), 'symbol', 'name')
 
 def get_all_stock_symbol_name():
     return dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
@@ -43,17 +105,34 @@ def get_stockpool_df(symbols):
             return pd.read_csv(symbols, dtype=str)
         else:
             symbols = symbols.replace(' ','').split(',')
+    elif type(symbols) == list:
+        pass
+    else:
+        raise ValueError('Exptected: symbols as .csv, str, or list')
 
     df = get_all_stock_list_df()
+
     all_symbols = df['symbol'].tolist()
     invalid_symbols = list(set(symbols) - set(all_symbols))
     if len(invalid_symbols) > 0:
-        raise ValueError('Not found in stock list. Invalid symbols: ' + ', '.join(invalid_symbols))
+        raise ValueError('Symbol not found in list: ' + ', '.join(invalid_symbols))
 
     return df[ df['symbol'].isin(symbols) ].reset_index(drop=True)
 
+def symbol_market( symbol ):
+    if symbol[0].isdigit():
+        return 'cn'
+    elif symbol.startswith('sh') or symbol.startswith('sz'):
+        return 'cn'
+    elif symbol.startswith('hk'):
+        return 'hk'
+    else:
+        return 'us'
+
 def get_index_daily( symbol ):
-    df = get_cached_download_df('cache/market/{param}_daily.csv', download_func= download_index_daily, param= symbol, check_date= True)
+    market = symbol_market( symbol )
+    func = _market_funcs_download_index_daily_df[ market ]
+    df = get_cached_download_df('cache/market/{param}_daily.csv', download_func= func, param= symbol, check_date= True)
 
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'])
@@ -63,7 +142,9 @@ def get_index_daily( symbol ):
     return df
 
 def get_daily( symbol ):
-    df = get_cached_download_df('cache/market/{param}_daily.csv', download_func= download_stock_daily, param= symbol, check_date= True)
+    market = symbol_market( symbol )
+    func = _market_funcs_download_stock_daily_df[ market ]
+    df = get_cached_download_df('cache/market/{param}_daily.csv', download_func= func, param= symbol, check_date= True)
 
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'])
@@ -153,7 +234,7 @@ def get_finance_indicator(symbol, force_update= False):
     return extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
 
 def get_finance_indicator_df(symbols = None, force_update= False):
-    symbol_name = dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
+    symbol_name = get_cn_stock_symbol_name()
     table = []
     cols = None
     i = 0
@@ -173,10 +254,10 @@ def get_finance_indicator_df(symbols = None, force_update= False):
     return pd.DataFrame(table, columns= cols)
 
 def get_finance_indicator_all(force_update= False):
-    df = get_all_stock_list_df()
-    all_symbols = df['symbol'].tolist()
+    symbol_name = get_cn_stock_symbol_name()
+    all_symbols = symbol_name.keys()
     print('Processing finance indicators for all stocks ...')
-    df = get_cached_download_df('cache/all_stock_indicator.csv', get_finance_indicator_df, param= all_symbols, check_date = force_update)
+    df = get_cached_download_df('cache/cn_stock_indicator.csv', get_finance_indicator_df, param= all_symbols, check_date = force_update)
     df = df.astype({
         'ipo_years': 'float64',
         '3yr_grow_rate': 'float64',
@@ -240,7 +321,7 @@ def get_pepb_summary(symbol, force_update= False, years = 10):
     }
 
 def get_pepb_symmary_df(symbols, force_update= False, years = 10):
-    symbol_name = get_all_stock_symbol_name()
+    symbol_name = get_cn_stock_symbol_name()
     table = []
     cols = None
     for symbol in symbols:
@@ -255,10 +336,10 @@ def get_pepb_symmary_df(symbols, force_update= False, years = 10):
     return pd.DataFrame(table, columns=cols)
 
 def get_pepb_symmary_all(force_update= False):
-    df = get_all_stock_list_df()
-    all_symbols = df['symbol'].tolist()
+    symbol_name = get_cn_stock_symbol_name()
+    all_symbols = symbol_name.keys()
     print('Processing PE/PB summary for all stocks ...')
-    df = get_cached_download_df('cache/all_stock_pepb.csv', get_pepb_symmary_df, symbols= all_symbols, check_date = force_update)
+    df = get_cached_download_df('cache/cn_stock_pepb.csv', get_pepb_symmary_df, symbols= all_symbols, check_date = force_update)
     df = df.astype({
         'pe': 'float64',
         'pb': 'float64',

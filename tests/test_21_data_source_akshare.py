@@ -3,8 +3,8 @@
 from hiquant import *
 
 def XXX_test_data_source_akshare():
-    df = download_stock_list(None)
-    df = download_index_list(None)
+    df = download_cn_stock_list(None)
+    df = download_cn_index_list(None)
 
     df = download_index_daily('sh000300')
 

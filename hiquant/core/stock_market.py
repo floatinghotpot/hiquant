@@ -27,7 +27,7 @@ class Market:
     force_open = False
 
     def __init__(self, start, end, adjust = 'hfq'):
-        self.all_symbol_name = dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
+        self.all_symbol_name = get_all_stock_symbol_name()
         self.watching_symbols = []
         self.symbol_daily = {}
         self.symbol_adjust_factor = {}

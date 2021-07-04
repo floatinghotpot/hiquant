@@ -26,3 +26,6 @@ def test_fund():
     fund.after_tick()
     fund.get_summary()
     fund.get_stat()
+
+if __name__ == "__main__":
+    test_fund()
