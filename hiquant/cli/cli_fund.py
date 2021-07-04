@@ -148,7 +148,7 @@ def cli_one_trader_run_one_fund(args):
         agent_conf = dict_from_config_items(global_config.items(fund_conf['agent']))
         agent_type = agent_conf['agent_type']
         if agent_type == 'human':
-            agent = HumanAgent(m, agent_conf)
+            agent = HumanAgent(market, agent_conf)
         #elif agent_type == 'automated':
         #    agent = AutomatedAgent(market, agent_conf)
         else:
@@ -177,7 +177,7 @@ def cli_one_trader_run_one_fund(args):
     end_tick = dt.datetime.now()
     print(fund_id, 'time used:', (end_tick - start_tick))
 
-    return trader.get_fund_info()
+    return trader.get_report()
 
 def cli_run_fund_multiprocessing(config_file, start, end, options):
     verbose = '-d' in options
@@ -202,13 +202,13 @@ def cli_run_fund_multiprocessing(config_file, start, end, options):
     fund_id_list = [fund_id for k, fund_id in global_config.items('fund_list')]
     fund_args = [[global_config, fund_id, date_start, date_end, tick_period, verbose] for fund_id in fund_id_list]
     with mp.Pool( len(fund_id_list) ) as p:
-        funds_list = p.map(cli_one_trader_run_one_fund, fund_args)
+        report_list = p.map(cli_one_trader_run_one_fund, fund_args)
     end_tick = dt.datetime.now()
     print('Total time used:', (end_tick - start_tick))
 
-    all_funds = []
-    for funds in funds_list:
-        all_funds += funds
+    all_report = []
+    for report in report_list:
+        all_report += report
 
     out_file = None
     for option in options:
@@ -216,8 +216,8 @@ def cli_run_fund_multiprocessing(config_file, start, end, options):
             out_file = option.replace('-out=', '')
 
     trader = Trader(Market(date_start, date_end))
-    trader.print_report(all_funds)
-    trader.plot(fund_info = all_funds, compare_index= compare_index, out_file= out_file)
+    trader.print_report(all_report)
+    trader.plot(report = all_report, compare_index= compare_index, out_file= out_file)
 
     print('Done.\n')
 

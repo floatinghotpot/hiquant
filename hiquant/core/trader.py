@@ -174,63 +174,51 @@ class Trader:
         pass
 
     def get_report(self):
-        if funds is None:
-            funds = self.funds
-
-        report_df = pd.DataFrame()
-        for fund in funds:
-            row = fund.get_summary()
-            if report_df.shape[0] == 0:
-                report_df = pd.DataFrame([], columns = list(row.keys()))
-            report_df = report_df.append(row, ignore_index = True)
-        return report_df
-
-    def get_fund_info(self):
-        info = []
+        report = []
         for fund in self.funds:
-            info.append({
+            report.append({
                 'name': fund.fund_name,
-                'stat': fund.get_stat(),
                 'summary': fund.get_summary(),
+                'stat': fund.get_stat(),
             })
-        return info
+        return report
 
-    def print_report(self, fund_info = None):
-        if fund_info is None:
-            fund_info = self.get_fund_info()
+    def print_report(self, report = None):
+        if report is None:
+            report = self.get_report()
 
-        report_df = pd.DataFrame()
-        for fund in fund_info:
-            row = fund['summary']
-            if report_df.shape[0] == 0:
-                report_df = pd.DataFrame([], columns = list(row.keys()))
-            report_df = report_df.append(row, ignore_index = True)
+        summary_df = pd.DataFrame()
+        for fund in report:
+            symmary = fund['summary']
+            if summary_df.shape[0] == 0:
+                summary_df = pd.DataFrame([], columns = list(symmary.keys()))
+            summary_df = summary_df.append(symmary, ignore_index = True)
 
-        report_df.set_index('fund_id', inplace=True, drop=True)
-        report_df = report_df.T
-        report_df.index += ':'
-        report_df.index.set_names('', inplace=True)
-        report_df.columns.set_names('', inplace=True)
-        report_df.index = report_df.index.str.pad(15, side='left')
+        summary_df.set_index('fund_id', inplace=True, drop=True)
+        summary_df = summary_df.T
+        summary_df.index += ':'
+        summary_df.index.set_names('', inplace=True)
+        summary_df.columns.set_names('', inplace=True)
+        summary_df.index = summary_df.index.str.pad(15, side='left')
 
         print('-' * 80)
-        print(report_df)
+        print(summary_df)
         print('-' * 80)
 
-    def plot(self, fund_info = None, compare_index = None, out_file= None):
-        if fund_info is None:
-            fund_info = self.get_fund_info()
+    def plot(self, report = None, compare_index = None, out_file= None):
+        if report is None:
+            report = self.get_report()
 
         date_start = self.date_start if (self.date_start is not None) else self.market.date_start
         date_end = self.date_end if (self.date_end is not None) else self.market.date_end
 
         df = pd.DataFrame([], index=pd.date_range(start=date_start, end=date_end))
-        for fund in fund_info:
+        for fund in report:
             fund_name = fund['name']
             stat_df = fund['stat']
 
             # if only one strategy, we also plot the buy/sell and drawdown
-            if len(fund_info) == 1:
+            if len(report) == 1:
                 df = stat_df[['buy', 'sell', 'drawdown']]
 
             value = stat_df['value']
@@ -249,8 +237,12 @@ class Trader:
         df.dropna(inplace=True)
         df.index = df.index.strftime('%Y-%m-%d')
 
+        plt.rcParams['font.sans-serif'] = ['SimHei'] # Chinese font
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams["axes.unicode_minus"] = False
+
         # now plot to visualize
-        if len(fund_info) > 1:
+        if len(report) > 1:
             # if multi strategy, we compare the performance
             df.plot(figsize = (10,6), grid = True, xlabel = 'date', ylabel = 'return (%)', title = 'performance')
             plt.show()
@@ -258,7 +250,7 @@ class Trader:
             # if only one strategy, we also plot the buy/sell and drawdown
             fig, axes = plt.subplots(nrows=3, gridspec_kw={'height_ratios': [3, 1, 1]})
 
-            fund_name = fund_info[0]['name']
+            fund_name = report[0]['name']
             df[[fund_name, compare_index_name]].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], label = 'date', ylabel = 'return (%)', title = 'performance')
 
             axes[1].bar(df.index, df.buy, color='r')

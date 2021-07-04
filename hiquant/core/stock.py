@@ -1,5 +1,4 @@
 
-import datetime
 import pandas as pd
 import mplfinance as mpf
 import matplotlib as mpl
@@ -92,23 +91,6 @@ class Stock:
     # Visualization
     # --------------------------------------------------------------------------------
     def plot(self, red_up = True, out_file = None):
-        # to correctly display Chinese text
-        # download TTF files:
-        # https://raw.githubusercontent.com/StellarCN/scp_zh/master/fonts/SimHei.ttf
-        # https://raw.githubusercontent.com/StellarCN/scp_zh/master/fonts/SimKai.ttf
-        # https://raw.githubusercontent.com/StellarCN/scp_zh/master/fonts/SimSun.ttf
-        # copy to: /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/
-        # use vi to edit: /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/matplotlibrc
-        # add to: #font.sans-serif: SimHei,
-        # then remove cache file: ~/.matplotlib/fontlist-*.json
-        mpl.rcParams['font.sans-serif'] = ['SimHei']
-        mpl.rcParams['font.family']='sans-serif'
-        mpl.rcParams['axes.unicode_minus'] = False
-
-        # line style
-        mpl.rcParams['axes.prop_cycle'] = cycler(color=['dodgerblue', 'deeppink', 'navy', 'teal', 'maroon', 'darkorange', 'indigo'])
-        mpl.rcParams['lines.linewidth'] = .5
-
         # China market candle color, red for up, green for down
         mc = mpf.make_marketcolors(
             up = 'red' if red_up else 'green',
@@ -121,6 +103,19 @@ class Stock:
         style = mpf.make_mpf_style(
             base_mpl_style = "ggplot",
             marketcolors = mc,
+            rc = {
+                # to correctly display Chinese text
+                # download TTF files:
+                # https://raw.githubusercontent.com/StellarCN/scp_zh/master/fonts/SimHei.ttf
+                # https://raw.githubusercontent.com/StellarCN/scp_zh/master/fonts/SimKai.ttf
+                # https://raw.githubusercontent.com/StellarCN/scp_zh/master/fonts/SimSun.ttf
+                # copy to: /usr/local/lib/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/
+                'font.sans-serif': ['SimHei'], # Chinese font
+                'font.family': 'sans-serif',
+                'axes.unicode_minus': False,
+                'axes.prop_cycle': cycler(color=['dodgerblue', 'deeppink', 'navy', 'teal', 'maroon', 'darkorange', 'indigo']),
+                'lines.linewidth': 0.75,
+            }
         )
 
         # we have panel 0 for main, panel 1 for volume by default
@@ -129,6 +124,10 @@ class Stock:
 
         df = self.daily_df
 
+        linestyles = dict(
+            type = 'line',
+            width = 1
+        )
         panel_ratios = [1, 0.3]
         keys = [
             'ma5', 'ma10', 'ma20', 'ma30', 'ma60',
@@ -137,18 +136,18 @@ class Stock:
         ]
         cols = list(set(keys) & set(df.columns))
         if len(cols) > 0:
-            more_plot.append(mpf.make_addplot(df[cols], panel=0))
+            more_plot.append(mpf.make_addplot(df[cols], panel=0, **linestyles))
 
         if 'macd_hist' in df.columns:
             macd = df.macd_hist
             macd_color = ['r' if v >= 0 else 'g' for v in macd]
-            more_plot.append(mpf.make_addplot(macd, type='bar', width=0.3, panel=next_panel, color=macd_color, ylabel='MACD'))
+            more_plot.append(mpf.make_addplot(macd, type='bar', width=0.4, panel=next_panel, color=macd_color, ylabel='MACD'))
             cols = []
             for k in ['macd_dif', 'macd_dea']:
                 if k in df.columns:
                     cols.append(k)
             if len(cols) > 0:
-                more_plot.append(mpf.make_addplot(df[cols], panel=next_panel, secondary_y=False))
+                more_plot.append(mpf.make_addplot(df[cols], panel=next_panel, secondary_y=False, **linestyles))
             next_panel = next_panel +1
             panel_ratios.append(0.3)
 
@@ -161,7 +160,7 @@ class Stock:
 
             if ind_cols[0] in df.columns:
                 cols = list(set(ind_cols) & set(df.columns))
-                more_plot.append(mpf.make_addplot(df[cols], panel=next_panel, ylabel=ind_label, secondary_y=False))
+                more_plot.append(mpf.make_addplot(df[cols], panel=next_panel, ylabel=ind_label, secondary_y=False, **linestyles))
                 next_panel = next_panel +1
                 panel_ratios.append(0.3)
 
@@ -182,8 +181,8 @@ class Stock:
 
         if 'act_return' in df.columns:
             if 'daily_return' in df.columns:
-                more_plot.append(mpf.make_addplot(df['daily_return'], type='line', panel=next_panel, color='b', ylabel='return'))
-            more_plot.append(mpf.make_addplot(df['act_return'], type='line', panel=next_panel, color='r', secondary_y=False))
+                more_plot.append(mpf.make_addplot(df['daily_return'], panel=next_panel, color='b', ylabel='return', **linestyles))
+            more_plot.append(mpf.make_addplot(df['act_return'], panel=next_panel, color='r', secondary_y=False, **linestyles))
             next_panel = next_panel +1
             panel_ratios.append(0.3)
 
@@ -193,8 +192,8 @@ class Stock:
             if k.endswith('.'):
                 ret_cols.append(k)
         if len(ret_cols) > 0:
-            more_plot.append(mpf.make_addplot(df['close']/df['close'].iloc[0]-1, type='line', panel=next_panel, color='b', ylabel='cum\nreturn'))
-            more_plot.append(mpf.make_addplot(df[ret_cols], type='line', panel=next_panel, secondary_y=False))
+            more_plot.append(mpf.make_addplot(df['close']/df['close'].iloc[0]-1, panel=next_panel, color='b', ylabel='cum\nreturn', **linestyles))
+            more_plot.append(mpf.make_addplot(df[ret_cols], panel=next_panel, secondary_y=False, **linestyles))
             last_panel = next_panel
             next_panel = next_panel +1
             panel_ratios.append(1.0 if (len(ret_cols)>1) else 1.0)
