@@ -8,7 +8,7 @@ from .data_cache import *
 from .order_cost import *
 
 class Market:
-    adjust = 'hfq'
+    adjust = 'qfq'
 
     all_symbol_name = {}
     watching_symbols = []
@@ -26,7 +26,7 @@ class Market:
 
     force_open = False
 
-    def __init__(self, start, end, adjust = 'hfq'):
+    def __init__(self, start, end, adjust = 'qfq'):
         self.all_symbol_name = get_all_stock_symbol_name()
         self.watching_symbols = []
         self.symbol_daily = {}
@@ -68,12 +68,11 @@ class Market:
             self.symbol_daily_adjusted[ symbol ] = df
         else:
             df = get_daily( symbol )
-            factor_df = get_daily_adjust_factor( symbol )
-
             self.symbol_daily[ symbol ] = df
-            self.symbol_adjust_factor[ symbol ] = factor_df
 
             if (self.adjust == 'hfq' or self.adjust == 'qfq'):
+                factor_df = get_daily_adjust_factor( symbol )
+                self.symbol_adjust_factor[ symbol ] = factor_df
                 self.symbol_daily_adjusted[ symbol ] = adjust_daily_with_factor(df, factor_df, self.adjust)
             else:
                 self.symbol_daily_adjusted[ symbol ] = df

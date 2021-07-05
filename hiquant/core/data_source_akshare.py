@@ -15,6 +15,18 @@ def download_cn_stock_list(param, verbose = False):
         print(df)
     return df
 
+def download_hk_stock_list(param, verbose = False):
+    df = ak.stock_hk_spot()
+    time.sleep(2)
+    # columns: symbol, name, engname, tradetype, lasttrade, prevclose, open, high, low, volume, amount, ticktime, buy, sell, pricechange, changepercent
+    df = df[['symbol', 'name']]
+    for i in range(df.shape[0]):
+        symbol = df.iloc[i]['symbol']
+        df.iloc[i]['symbol'] = 'hk' + symbol[-4:]
+    if verbose:
+        print(df)
+    return df
+
 def download_cn_index_list(param, verbose = False):
     df = ak.stock_zh_index_spot()
     time.sleep(2)
@@ -22,6 +34,12 @@ def download_cn_index_list(param, verbose = False):
     df = df[['symbol', 'name']]
     if verbose:
         print(df)
+    return df
+
+# TODO:
+def download_hk_index_list(param, verbose = False):
+    df = pd.DataFrame([], columns=['symbol','name'])
+    # TODO:
     return df
 
 def download_cn_index_daily( symbol ):
@@ -63,8 +81,11 @@ def download_cn_stock_daily( symbol, adjust = '' ):
     return df
 
 def download_stock_daily_adjust_factor( symbol ):
-    df = download_stock_daily( symbol, adjust = 'hfq-factor')
-    df.columns = ['factor']
+    df = download_cn_stock_daily( symbol, adjust = 'hfq-factor')
+    if symbol.startswith('hk'):
+        df.columns = ['factor', 'cash']
+    else:
+        df.columns = ['factor']
     return df
 
 def download_stock_spot( symbols, verbose= False ):

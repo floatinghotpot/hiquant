@@ -32,36 +32,46 @@ def get_cached_download_df(csv_file, download_func, param = None, check_date = F
 def get_cn_stock_list_df(force_update= False):
     return get_cached_download_df('cache/cn_stock_list.csv', download_cn_stock_list, check_date= force_update)
 
+def get_hk_stock_list_df(force_update= False):
+    return get_cached_download_df('cache/hk_stock_list.csv', download_hk_stock_list, check_date= force_update)
+
 def get_us_stock_list_df(force_update= False):
     return get_cached_download_df('cache/us_stock_list.csv', download_us_stock_list, check_date= force_update)
 
 def get_cn_index_list_df(force_update= False):
     return get_cached_download_df('cache/cn_index_list.csv', download_cn_index_list, check_date= force_update)
 
+def get_hk_index_list_df(force_update= False):
+    return get_cached_download_df('cache/hk_index_list.csv', download_hk_index_list, check_date= force_update)
+
 def get_us_index_list_df(force_update= False):
     return get_cached_download_df('cache/us_index_list.csv', download_us_index_list, check_date= force_update)
 
 _market_funcs_get_stock_df = {
     'cn': get_cn_stock_list_df,
+    'hk': get_hk_stock_list_df,
     'us': get_us_stock_list_df,
 }
 
 _market_funcs_get_index_df = {
     'cn': get_cn_index_list_df,
+    'hk': get_hk_index_list_df,
     'us': get_us_index_list_df,
 }
 
 _market_funcs_download_stock_daily_df = {
     'cn': download_cn_stock_daily,
+    'hk': download_cn_stock_daily,
     'us': download_us_stock_daily,
 }
 
 _market_funcs_download_index_daily_df = {
     'cn': download_cn_index_daily,
+    'hk': download_cn_index_daily,
     'us': download_us_index_daily,
 }
 
-_enabled_markets = ['cn', 'us']
+_enabled_markets = ['cn', 'hk', 'us']
 
 def get_supported_market():
     return list(_market_funcs_get_stock_df.keys())
@@ -154,7 +164,14 @@ def get_daily( symbol ):
     return df
 
 def get_daily_adjust_factor( symbol ):
-    df = get_cached_download_df('cache/market/{param}_daily_factor.csv', download_func= download_stock_daily_adjust_factor, param= symbol, check_date= True)
+    market = symbol_market( symbol )
+    if market in ['cn', 'hk']:
+        df = get_cached_download_df('cache/market/{param}_daily_factor.csv', download_func= download_stock_daily_adjust_factor, param= symbol, check_date= True)
+    else:
+        df = get_daily( symbol ).copy()
+        df['factor'] = df['adj_close'] / df['close']
+        df['factor'] = df['factor'] / df.iloc[0]['factor']
+        df = df[['factor']]
 
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'])
@@ -163,7 +180,7 @@ def get_daily_adjust_factor( symbol ):
 
     return df
 
-def adjust_daily_with_factor(daily_df, factor_df, adjust: str = 'hfq'):
+def adjust_daily_with_factor(daily_df, factor_df, adjust: str = 'qfq'):
     if adjust == 'qfq':
         factor_df = factor_df.copy()
         max_date_factor = factor_df.iloc[-1]['factor']
