@@ -10,35 +10,38 @@ from .agent_human import *
 class Fund:
     market = None
     trader = None
-    fund_id = None
-
-    conf = {}
+    conf = None
     fund_name = 'No Name'
-    strategy = None
+    strategy_list = None
     agent = None
     stat_df = None
 
     verbose = False
 
-    def __init__(self, market, trader, fund_id, fund_conf):
+    def __init__(self, market, trader, fund_conf = None):
         self.market = market
         self.trader = trader
-        self.fund_id = fund_id
-        self.conf = fund_conf
-        self.strategy = None
+        self.conf = fund_conf if (fund_conf is not None) else {}
+        self.strategy_list = []
         self.agent = None
         self.stat_df = None
         self.fund_name = ''
         self.start_cash = 0.0
+        self.set_agent(SimulatedAgent(market))
 
     def set_verbose(self, verbose = True):
         self.verbose = verbose
         if self.agent is not None:
             self.agent.set_verbose(verbose)
 
-    def set_agent(self, agent, order_cost):
+    def add_strategy(self, strategy):
+        if strategy not in self.strategy_list:
+            self.strategy_list.append( strategy )
+        pass
+
+    def set_agent(self, agent, order_cost = None):
         self.agent = agent
-        self.agent.order_cost = order_cost
+        self.agent.order_cost = order_cost if (order_cost is not None) else get_order_cost()
 
     def load_module(self, strategy_file):
         mod_name = os.path.basename(strategy_file).replace('.py', '')
@@ -51,14 +54,20 @@ class Fund:
         return module
 
     def load_strategy(self, strategy_file):
-        self.strategy_file = strategy_file
-
         mod = self.load_module( strategy_file )
         mod.init( self )
 
+    def set_name(self, name):
+        self.fund_name = name
+
+    def set_start_cash(self, cash):
+        self.start_cash = cash
+
     def init_fund(self, realtime_trade = False):
-        self.fund_name = self.conf['name']
-        self.start_cash = float(self.conf['start_cash'])
+        if 'name' in self.conf:
+            self.fund_name = self.conf['name']
+        if 'start_cash' in self.conf:
+            self.start_cash = float(self.conf['start_cash'])
 
         if self.agent is None:
             self.set_agent(SimulatedAgent(self.market, None), OrderCost())
@@ -75,7 +84,8 @@ class Fund:
         self.stat_df = pd.DataFrame([], columns = columns, index = pd.to_datetime([]))
         self.update_stat(self.market.current_date - dt.timedelta(days=1))
 
-        self.load_strategy( self.conf['strategy'] )
+        if 'strategy' in self.conf:
+            self.load_strategy( self.conf['strategy'] )
 
     def update_stat(self, date = None):
         # calculate current value of today, save to dataframe
@@ -118,9 +128,7 @@ class Fund:
         annual_earn = earn_to_annual(earn, days)
 
         return {
-            'fund_id': self.fund_id,
             'fund_name': self.fund_name,
-            'strategy': self.strategy.name,
             'start value': '{:,}'.format(round(start_value, 2)),
             'current value': '{:,}'.format(round(current_value, 2)),
             'invest year': round(years, 1),

@@ -5,8 +5,8 @@ import talib
 from hiquant import *
 
 class MyStrategy( BasicStrategy ):
-    def __init__(self, fund, strategy_file):
-        super().__init__(fund, strategy_file)
+    def __init__(self, fund):
+        super().__init__(fund, __file__)
         self.max_stocks = 10
         self.max_weight = 1.2
         self.stop_loss = 1 + (-0.10)
@@ -83,4 +83,4 @@ class MyStrategy( BasicStrategy ):
         pass
 
 def init(fund):
-    strategy = MyStrategy(fund, __file__)
+    strategy = MyStrategy(fund)

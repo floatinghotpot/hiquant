@@ -6,7 +6,7 @@ import time
 import matplotlib.pyplot as plt
 
 from ..utils import *
-from .stock_market import *
+from .data_cache import get_all_index_symol_name
 
 class Callback:
     context = None
@@ -194,11 +194,9 @@ class Trader:
                 summary_df = pd.DataFrame([], columns = list(symmary.keys()))
             summary_df = summary_df.append(symmary, ignore_index = True)
 
-        summary_df.set_index('fund_id', inplace=True, drop=True)
         summary_df = summary_df.T
-        summary_df.index += ':'
-        summary_df.index.set_names('', inplace=True)
-        summary_df.columns.set_names('', inplace=True)
+        summary_df.index.name = ''
+        summary_df.columns.name = ''
         summary_df.index = summary_df.index.str.pad(15, side='left')
 
         print('-' * 80)
@@ -226,7 +224,7 @@ class Trader:
             df.index = stat_df.index
 
         if compare_index:
-            index_name = dict_from_df(get_all_index_list_df(), 'symbol', 'name')
+            index_name = get_all_index_symol_name()
             compare_index_name = index_name[ compare_index ] if (compare_index in index_name) else compare_index
 
             cmp_value = self.market.get_index_daily(compare_index, start=self.date_start, end=self.date_end)['close']

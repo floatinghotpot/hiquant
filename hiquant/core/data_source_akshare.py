@@ -88,13 +88,13 @@ def download_stock_daily_adjust_factor( symbol ):
         df.columns = ['factor']
     return df
 
-def download_stock_spot( symbols, verbose= False ):
+def download_cn_stock_spot( symbols, verbose= False ):
     if len(symbols) > 100:
         df = pd.DataFrame()
         for i in range(0, len(symbols), 100):
             page = symbols[i:i+100]
             print('-------------------- page:', int(i/100), 'size:', len(page), 'range:', i, '~', i+len(page), '--------------------')
-            page_df = download_stock_spot(page)
+            page_df = download_cn_stock_spot(page)
             df = df.append(page_df, ignore_index=True)
         return df
     else:
@@ -107,13 +107,13 @@ def download_stock_spot( symbols, verbose= False ):
             elif symbol.startswith('hk') or symbol.startswith('HK'):
                 sina_symbols.append( 'hk0' + symbol[-4:] )
 
-        print('\r... {} | fetching OHCL ...'.format(str_now()), end = '', flush = True)
+        print('\r... {} | fetching sina OHCL ...'.format(str_now()), end = '', flush = True)
 
-        url = "http://hq.sinajs.cn/list={0}".format(",".join(sina_symbols))
+        url = 'http://hq.sinajs.cn/list={0}'.format(','.join(sina_symbols))
         if verbose:
             print('\n', url)
 
-        time.sleep(3)
+        #time.sleep(3)
         r = requests.get(url)
         print('\r... {} ...'.format(str_now()) + (' ' * 40), end = '', flush = True)
 
@@ -167,12 +167,17 @@ def download_stock_spot( symbols, verbose= False ):
             'close':'float64',
             'high':'float64',
             'low':'float64',
-            'volume':'float64',
-            'amount':'float64',
+            'volume':'int64',
             'date':'datetime64'
         })
         #print(df)
-        return df
+        return df[ [
+            'symbol', 'name',
+            'open', 'prevclose',
+            'close', 'high', 'low',
+            'volume', 
+            'date',
+        ] ]
 
 def download_finance_report(symbol, report_type = 'balance'):
     en_zh = {'balance':'资产负债表', 'income':'利润表', 'cashflow':'现金流量表'}

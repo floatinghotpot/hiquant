@@ -82,7 +82,7 @@ def cli_run_fund(config_file, start, end, options):
 
     for k, fund_id in global_config.items('fund_list'):
         fund_conf = dict_from_config_items(global_config.items(fund_id), verbose= verbose)
-        fund = Fund(market, trader, fund_id, fund_conf)
+        fund = Fund(market, trader, fund_conf)
 
         agent = None
         if (date_end > datetime_today()) and ('agent' in fund_conf):
@@ -141,7 +141,7 @@ def cli_one_trader_run_one_fund(args):
 
     market = Market(date_start, date_end)
     trader = Trader(market)
-    fund = Fund(market, trader, fund_id, fund_conf)
+    fund = Fund(market, trader, fund_conf)
 
     agent = None
     if (date_end > datetime_today()) and ('agent' in fund_conf):

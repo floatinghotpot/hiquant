@@ -4,8 +4,8 @@ from hiquant import *
 class StrategyMultiIndicator( BasicStrategy ):
     indicators = []
 
-    def __init__(self, fund, strategy_file):
-        super().__init__(fund, strategy_file)
+    def __init__(self, fund):
+        super().__init__(fund, __file__)
         self.indicators = self.conf['indicators'].replace(' ','').split('+')
 
     def select_stock(self):
@@ -35,4 +35,4 @@ class StrategyMultiIndicator( BasicStrategy ):
         pass
 
 def init(fund):
-    strategy = StrategyMultiIndicator(fund, __file__)
+    strategy = StrategyMultiIndicator(fund)

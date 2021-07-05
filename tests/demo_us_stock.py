@@ -1,15 +1,13 @@
-
 import pandas as pd
 import talib
-
 from hiquant import *
 
-class MyStrategyMacd( BasicStrategy ):
+class StrategyMacd( BasicStrategy ):
     def __init__(self, fund):
         super().__init__(fund, __file__)
 
     def select_stock(self):
-        return ['600036', '300122', '600519', '300357', '601888']
+        return ['AAPL','GOOG','AMZN','TSLA','FB','MSFT','NFLX', 'SONY']
 
     def gen_trade_signal(self, symbol, init_data = False):
         market = self.fund.market
@@ -22,13 +20,17 @@ class MyStrategyMacd( BasicStrategy ):
         return pd.Series( CROSS(dif, dea), index=df.index )
 
     def get_signal_comment(self, symbol, signal):
-        return 'MACD 金叉' if (signal > 0) else 'MACD 死叉'
+        return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
 
-    def before_market_open(self, param = None):
-        pass
-
-    def after_market_close(self, param = None):
-        pass
-
-def init(fund):
-    strategy = MyStrategyMacd(fund)
+date_start = date_from_str('3 years ago')
+date_end = date_from_str('yesterday')
+market = Market(date_start, date_end)
+trader = Trader(market)
+fund = Fund(market, trader)
+fund.set_name('Fund No.1')
+fund.set_start_cash( 1000000.00 )
+fund.add_strategy( StrategyMacd(fund) )
+trader.add_fund(fund)
+trader.run_fund(date_start, date_end)
+trader.print_report()
+trader.plot(compare_index= 'sh000300')

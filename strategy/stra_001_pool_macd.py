@@ -5,8 +5,8 @@ import talib
 from hiquant import *
 
 class StrategyMacd( BasicStrategy ):
-    def __init__(self, fund, strategy_file):
-        super().__init__(fund, strategy_file)
+    def __init__(self, fund):
+        super().__init__(fund, __file__)
 
     def select_stock(self):
         # read stock from stock pool
@@ -38,4 +38,4 @@ class StrategyMacd( BasicStrategy ):
         pass
 
 def init(fund):
-    strategy = StrategyMacd(fund, __file__)
+    strategy = StrategyMacd(fund)

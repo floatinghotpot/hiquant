@@ -11,7 +11,7 @@ def test_fund():
     df.to_csv('output/mytest.csv', index= False)
 
     trader = Trader(market)
-    fund = Fund(market, trader, 'fund_1', {
+    fund = Fund(market, trader, {
         'name': 'fund no.1',
         'start_cash': '1000000.00',
         'strategy': 'strategy/stra_001_pool_macd.py',

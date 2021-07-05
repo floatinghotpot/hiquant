@@ -15,7 +15,7 @@ class Strategy:
     stop_earn = 10000.0
 
     def __init__(self, fund, strategy_file):
-        fund.strategy = self
+        fund.add_strategy(self)
 
         self.fund = fund
         self.name = os.path.basename(strategy_file)

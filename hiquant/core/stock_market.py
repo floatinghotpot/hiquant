@@ -3,9 +3,10 @@
 import datetime as dt
 import pandas as pd
 
-from ..utils import datetime_today, dict_from_df
-from .data_cache import *
-from .order_cost import *
+from ..utils import datetime_today
+from .data_cache import get_all_stock_symbol_name, \
+    get_daily, get_daily_adjust_factor, adjust_daily_with_factor, get_stock_spot, \
+    get_index_daily
 
 class Market:
     adjust = 'qfq'
@@ -103,17 +104,18 @@ class Market:
                 print(spot_df)
             self.last_spot_time = now
 
-            today = datetime_today()
+            today = pd.to_datetime( datetime_today() )
             for i, spot_row in spot_df.iterrows():
                 symbol = spot_row['symbol']
                 adjust_factor = self.symbol_adjust_factor[ symbol ]['factor'].iloc[-1]
-                spot_date = spot_row['date']
+                spot_date = spot_row['date'] if ('date' in spot_df.columns) else today
 
                 data_updated = (spot_date >= today)
 
                 new_row = self.symbol_daily[ symbol ].iloc[-1].copy()
                 for k in ['open', 'high', 'low', 'close', 'volume']:
-                    new_row[ k ] = spot_row[ k ]
+                    if k in spot_row:
+                        new_row[ k ] = spot_row[ k ]
                 self.symbol_daily[ symbol ].loc[spot_date] = new_row
 
                 new_row_adjusted = new_row.copy()

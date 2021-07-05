@@ -67,10 +67,48 @@ def download_us_stock_daily( symbol, adjust = '' ):
     df.index.name = 'date'
     return df
 
+def download_us_stock_quote(symbols, verbose = False):
+    url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols={0}'.format(','.join(symbols))
+    r = requests.get(url)
+    data = r.json()['quoteResponse']['result']
+    df = pd.DataFrame(data, columns=data[0].keys())
+    return df
+
+def download_us_stock_spot(symbols, verbose = False):
+    if len(symbols) > 100:
+        df = pd.DataFrame()
+        for i in range(0, len(symbols), 100):
+            page = symbols[i:i+100]
+            print('-------------------- page:', int(i/100), 'size:', len(page), 'range:', i, '~', i+len(page), '--------------------')
+            page_df = download_us_stock_spot(page)
+            df = df.append(page_df, ignore_index=True)
+        return df
+    else:
+        print('\r... {} | fetching yahoo OHCL ...'.format(str_now()), end = '', flush = True)
+        df = download_us_stock_quote(symbols, verbose= verbose)
+        print('\r... {} ...'.format(str_now()) + (' ' * 40), end = '', flush = True)
+
+        df['date'] = pd.to_datetime(df['regularMarketTime'], unit='s').dt.normalize()
+        wanted_columns = [
+            'symbol','displayName',
+            'regularMarketOpen','regularMarketPreviousClose',
+            'regularMarketPrice','regularMarketDayHigh','regularMarketDayLow',
+            'regularMarketVolume',
+            'date',
+            ]
+        df = df[ wanted_columns ]
+        df.columns = [
+            'symbol', 'name',
+            'open', 'prevclose',
+            'close', 'high', 'low',
+            'volume', 
+            'date',
+        ]
+        return df
+
 # TODO: donwload us index list
 def download_us_index_list(param = None, verbose = False):
     df = pd.DataFrame([], columns=['symbol', 'name'])
-
     # TODO:
 
     return df

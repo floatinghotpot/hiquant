@@ -109,6 +109,9 @@ def get_cn_stock_symbol_name():
 def get_all_stock_symbol_name():
     return dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
 
+def get_all_index_symol_name():
+    return dict_from_df(get_all_index_list_df(), 'symbol', 'name')
+
 def get_stockpool_df(symbols):
     if type(symbols) == str:
         if symbols.endswith('.csv'):
@@ -213,7 +216,28 @@ def adjust_daily(symbol, daily_df, adjust: str = 'hfq'):
     return adjust_daily_with_factor(daily_df, factor_df, adjust)
 
 def get_stock_spot(symbols, verbose = False):
-    return download_stock_spot(symbols, verbose)
+    cn_symbols = []
+    us_symbols = []
+    for symbol in symbols:
+        market = symbol_market(symbol)
+        if market in ['cn', 'hk']:
+            cn_symbols.append( symbol )
+        elif market in ['us']:
+            us_symbols.append( symbol )
+    df = pd.DataFrame([], columns=[
+            'symbol', 'name',
+            'open', 'prevclose',
+            'close', 'high', 'low',
+            'volume', 
+            'date',
+        ])
+    if len(cn_symbols) > 0:
+        cn_df = download_cn_stock_spot(cn_symbols, verbose)
+        df.append(cn_df, ignore_index= True)
+    if len(us_symbols) > 0:
+        us_df = download_us_stock_spot(us_symbols, verbose)
+        df.append(us_df, ignore_index= True)
+    return df
 
 def get_finance_balance_report(symbol, force_update= False):
     return get_cached_download_df('cache/finance/{param}_balance.csv', download_finance_balance_report, symbol, check_date= force_update)

@@ -5,8 +5,8 @@ class StrategyStockIndicator( BasicStrategy ):
     symbol_indicators = {}
     indicators = []
 
-    def __init__(self, fund, strategy_file):
-        super().__init__(fund, strategy_file)
+    def __init__(self, fund):
+        super().__init__(fund, __file__)
         self.default_indicators = self.conf['indicators'].replace(' ','').split('+')
 
     def select_stock(self):
@@ -43,4 +43,4 @@ class StrategyStockIndicator( BasicStrategy ):
         pass
 
 def init(fund):
-    strategy = StrategyStockIndicator(fund, __file__)
+    strategy = StrategyStockIndicator(fund)
