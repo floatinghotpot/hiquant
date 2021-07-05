@@ -52,9 +52,9 @@ cd myFund
 hiquant list stock
 hiquant list index
 
-hiquant stock 600036 -ma -macd -kdj
-hiquant stock 600519 -all
-hiquant stock 600036 -wr -bias -mix
+hiquant stock AAPL -ma -macd -kdj
+hiquant stock AAPL -all
+hiquant stock AAPL -wr -bias -mix
 
 hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
 hiquant finance view stockpool/mystocks.csv
