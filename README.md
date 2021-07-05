@@ -21,8 +21,8 @@ This software is developed on Mac, and the examples in this document are written
 - **Multi-portfolio**: with some fund strategy configurations for demo purposes, and provides a command to create a new configuration from the template
 - **Simulated backtrade**: Use historical market data to simulate backtesting of one or more portfolio strategies, output data analysis of investment returns, and draw yield curves for comparison
 - **Simulated realtime trading**: Synchronize real-time market data, calculate trading decisions based on strategies, and send email notifications to remind users to trade
+- **TODO: Global market**: currently supports China market (mainland and Hongkong) and USA market, will add support for markets in other countries
 - **TODO: Automated trading**: call the quantitative trading interface to realize automated trading (not yet implemented, planned)
-- **TODO: Global market**: currently only supports China mainland market, will add support for markets in other countries (not yet implemented, planned)
 
 Other additional features:
 - **K-line chart**: plot the K-line chart of stocks/indices, including plotting common technical indicators, comparing the profit results of trading based on the indicators
@@ -56,7 +56,7 @@ hiquant stock 600036 -ma -macd -kdj
 hiquant stock 600519 -all
 hiquant stock 600036 -wr -bias -mix
 
-hiquant stockpool create stockpool/mystocks.csv 600036 600519 600276 300357 002258
+hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
 hiquant finance view stockpool/mystocks.csv
 hiquant pepb view stockpool/mystocks.csv
 
@@ -68,22 +68,40 @@ hiquant fund backtrade etc/myfund.conf
 ## Code quick start
 
 ```python
+import pandas as pd
+import talib
 from hiquant import *
+
+class StrategyMacd( BasicStrategy ):
+    def __init__(self, fund):
+        super().__init__(fund, __file__)
+
+    def select_stock(self):
+        return ['AAPL','GOOG','AMZN','TSLA','FB','MSFT','NFLX', 'SONY']
+
+    def gen_trade_signal(self, symbol, init_data = False):
+        market = self.fund.market
+        if init_data:
+            df = market.get_daily(symbol)
+        else:
+            df = market.get_daily(symbol, end = market.current_date, count = 26+9)
+
+        dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
+        return pd.Series( CROSS(dif, dea), index=df.index )
+
+    def get_signal_comment(self, symbol, signal):
+        return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
 
 date_start = date_from_str('3 years ago')
 date_end = date_from_str('yesterday')
 market = Market(date_start, date_end)
-
-df = get_stockpool_df(['600036', '000002'])
-df.to_csv('output/mystock.csv', index= False)
-
 trader = Trader(market)
-fund = Fund(market, trader, 'fund_1', {
-    'name': 'fund no.1',
-    'start_cash': '1000000.00',
-    'strategy': 'strategy/stra_001_pool_macd.py',
-    'stock_pool': 'output/mystock.csv',
-})
+
+fund = Fund(market, trader)
+fund.set_name('Fund No.1')
+fund.set_start_cash( 1000000.00 )
+fund.set_agent(SimulatedAgent(market))
+fund.add_strategy( StrategyMacd(fund) )
 trader.add_fund(fund)
 
 trader.run_fund(date_start, date_end)
@@ -106,13 +124,13 @@ Read this document on how to develop with Hiquant:
 
 - Draw stock indicators and yield curve
 ```bash
-hiquant stock 600036 -ma -macd -kdj
+hiquant stock AAPL -ma -macd
 ```
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_1.png)
 
 - Draw trade signal of mixed indicators, holding time, and yield curve
 ```bash
-hiquant stock 600036 -wr -bias -mix
+hiquant stock AAPL -ma -macd -mix
 ```
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_2.png)
 

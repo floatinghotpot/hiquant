@@ -37,8 +37,8 @@ market = Market(date_start, date_end)
 trader = Trader(market)
 
 fund_args = {
-    'Fund China': StrategyCN,
-    'Fund US': StrategyUS,
+    'Fund #1': StrategyCN,
+    'Fund #2': StrategyUS,
 }
 for name, stra in fund_args.items():
     fund = Fund(market, trader)

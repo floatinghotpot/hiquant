@@ -20,7 +20,7 @@ class StrategyMacd( BasicStrategy ):
         return pd.Series( CROSS(dif, dea), index=df.index )
 
     def get_signal_comment(self, symbol, signal):
-        return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
+        return 'MACD金叉' if (signal > 0) else 'MACD死叉'
 
 date_start = date_from_str('3 years ago')
 date_end = date_from_str('yesterday')

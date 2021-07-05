@@ -1,4 +1,8 @@
 
+20210705:
+    - add support to HK market with data source from Sina
+    - add support to US market with data source from Yahoo finance
+
 20210616:
     - refactoring, move indicators out of core
 

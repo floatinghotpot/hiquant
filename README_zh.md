@@ -21,8 +21,8 @@ Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及
 - **多投资组合**：包含一些 demo 用途的基金策略配置，并提供一个从模版创建 新配置 的命令
 - **模拟回测**：用历史行情数据，对 1个或者多个 投资组合的策略进行 模拟回测，输出投资回报的数据分析，并绘制收益率曲线 进行对比
 - **盯盘提醒**：同步实时行情，根据策略计算交易决策，发送 邮件通知 提醒用户交易
+- **全球市场（计划中）**：现已支持 中国市场（A股 和 港股）和 美国市场，将增加 对其他国家市场的 支持
 - **自动化交易（计划中）**：调用量化交易接口，实现 自动化交易（尚未实现）
-- **全球市场（计划中）**：目前仅支持 中国 A股市场，将增加 对其他国家市场的 支持 （尚未实现）
 
 其他附加的功能：
 - **K线走势图**：绘制 股票 / 指数 的 K线图，包括绘制常见的 技术指标，以及 根据指标交易的 获利结果 对比
@@ -68,24 +68,41 @@ hiquant fund backtrade etc/myfund.conf
 ## 快速开发
 
 ```python
+import pandas as pd
+import talib
 from hiquant import *
+
+class StrategyMacd( BasicStrategy ):
+    def __init__(self, fund):
+        super().__init__(fund, __file__)
+
+    def select_stock(self):
+        return ['600519','002714','603882','300122','601888','hk3690','hk9988', 'hk0700']
+
+    def gen_trade_signal(self, symbol, init_data = False):
+        market = self.fund.market
+        if init_data:
+            df = market.get_daily(symbol)
+        else:
+            df = market.get_daily(symbol, end = market.current_date, count = 26+9)
+
+        dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
+        return pd.Series( CROSS(dif, dea), index=df.index )
+
+    def get_signal_comment(self, symbol, signal):
+        return 'MACD金叉' if (signal > 0) else 'MACD死叉'
 
 date_start = date_from_str('3 years ago')
 date_end = date_from_str('yesterday')
 market = Market(date_start, date_end)
-
-df = get_stockpool_df(['600036', '000002'])
-df.to_csv('output/mystock.csv', index= False)
-
 trader = Trader(market)
-fund = Fund(market, trader, 'fund_1', {
-    'name': 'fund no.1',
-    'start_cash': '1000000.00',
-    'strategy': 'strategy/stra_001_pool_macd.py',
-    'stock_pool': 'output/mystock.csv',
-})
-trader.add_fund(fund)
 
+fund = Fund(market, trader)
+fund.set_name('Fund No.1')
+fund.set_start_cash( 1000000.00 )
+fund.add_strategy( StrategyMacd(fund) )
+
+trader.add_fund(fund)
 trader.run_fund(date_start, date_end)
 trader.print_report()
 trader.plot(compare_index= 'sh000300')
