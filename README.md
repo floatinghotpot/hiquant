@@ -100,7 +100,6 @@ trader = Trader(market)
 fund = Fund(market, trader)
 fund.set_name('Fund No.1')
 fund.set_start_cash( 1000000.00 )
-fund.set_agent(SimulatedAgent(market))
 fund.add_strategy( StrategyMacd(fund) )
 trader.add_fund(fund)
 
