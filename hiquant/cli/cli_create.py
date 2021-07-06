@@ -71,12 +71,6 @@ log/
     print('  Creating', folder)
     os.mkdir(folder)
 
-    # change to current working folder
-    os.chdir(folder)
-
-    # init hiquant config file
-    init_hiquant_conf( 'hiquant.conf' )
-
     # create sub folders
     for sub in [
         'cache',
@@ -91,13 +85,11 @@ log/
         'output',
         'log',
         ]:
-        subfolder = sub
+        subfolder = folder + '/' + sub
         print('  Creating', subfolder)
         os.mkdir(subfolder)
 
-    # download all stock list and index list
-    print('Downloading China A-market stock list and index list ...')
-    get_all_stock_list_df()
-    get_all_index_list_df()
+    # init hiquant config file
+    init_hiquant_conf( folder + '/hiquant.conf' )
 
     print('Done.\n')

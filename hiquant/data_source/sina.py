@@ -20,7 +20,7 @@ def download_cn_stock_spot( symbols, verbose= False ):
             elif symbol.startswith('hk') or symbol.startswith('HK'):
                 sina_symbols.append( 'hk0' + symbol[-4:] )
 
-        print('\rfetching sina data ...', end = '', flush = True)
+        print('\rfetching data from sina ...', end = '', flush = True)
         url = 'http://hq.sinajs.cn/list={0}'.format(','.join(sina_symbols))
         r = requests.get(url)
         print('\r', end = '', flush = True)

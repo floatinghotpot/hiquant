@@ -16,7 +16,7 @@ _SECTORS_LIST = ['Consumer Non-Durables', 'Capital Goods', 'Health Care',
 nasdaq_headers = {
     'authority': 'api.nasdaq.com',
     'accept': 'application/json, text/plain, */*',
-    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
     'origin': 'https://www.nasdaq.com',
     'sec-fetch-site': 'same-site',
     'sec-fetch-mode': 'cors',
@@ -38,7 +38,9 @@ def stocks_params(exchange):
 #
 def download_us_stock_list(param = None, verbose = False):
     if param is not None:
+        print('\rfetching data from nasdaq ...', end = '', flush = True)
         r = requests.get('https://api.nasdaq.com/api/screener/stocks', headers=nasdaq_headers, params=stocks_params(param))
+        print('\r', end = '', flush = True)
         data = r.json()['data']
         df = pd.DataFrame(data['rows'], columns=data['headers'])
     else:
@@ -68,8 +70,9 @@ def download_us_index_list(param = None, verbose = False):
     df = None
     offset = 0
     for i in range(10):
+        print('\rfetching data from nasdaq ...', end = '', flush = True)
         r = requests.get('https://api.nasdaq.com/api/screener/index', headers=nasdaq_headers, params=index_params(offset))
-        #print(r.json())
+        print('\r', end = '', flush = True)
         records = r.json()['data']['records']
         totalRecords = int(records['totalrecords'])
         data = records['data']

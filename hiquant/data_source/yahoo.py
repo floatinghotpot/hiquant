@@ -36,7 +36,7 @@ def download_us_stock_daily( symbol, start= None, end= None, interval= '1d', adj
     url_template = 'https://query1.finance.yahoo.com/v7/finance/download/{}?period1={}&period2={}&interval={}&events=history&includeAdjustedClose=true'
     url = url_template.format(symbol, start, end, interval)
 
-    print('fetching yahoo data ...', end = '', flush = True)
+    print('\rfetching data from yahoo ...', end = '', flush = True)
     r = requests.get(url, headers= yahoo_headers)
     print('\r', end = '', flush = True)
 
@@ -60,7 +60,7 @@ def download_us_stock_quote(symbols, verbose = False):
     url_template = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols={}'
     url = url_template.format(','.join(symbols))
 
-    print('fetching yahoo data ...', end = '', flush = True)
+    print('\rfetching data from yahoo ...', end = '', flush = True)
     r = requests.get(url, headers= yahoo_headers)
     print('\r', end = '', flush = True)
 
