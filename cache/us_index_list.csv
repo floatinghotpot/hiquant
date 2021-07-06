@@ -1,1 +1,176 @@
-symbol,name
+symbol,name,price,netchange,pctchange
+ABAQ,ABA Community Bank NASDAQ Index,379.59,4.98,1.29%
+ADRAI,BLDRS Asia 50 ADR Index Fund,34.43,0,0%
+ADRDI,BLDRS Developed Markets 100 ADR Index Fund,19.49,0,0%
+ADREI,BLDRS Emerging Markets 50 ADR Index Fund,42.03,0,0%
+ASRN,AlphaSector Rotation Index,"1,482.26",0,0%
+ASRX,AlphaSector Rotation Total Return Index,"2,106.96",0,0%
+ASRX,AlphaSector Rotation Total Return Index,"2,106.96",0,0%
+AVSPY,NASDAQ OMX Alpha AAPL vs. SPY Index,29.37,0,0%
+AW01UK,FTSE All World Index data ex-US,277.35,0.09,0.03%
+AW01UK,FTSE All World Index data ex-US,277.35,0.09,0.03%
+BEL20,BEL 20,"3,566.37",99.77,2.72%
+BEL20,BEL 20,"3,566.37",99.77,2.72%
+BIXR,BetterInvesting 100 Total Return Index,305.84,0,0%
+BIXX,BetterInvesting 100 Index,245.36,0,0%
+BKX,KBW Bank Index,125.94,0.54,0.43%
+BTK,Amex Biotechnology Index,"5,936.3033",11.685,0.2%
+BTK,Amex Biotechnology Index,"5,936.3033",11.685,0.2%
+BXN,CBOE NASDAQ-100 BuyWrite Index,781.42,1.53,0.2%
+CAC40,CAC 40,"5,587.89",9.73,0.17%
+CELS,NASDAQ Clean Edge Green Energy Index,894.34,2.30,0.26%
+CELS,NASDAQ Clean Edge Green Energy Index,894.34,2.30,0.26%
+CIX100,Cryptoindex.com,3.7,0.03,0.8%
+CMR,Morgan Stanley Consumer Index,"1,053.323",0,0%
+CND,NASDAQ Canada,9.9,0.09,0.92%
+COMP,"Compass, Inc.",12.9,0.15,1.15%
+CTN,CSFB Technology index,342.9507,0,0%
+CVXLF,NASDAQ OMX Alpha C vs. XLF Index,64.37,0,0%
+CYC,Morgan Stanley Cyclical Index,"1,611.4678",0,0%
+DDX,Disk Drive Index,215.7858,0.01,0%
+DDX,Disk Drive Index,215.7858,0.01,0%
+DFX,PHLX Defense Sector,695.43,0,0%
+DIVQ,NASDAQ Dividend Achievers Index,"4,263.9",0,0%
+DOT,TheStreet.com Internet Sector,179.71,0,0%
+DRG,Pharmaceutical index,755.2032,5.995,0.8%
+DTEC,NASDAQ Dallas Regional Chamber Index,48.8044,0.1467,0.3%
+EPX,SIG Oil Exploration & Production Index,239.56,0,0%
+EVSPY,NASDAQ OMX Alpha EEM vs. SPY Index,75.75,0,0%
+FR10UK,FTSE RAFI 1000 Index,"16,485.52",33.15,0.2%
+GESPY,NASDAQ OMX Alpha GE vs. SPY Index,117.68,0,0%
+GESPY,NASDAQ OMX Alpha GE vs. SPY Index,117.68,0,0%
+GOOSY,NASDAQ OMX Alpha GOOG vs. SPY Index,95.2,0,0%
+GOOSY,NASDAQ OMX Alpha GOOG vs. SPY Index,95.2,0,0%
+GVSPY,NASDAQ OMX Alpha GLD vs. SPY Index,119.9,0,0%
+HAUL,Wilder NASDAQ OMX Global Energy Efficient Transport Index,265.37,0,0%
+HAUL,Wilder NASDAQ OMX Global Energy Efficient Transport Index,265.37,0,0%
+HGX,PHLX Housing Sector,474.55,2.54,0.53%
+HKO,Hong Kong Option Index,560.6807,11.4292,2%
+HKO,Hong Kong Option Index,560.6807,11.4292,2%
+IBMSY,NASDAQ OMX Alpha IBM vs. SPY Index,87.56,0,0%
+IBMSY,NASDAQ OMX Alpha IBM vs. SPY Index,87.56,0,0%
+IIX,Inter@active Week Internet index,422.288,0,0%
+ILTI,NASDAQ OMX AeA Illinois Tech Index,"1,054.38",0,0%
+ILTI,NASDAQ OMX AeA Illinois Tech Index,"1,054.38",0,0%
+INDU,Dow Industrials,"34,786.35",152.82,0.44%
+INTSY,NASDAQ OMX Alpha INTC vs. SPY Index,80.05,0,0%
+IRX,13 Week T-Bill,.38,0.02,5%
+IRX,13 Week T-Bill,.38,0.02,5%
+ISRQ,NASDAQ Israel Index,"1,246.21",0.80,0.06%
+ISRQ,NASDAQ Israel Index,"1,246.21",0.80,0.06%
+ISRX,NASDAQ Israel Total Return,298.51,0,0%
+ISRX,NASDAQ Israel Total Return,298.51,0,0%
+IXBK,NASDAQ Bank,"4,505.7",48.17,1.06%
+IXBK,NASDAQ Bank,"4,505.7",48.17,1.06%
+IXCO,NASDAQ Computer,"10,533.31",142.75,1.37%
+IXCO,NASDAQ Computer,"10,533.31",142.75,1.37%
+IXF,,0,0,
+IXFN,NASDAQ Other Finance,"11,857.44",15.27,0.13%
+IXHC,NASDAQ Health Care Index,"1,283.45",4.28,0.33%
+IXHC,NASDAQ Health Care Index,"1,283.45",4.28,0.33%
+IXID,NASDAQ Industrial,"11,078.68",68.88,0.63%
+IXIS,NASDAQ Insurance,"10,966.86",61.04,0.55%
+IXTC,NASDAQ Telecommunications,538.93,3.34,0.62%
+IXTR,NASDAQ Transportation,"6,388.88",22.16,0.35%
+LVSPY,NASDAQ OMX Alpha GE vs. SPY Index,93.55,0,0%
+MNX,Mini NASDAQ-100 Index,"1,472.76",16.75,1.15%
+NBIE,NASDAQ Biotechnology Equal Weighted Index,"1,071.32",0,0%
+NEUX,NASDAQ OMX Europe Index,"1,406.29",0,0%
+NGX,Nasdaq Next Generation 100 Index,"1,379.04",3.47,0.25%
+NOCO,NASDAQ OMX Carbon Excess Return Index,88.83,0,0%
+NQCICLER,NASDAQ Commodity Crude Oil Index ER,237.1,0,0%
+NQCIGCER,NASDAQ Commodity Gold Index ER,933.81,0,0%
+NQCIHGER,NASDAQ Commodity HG Copper Index ER,973.54,0,0%
+NQCINGER,NASDAQ Commodity Natural Gas Index ER,82.73,0,0%
+NQCISIER,NASDAQ Commodity Silver Index ER,688.33,0,0%
+NQGM,NASDAQ Global Market Composite,"4,487.03",47.46,1.05%
+NQGS,NASDAQ Global Select Market Composite,"6,905.7",61.46,0.9%
+NQH2O,Nasdaq Veles California Water Index,839,18.61,2.17%
+NQX,NASDAQ-100 Reduced Value Index,"2,945.53",33.52,1.15%
+NVSPY,NASDAQ OMX Alpha MRK vs. SPY Index,87.32,0,0%
+NVSPY,NASDAQ OMX Alpha MRK vs. SPY Index,87.32,0,0%
+NWX,Amex Networking Index,854.8439,4.6798,0.54%
+NXTQ,NASDAQ Q-50,874.15,0.96,0.11%
+NYA,NYSE Composite,"16,675.1046",34.1458,0.21%
+OEX,S&P 100,"1,993.12",18.43,0.93%
+OEX,S&P 100,"1,993.12",18.43,0.93%
+OMXB10,OMX Baltic 10,282.07,0.39,0.14%
+OMXC20,OMX Copenhagen 20,735.8642,2.8517,0.39%
+OMXH25,OMX Helsinki 25,"5,434.42",45.81,0.85%
+OMXN40,OMX Nordic 40,"2,287.61",6.82,0.3%
+OMXS30,OMX Stockholm 30 Index,"2,299.07",10.14,0.44%
+ONEQI,Fidelity Nasdaq Composite Index Tracking Stock,87.16,0,0%
+OSX,PHLX Oil Service Sector,65.76,0.30,0.45%
+PRFEI,PowerShares FTSE RAFI Energy Sector Portfolio,50.62,0,0%
+PRFFI,PowerShares FTSE RAFI Financials Sector Portfolio,19.29,0,0%
+PRFGI,PowerShares FTSE RAFI Consumer Goods Sector Portfolio,34.27,0,0%
+PRFHI,PowerShares FTSE RAFI Health Care Sector Portfolio,40.19,0,0%
+PRFMI,PowerShares FTSE RAFI Basic Materials Sector Portfolio,40.29,0,0%
+PRFNI,PowerShares FTSE RAFI Industrials Sector Portfolio,35.28,0,0%
+PRFQI,PowerShares FTSE RAFI Telecom & Tech Sector Portfolio,35.28,0,0%
+PRFSI,PowerShares FTSE RAFI Consumer Goods Sector Portfolio,39.05,0,0%
+PRFUI,PowerShares FTSE RAFI Utilities Sector Portfolio,39.25,0,0%
+PRFZI,PowerShares FTSE RAFI US 1500 Small-Mid Portfolio,51.8,0,0%
+QAGR,NASDAQ OMX Global Agriculture Index,227.73,0,0%
+QCLNI,First Trust NASDAQ Clean Edge U.S. Liquid Series,14.23,0,0%
+QCOL,NASDAQ OMX Global Coal Index,100.86,0,0%
+QGLD,NASDAQ OMX Global Gold & Precious Metals Index,183.18,0,0%
+QGRI,NASDAQ OMX Government Relief Index,"1,246.06",0,0%
+QIRL,NASDAQ OMX Ireland Index,226.6,0,0%
+QIV,,0,0,
+QIV,,0,0,
+QMEA,NASDAQ OMX Middle East North Africa Index,128.54,0,0%
+QMI,,0,0,
+QNET,NASDAQ Internet Index,"1,545.96",7.27,0.47%
+QOMX,NASDAQ OMX 100 Index,"1,945.96",0,0%
+QQEWI,First Trust NASDAQ-100 Equal Weighted Index Fund,19.97,0,0%
+QQV,QQQQ VOLATILITY INDEX,10.15,0,0%
+QQXTI,First Trust NASDAQ-100 Ex-Technology Sector,18.2,0,0%
+QSTL,NASDAQ OMX Global Steel Index,122.49,0,0%
+QTECI,First Trust NASDAQ-100-Technology Sector,0,0,
+QWND,NASDAQ OMX Clean Edge Global Wind Energy Index,66.33,0,0%
+QWND,NASDAQ OMX Clean Edge Global Wind Energy Index,66.33,0,0%
+QXV,NASDAQ 100,358.73,4.08,1.15%
+QXV,NASDAQ 100,358.73,4.08,1.15%
+RCMP,NASDAQ Capital Market Composite Index,295.11,4.44,1.48%
+RUA,Russell 3000,"2,597.7456",14.5465,0.56%
+RUI,Russell 1000,"2,448.8695",16.4995,0.68%
+RUI/E,Russell 1000 Growth,"2,771.1193",30.8457,1.13%
+RUI/P,Russell 1000 Value,"1,577.4595",3.3175,0.21%
+RUT,Russell 2000,"2,305.7624",23.5969,1.01%
+RUTE2KG,Russell 2000 Growth,"1,580.0727",15.2491,0.96%
+RUTP2KV,Russell 2000 Value,"2,475.1293",26.8499,1.07%
+RXS,PHLX Drug Sector,329.88,0,0%
+SHX,PHLX Marine Shipping Sector,80.85,0,0%
+SHX,PHLX Marine Shipping Sector,80.85,0,0%
+SPX,S&P 500,"4,352.34",32.40,0.75%
+SVO,SIG Energy MLP Index,208.86,0,0%
+SXP,PHLX Sports Sector,222.1,0,0%
+TRAN,Dow Transportation,"15,036.23",41.35,0.27%
+TSX,S&P/TSX Comp. Index,"12,359.47",31.76,0.26%
+TSX,S&P/TSX Comp. Index,"12,359.47",31.76,0.26%
+TVSPY,NASDAQ OMX Alpha TLT vs. SPY Index,97.68,0,0%
+TYX,30 Treasury,20.45,0.41,1.97%
+UKX100,FTSE100,"7,123.27",1.89,0.03%
+UTIL,Dow15 Utilities,885.78,0.62,0.07%
+UTY,PHLX Utility Sector,833.21,0.44,0.05%
+VOLNDX,Volatility NASDAQ - 100,"6,629.94",92.43,1.41%
+VOLQ,Nasdaq-100 Volatility Index,15.78,0.61,3.72%
+WLX,Wilshire 5000,"45,563.3941",249.6369,0.55%
+WMTSY,NASDAQ OMX Alpha WMT vs. SPY Index,94.33,0,0%
+XAL,Airline index,100.1445,0.3154,0.31%
+XAU,PHLX Gold/Silver Sector,142.96,2.09,1.48%
+XAX,Amex Composite,"3,197.5602",11.557,0.36%
+XBD,Securities Broker/Dealer index,471.7406,0.9622,0.2%
+XCI,Computer Technology index,"6,467.0251",93.0986,1.46%
+XCM,PHLX Chemicals Sector,570.98,0,0%
+XEX,PHLX Europe Sector,452.55,0,0%
+XII,Institutional index,"2,125.5927",20.0503,0.95%
+XII,Institutional index,"2,125.5927",20.0503,0.95%
+XMI,Major Market Index,"3,093.1225",8.2654,0.27%
+XND,Nasdaq-100 Micro Index,147.28,1.68,1.15%
+XND,Nasdaq-100 Micro Index,147.28,1.68,1.15%
+XNG,Natural Gas index,405.4943,2.8871,0.71%
+XNG,Natural Gas index,405.4943,2.8871,0.71%
+XOI,Oil index,"1,158.6316",4.5679,0.39%
+XRE,PHLX Retail Sector,205.26,0,0%
