@@ -228,7 +228,10 @@ def cli_fund_backtrade(params, options):
     if '-q' in options:
         start = '3 months ago'
         end = '1 week ago'
-    cli_run_fund_multiprocessing(config_file, start, end, options)
+    if '-m' in options:
+        cli_run_fund_multiprocessing(config_file, start, end, options)
+    else:
+        cli_run_fund(config_file, start, end, options)
 
 def cli_fund_run(params, options):
     config_file = params[0]
@@ -239,10 +242,15 @@ def cli_fund(params, options):
     __argv0__ fund <action> <my-fund.conf> [options]
 
 <my-fund.conf> ............ config file for one or multiple funds
-<action> .................. actions to create, backtrade, or run realtime
+
+<action>
     create ................ create a config file from template
     backtrade ............. backtrade test during a past date period
     run ................... run realtime from today to future
+
+<options>
+    -m .................... use multi-processing to boost backtrade
+    -q .................... run a shorter backtrade
 
 Example:
     __argv0__ fund create myfund.conf
