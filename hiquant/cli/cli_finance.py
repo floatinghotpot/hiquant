@@ -1,8 +1,12 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 import os
 import sys
-from tabulate import tabulate
-from ..core.data_cache import *
+
+import pandas as pd
+import tabulate as tb
+
+from ..core.data_cache import get_finance_indicator_all, get_finance_indicator_df
+from ..utils import sort_with_options, filter_with_options
 
 def cli_finance(params, options):
     syntax_tips = '''Syntax:
@@ -68,11 +72,11 @@ Example:
 
     if '-tab' in options:
         if filtered_n > 30:
-            print( tabulate(df.head(15), headers='keys', tablefmt='psql') )
+            print( tb.tabulate(df.head(15), headers='keys', tablefmt='psql') )
             print( ' ...... too many data to show ......')
-            print( tabulate(df.tail(15), headers='keys', tablefmt='psql') )
+            print( tb.tabulate(df.tail(15), headers='keys', tablefmt='psql') )
         else:
-            print( tabulate(df, headers='keys', tablefmt='psql') )
+            print( tb.tabulate(df, headers='keys', tablefmt='psql') )
     else:
         print('-' * 80)
         print(df)

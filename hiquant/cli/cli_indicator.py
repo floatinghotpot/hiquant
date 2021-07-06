@@ -3,7 +3,7 @@
 import os
 import sys
 import pandas as pd
-from tabulate import tabulate
+import tabulate as tb
 
 from ..utils import date_from_str
 from ..core import get_all_signal_indicators
@@ -45,7 +45,7 @@ Example:
         for k, values in indicators.items():
             table.append([k, values['type'], values['label'], ', '.join(values['cols'])])
         df = pd.DataFrame(table, columns=['indicator', 'type', 'label', 'data'])
-        print( tabulate(df, headers='keys', tablefmt='psql') )
+        print( tb.tabulate(df, headers='keys', tablefmt='psql') )
         return
 
     if action not in ['bench']:
@@ -105,7 +105,7 @@ Example:
     stock_df['indicators'] = indicators
     print('\n')
 
-    print( tabulate(stock_df, headers='keys', tablefmt='psql') )
+    print( tb.tabulate(stock_df, headers='keys', tablefmt='psql') )
 
     out_csv_file = ''
     for k in options:

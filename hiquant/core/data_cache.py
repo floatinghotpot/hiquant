@@ -3,9 +3,8 @@ import os
 import datetime as dt
 import pandas as pd
 
-from .data_source_akshare import *
-from .data_source_yfinance import *
-from ..utils import *
+from ..utils import get_file_modify_time, datetime_today
+from ..data_source import *
 
 def get_cached_download_df(csv_file, download_func, param = None, check_date = False):
     if type(param) == str:
@@ -88,7 +87,7 @@ def get_enabled_market():
     return _enabled_markets
 
 def get_all_stock_list_df(force_update= False):
-    df = pd.DataFrame()
+    df = pd.DataFrame([],  columns=['symbol', 'name'])
     for market in _enabled_markets:
         func = _market_funcs_get_stock_df[ market ]
         market_df = func(force_update= force_update)[['symbol', 'name']]
@@ -96,11 +95,11 @@ def get_all_stock_list_df(force_update= False):
     return df.reset_index(drop= True)
 
 def get_all_index_list_df(force_update= False):
-    df = pd.DataFrame()
+    df = pd.DataFrame([],  columns=['symbol', 'name'])
     for market in _enabled_markets:
         func = _market_funcs_get_index_df[ market ]
         market_df = func(force_update= force_update)[['symbol', 'name']]
-        df.append(market_df, ignore_index=True)
+        df = df.append(market_df, ignore_index=True)
     return df.reset_index(drop= True)
 
 def get_cn_stock_symbol_name():
@@ -133,7 +132,7 @@ def get_stockpool_df(symbols):
     return df[ df['symbol'].isin(symbols) ].reset_index(drop=True)
 
 def symbol_market( symbol ):
-    if symbol[0].isdigit():
+    if (len(symbol) == 6) and symbol[0].isdigit():
         return 'cn'
     elif symbol.startswith('sh') or symbol.startswith('sz'):
         return 'cn'
@@ -141,6 +140,13 @@ def symbol_market( symbol ):
         return 'hk'
     else:
         return 'us'
+
+def get_symbol_name_dict(symbols):
+    return dict_from_df(download_us_stock_quote(symbols), 'symbol', 'shortName')
+
+def get_symbol_name(symbol):
+    symbol_name = get_symbol_name_dict([symbol])
+    return symbol_name[ symbol ] if (symbol in symbol_name) else symbol
 
 def get_index_daily( symbol ):
     market = symbol_market( symbol )

@@ -1,7 +1,8 @@
 
 import os
 import sys
-from ..core.data_cache import *
+
+from ..core.data_cache import get_all_stock_list_df, get_all_index_list_df
 
 def init_hiquant_conf(config_file):
     hiquant_conf_template = '''

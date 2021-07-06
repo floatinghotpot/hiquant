@@ -1,7 +1,5 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from .push_email import *
-
 class MasterPush:
     services = []
 

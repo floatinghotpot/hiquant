@@ -2,8 +2,12 @@
 
 import os
 import sys
-from tabulate import tabulate
-from ..core.data_cache import *
+
+import pandas as pd
+import tabulate as tb
+
+from ..core.data_cache import get_pepb_symmary_all, get_pepb_symmary_df
+from ..utils import filter_with_options, sort_with_options
 
 def cli_pepb(params, options):
     syntax_tips = '''Syntax:
@@ -64,7 +68,7 @@ Example:
     # now sort
     df = sort_with_options(df, options, by_default='pb_pos')
 
-    print( tabulate(df, headers='keys', tablefmt='psql') )
+    print( tb.tabulate(df, headers='keys', tablefmt='psql') )
 
     print('{} out of {} records selected.'.format(filtered_n, total_n))
 

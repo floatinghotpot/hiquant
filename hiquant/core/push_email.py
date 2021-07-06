@@ -5,7 +5,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from .push_base import *
+from .push_base import PushBase
 
 class EmailPush( PushBase ):
     mailto = ''

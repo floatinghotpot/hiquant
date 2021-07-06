@@ -2,9 +2,10 @@
 
 import os
 import sys
-from tabulate import tabulate
+import tabulate as tb
 
-from ..core import date_from_str, dict_from_df, get_all_index_list_df, get_order_cost
+from ..core import get_all_index_symol_name, get_symbol_name
+from ..core import date_from_str, get_all_index_list_df, get_order_cost
 from ..core import list_signal_indicators
 from ..core import Market, Stock
 
@@ -40,18 +41,18 @@ Example:
         if '-update' in options or '-u' in options:
             force_update = True
         df = get_all_index_list_df(force_update= force_update)
-        print( tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
+        print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
         print( 'Totally', df.shape[0], 'records.\n')
         return
 
-    symbol_name = dict_from_df(get_all_index_list_df(), 'symbol', 'name')
+    symbol_name = get_all_index_symol_name()
 
     symbol = params[0]
     if symbol in symbol_name:
         name = symbol_name[ symbol ]
     else:
-        print('\nError: symbol not found in stock list:', symbol)
-        return
+        print('\nWarning: symbol not found in index list:', symbol)
+        name = get_symbol_name(symbol)
 
     date_start = date_from_str(params[1] if len(params) > 1 else '3 years ago')
     date_end = date_from_str(params[2] if len(params) > 2 else 'yesterday')

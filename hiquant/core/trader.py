@@ -5,8 +5,8 @@ import datetime as dt
 import time
 import matplotlib.pyplot as plt
 
-from ..utils import *
-from .data_cache import get_all_index_symol_name
+from ..utils import datetime_today
+from .data_cache import get_all_index_symol_name, get_symbol_name
 
 class Callback:
     context = None
@@ -225,7 +225,7 @@ class Trader:
 
         if compare_index:
             index_name = get_all_index_symol_name()
-            compare_index_name = index_name[ compare_index ] if (compare_index in index_name) else compare_index
+            compare_index_name = index_name[ compare_index ] if (compare_index in index_name) else get_symbol_name(compare_index)
 
             cmp_value = self.market.get_index_daily(compare_index, start=self.date_start, end=self.date_end)['close']
             cmp_value = (cmp_value / cmp_value.iloc[0] -1) * 100.0

@@ -3,7 +3,7 @@
 import os
 import configparser
 
-from ..utils import datetime_today, dict_from_config_items
+from ..utils import dict_from_config_items
 
 class OrderCost:
     close_tax = 0.001

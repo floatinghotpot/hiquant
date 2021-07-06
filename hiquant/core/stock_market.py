@@ -5,7 +5,8 @@ import pandas as pd
 
 from ..utils import datetime_today
 from .data_cache import get_all_stock_symbol_name, \
-    get_daily, get_daily_adjust_factor, adjust_daily_with_factor, get_stock_spot, \
+    get_daily, get_daily_adjust_factor, adjust_daily_with_factor, \
+    get_stock_spot, \
     get_index_daily
 
 class Market:

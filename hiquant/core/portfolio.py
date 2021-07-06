@@ -1,7 +1,8 @@
+# -*- coding: utf-8; py-indent-offset:4 -*-
 
 import pandas as pd
 
-from .stock import *
+from .stock import Stock
 
 class Portfolio:
     market = None

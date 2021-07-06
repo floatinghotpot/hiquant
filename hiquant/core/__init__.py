@@ -15,3 +15,4 @@ from .push_base import *
 from .push_email import *
 from .push_master import *
 from .lang import *
+from .backtest import *

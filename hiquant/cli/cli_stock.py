@@ -2,10 +2,13 @@
 
 import os
 import sys
-from tabulate import tabulate
 
-from ..core import list_signal_indicators, get_all_stock_symbol_name, get_all_stock_list_df, get_order_cost
-from ..core import date_from_str, Market, Stock
+import tabulate as tb
+
+from ..utils import date_from_str
+from ..core import get_all_stock_symbol_name, get_symbol_name
+from ..core import list_signal_indicators, get_all_stock_list_df, get_order_cost
+from ..core import Market, Stock
 
 def cli_stock(params, options):
     syntax_tips = '''Syntax:
@@ -40,7 +43,7 @@ Example:
         if '-update' in options or '-u' in options:
             force_update = True
         df = get_all_stock_list_df(force_update= force_update)
-        print( tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
+        print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
         print( 'Totally', df.shape[0], 'rows.\n')
         return
 
@@ -50,8 +53,8 @@ Example:
     if symbol in symbol_name:
         name = symbol_name[ symbol ]
     else:
-        print('\nError: symbol not found in stock list:', symbol)
-        return
+        #print('\nWarning: symbol not found in stock list:', symbol)
+        name = get_symbol_name(symbol)
 
     date_start = date_from_str(params[1] if len(params) > 1 else '3 years ago')
     date_end = date_from_str(params[2] if len(params) > 2 else 'yesterday')

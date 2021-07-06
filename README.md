@@ -57,9 +57,6 @@ hiquant stock AAPL -all
 hiquant stock AAPL -wr -bias -mix
 
 hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
-hiquant finance view stockpool/mystocks.csv
-hiquant pepb view stockpool/mystocks.csv
-
 hiquant strategy create strategy/mystrategy.py
 hiquant fund create etc/myfund.conf
 hiquant fund backtrade etc/myfund.conf
@@ -70,9 +67,9 @@ hiquant fund backtrade etc/myfund.conf
 ```python
 import pandas as pd
 import talib
-from hiquant import *
+import hiquant as hq
 
-class StrategyMacd( BasicStrategy ):
+class MyStrategy( hq.BasicStrategy ):
     def __init__(self, fund):
         super().__init__(fund, __file__)
 
@@ -87,25 +84,21 @@ class StrategyMacd( BasicStrategy ):
             df = market.get_daily(symbol, end = market.current_date, count = 26+9)
 
         dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
-        return pd.Series( CROSS(dif, dea), index=df.index )
+        return pd.Series( hq.CROSS(dif, dea), index=df.index )
 
     def get_signal_comment(self, symbol, signal):
         return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
 
-date_start = date_from_str('3 years ago')
-date_end = date_from_str('yesterday')
-market = Market(date_start, date_end)
-trader = Trader(market)
-
-fund = Fund(market, trader)
-fund.set_name('Fund No.1')
-fund.set_start_cash( 1000000.00 )
-fund.add_strategy( StrategyMacd(fund) )
-trader.add_fund(fund)
-
-trader.run_fund(date_start, date_end)
-trader.print_report()
-trader.plot(compare_index= 'sh000300')
+if __name__ == '__main__':
+    backtest_args = dict(
+        #start_cash= 1000000.00,
+        #date_start= hq.date_from_str('3 years ago'),
+        #date_end= hq.date_from_str('yesterday'),
+        #out_file= 'output/demo.png',
+        #parallel= True,
+        compare_index= '^GSPC',
+    )
+    hq.backtest_strategy( MyStrategy, **backtest_args )
 ```
 
 ## Usage

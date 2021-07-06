@@ -2,8 +2,9 @@
 
 import os
 import sys
+
 import pandas as pd
-from tabulate import tabulate
+import tabulate as tb
 
 from ..core import get_stockpool_df
 
@@ -52,7 +53,7 @@ Example:
             df = get_stockpool_df(params)
             df.to_csv(csv_file, index=False)
             print('Stockpool file created:', os.path.abspath(csv_file))
-            print( tabulate(df, headers='keys', tablefmt='psql') )
+            print( tb.tabulate(df, headers='keys', tablefmt='psql') )
             print('')
             return
         else:
@@ -63,7 +64,7 @@ Example:
     # load the csv file
     df1 = pd.read_csv(csv_file, dtype=str)
     if action in ['view', 'show']:
-        print( tabulate(df1, headers='keys', tablefmt='psql') )
+        print( tb.tabulate(df1, headers='keys', tablefmt='psql') )
         return
 
     if (len(params) == 0):
@@ -90,7 +91,7 @@ Example:
         print( syntax_tips )
         return
 
-    print( tabulate(df3, headers='keys', tablefmt='psql') )
+    print( tb.tabulate(df3, headers='keys', tablefmt='psql') )
 
     for option in options:
         if ('-out=' in option) and option.endswith('.csv'):

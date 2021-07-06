@@ -1,12 +1,11 @@
+# -*- coding: utf-8; py-indent-offset:4 -*-
 
 import pandas as pd
 import mplfinance as mpf
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from cycler import cycler
 
-from ..indicator import *
-from .indicator_signal import *
+from .indicator_signal import gen_indicator_signal, signal_to_long, get_all_signal_indicators
 
 class Stock:
     symbol = ''

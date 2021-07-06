@@ -6,8 +6,8 @@ import datetime as dt
 import configparser
 import multiprocessing as mp
 
-from ..utils import datetime_today, dict_from_config_items
-from ..core import seconds_from_str, date_from_str, get_order_cost
+from ..utils import datetime_today, dict_from_config_items, seconds_from_str, date_from_str
+from ..core import get_order_cost
 from ..core import Market, Trader, Fund, EmailPush, SimulatedAgent, HumanAgent
 
 def get_fund_conf_template():
