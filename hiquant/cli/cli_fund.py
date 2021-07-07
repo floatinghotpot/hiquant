@@ -14,7 +14,7 @@ def get_fund_conf_template():
     return '''
 [main]
 tick_period = 5 min
-compare_index = sh000300
+compare_index = ^GSPC
 
 [fund_list]
 1 = fund_1
@@ -253,9 +253,13 @@ def cli_fund(params, options):
     -q .................... run a shorter backtrade
 
 Example:
-    __argv0__ fund create myfund.conf
-    __argv0__ fund backtrade myfund.conf 20180101 20210101
-    __argv0__ fund run myfund.conf
+    __argv0__ fund create etc/myfund.conf
+    __argv0__ fund backtrade etc/myfund.conf 20180101 20210101
+    __argv0__ fund run etc/myfund.conf
+
+Alias:
+    __argv0__ backtrade etc/myfund.conf 20180101 20210101
+    __argv0__ run etc/myfund.conf
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
     if (len(params) == 0) or (params[0] == 'help'):

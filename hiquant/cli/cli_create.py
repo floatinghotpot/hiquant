@@ -7,8 +7,8 @@ from ..core.data_cache import get_all_stock_list_df, get_all_index_list_df
 def init_hiquant_conf(config_file):
     hiquant_conf_template = '''
 [main]
-lang = zh
-market = cn, hk
+lang = en
+market = cn, hk, us
 
 [order_cost]
 close_tax = 0.001

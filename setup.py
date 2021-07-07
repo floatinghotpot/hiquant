@@ -118,7 +118,6 @@ setuptools.setup(
       'requests',
       'pandas',
       'akshare',
-      'yfinance',
       'tabulate',
       'TA-Lib',
       'matplotlib',

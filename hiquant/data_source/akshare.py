@@ -25,11 +25,9 @@ def download_cn_index_list(param, verbose = False):
 
 def download_hk_stock_list(param= None, verbose= False):
     df = ak.stock_hk_spot()
+    time.sleep(2)
     # columns: symbol, name, engname, tradetype, lasttrade, prevclose, open, high, low, volume, amount, ticktime, buy, sell, pricechange, changepercent
     df = df[['symbol', 'name']]
-    for i in range(df.shape[0]):
-        symbol = df.iloc[i]['symbol']
-        df.iloc[i]['symbol'] = 'hk' + symbol[-4:]
     if verbose:
         print(df)
     return df
@@ -51,19 +49,20 @@ def download_cn_stock_daily( symbol, adjust = '' ):
     start = '20000101'
     end = dt.datetime.now().strftime('%Y%m%d')
 
-    print('    Fetching stock daily history {} {} ...'.format(symbol, adjust))
-    if symbol.startswith('hk') or symbol.startswith('HK'):
-        symbol = '0' + symbol[-4:]
+    print('\rfetching history data {} {} ...'.format(symbol, adjust))
+    if len(symbol) == 5:
         df = ak.stock_hk_daily(symbol=symbol, adjust = adjust)
-        time.sleep(3)
+        time.sleep(2)
         df.index = df.index.set_names('date')
-    else:
-        if symbol.startswith('6'):
+    elif len(symbol) == 6:
+        if symbol[0] == '6':
             symbol = 'sh' + symbol
-        elif symbol.startswith('0') or symbol.startswith('3'):
+        elif symbol[0] in ['0','3']:
             symbol = 'sz' + symbol
         df = ak.stock_zh_a_daily(symbol=symbol, start_date=start, end_date=end, adjust = adjust)
-        time.sleep(3)
+        time.sleep(2)
+    else:
+        raise ValueError('unknown symbol: ' + symbol)
 
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'])
@@ -80,12 +79,13 @@ def download_cn_stock_daily( symbol, adjust = '' ):
 
 def download_stock_daily_adjust_factor( symbol ):
     df = download_cn_stock_daily( symbol, adjust = 'hfq-factor')
-    if symbol.startswith('hk'):
+    if len(symbol) == 6:
+        df.columns = ['factor']
+    elif len(symbol) == 5:
         df.columns = ['factor', 'cash']
     else:
-        df.columns = ['factor']
+        raise ValueError('unknown symbol: ' + symbol)
     return df
-
 
 def download_finance_report(symbol, report_type = 'balance'):
     en_zh = {'balance':'资产负债表', 'income':'利润表', 'cashflow':'现金流量表'}
@@ -94,7 +94,7 @@ def download_finance_report(symbol, report_type = 'balance'):
     else:
         raise ValueError('Unknown finance report type: ' + report_type)
 
-    print('\tfetching ' + report_type + ' report ...')
+    print('\rfetching ' + report_type + ' report ...')
     df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
     time.sleep(1)
 

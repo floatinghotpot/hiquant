@@ -107,32 +107,40 @@ Example:
         if 'lang' in main_conf:
             set_lang(main_conf['lang'])
 
-    command, params = params[0], params[1:]
+    command = params[0]
 
     if command == 'help':
-        if (len(params) > 0) and (params[0] in cli_tools):
-                func = cli_tools[ params[0] ]
+        if (len(params) > 1) and (params[1] in cli_tools):
+                func = cli_tools[ params[1] ]
                 func(['help'], options)
+        elif (len(params) > 1) and (params[1] in ['backtest']):
+                cli_strategy(['help'], options)
+        elif (len(params) > 1) and (params[1] in ['backtrade', 'run']):
+                cli_fund(['help'], options)
         else:
             print( syntax_tips )
 
     elif command == 'list':
         tools_with_list = ['stock', 'index', 'indicator', 'pattern', 'strategy']
-        if (len(params) > 0) and (params[0] in tools_with_list):
-            func = cli_tools[ params[0] ]
+        if (len(params) > 1) and (params[1] in tools_with_list):
+            func = cli_tools[ params[1] ]
             func(['list'], options)
         else:
             print('''Syntax:
     __argv0__ list [stock | index | indicator | pattern | strategy]
 '''.replace('__argv0__',os.path.basename(sys.argv[0])))
 
+    elif command == 'backtest':
+        cli_strategy(params, options)
+
+    elif command in ['backtrade', 'run']:
+        cli_fund(params, options)
+
     elif command in cli_tools:
         func = cli_tools[ command ]
-        func(params, options)
+        func(params[1:], options)
     else:
         print( syntax_tips )
-
-    print('')
 
 def cli_main():
     params, options = parse_params_options(sys.argv)

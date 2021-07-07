@@ -13,7 +13,7 @@ Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及
 
 ![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/raw/master/docs/hiquant.png)
 
-- **数据获取**：获取 股票、指数 列表，从财经网站获取 财报、历史行情、实时行情数据、PE/PB数据
+- **数据获取**：从 交易所和财经网站 获取 财报、历史行情、实时行情数据、PE/PB数据
 - **价值分析**：从 财报 提取关键财务数据，计算 年利润、ROE、净资产增长率 等指标，根据指定过滤条件，筛选出 “价值投资” 的股票
 - **估值分析**：从 PE/PB 数据计算 PE/PB 百分位等，根据指定过滤条件，筛选出 “估值便宜” 的股票
 - **股票池**：包含一个创建 “股票池” csv 文件的命令，并提供 合并、去除、交集 等操作
@@ -21,7 +21,7 @@ Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及
 - **多投资组合**：包含一些 demo 用途的基金策略配置，并提供一个从模版创建 新配置 的命令
 - **模拟回测**：用历史行情数据，对 1个或者多个 投资组合的策略进行 模拟回测，输出投资回报的数据分析，并绘制收益率曲线 进行对比
 - **盯盘提醒**：同步实时行情，根据策略计算交易决策，发送 邮件通知 提醒用户交易
-- **全球市场（计划中）**：现已支持 中国市场（A股 和 港股）和 美国市场，将增加 对其他国家市场的 支持
+- **全球市场**：现已支持 中国市场（A股 和 港股）和 美国市场，将增加 对其他国家市场的 支持
 - **自动化交易（计划中）**：调用量化交易接口，实现 自动化交易（尚未实现）
 
 其他附加的功能：
@@ -61,8 +61,11 @@ hiquant finance view stockpool/mystocks.csv
 hiquant pepb view stockpool/mystocks.csv
 
 hiquant strategy create strategy/mystrategy.py
+hiquant backtest strategy/mystrategy.py
+
 hiquant fund create etc/myfund.conf
-hiquant fund backtrade etc/myfund.conf
+hiquant backtrade etc/myfund.conf
+hiquant run etc/myfund.conf
 ```
 
 ## 快速开发
@@ -133,7 +136,7 @@ if __name__ == '__main__':
 
 感谢如下开源项目的开发者：pandas, matplotlib, mplfinance, akshare，没有他们的优秀工作作为基础，我恐怕无法完成这个项目。
 
-感谢 新浪财经 和 乐股 网站提供的数据服务。
+感谢 以下网站提供的数据服务：新浪财经、乐股、雅虎、交易所网站等。
 
 感谢 知乎、百度 上提供各种指标介绍的 热心分享者。
 

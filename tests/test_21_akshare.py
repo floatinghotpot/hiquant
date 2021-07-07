@@ -13,8 +13,6 @@ def test_download_sina():
     df = download_stock_daily_adjust_factor('600036')
     df = download_cn_index_daily('sh000300')
 
-    df = download_cn_stock_spot(['600036','000002'])
-
     df = download_finance_balance_report('600036')
     df = download_finance_income_report('600036')
     df = download_finance_cashflow_report('600036')
@@ -31,11 +29,8 @@ def XXX_test_macro_bank_data():
     df = download_macro_bank_interest_rate('usa')
     df = download_macro_bank_interest_rate('euro')
 
-def test_download_spot():
-    df = download_cn_stock_spot(['600036', 'hk0700'])
-
 if __name__ == "__main__":
-    test_download_szse()
-    test_download_sina()
-    test_download_legu()
-    test_download_spot()
+    df = download_hk_stock_list()
+    #test_download_szse()
+    #test_download_sina()
+    #test_download_legu()

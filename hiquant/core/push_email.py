@@ -34,12 +34,14 @@ class EmailPush( PushBase ):
         msg['Subject'] = subject
         msg.attach( MIMEText( content, 'plain', 'utf-8' ) )
 
-        s = smtplib.SMTP(self.server)
-        if len(self.user)>0 and len(self.passwd)>0:
-            s.login(self.user, self.passwd)
-
-        s.sendmail(self.sender, self.mailto, msg.as_string())
-        s.quit()
+        try:
+            s = smtplib.SMTP(self.server)
+            if len(self.user)>0 and len(self.passwd)>0:
+                s.login(self.user, self.passwd)
+            s.sendmail(self.sender, self.mailto, msg.as_string())
+            s.quit()
+        except TimeoutError:
+            print('Failed to connect to SMTP server')
 
     def flush(self):
         if not self.msg_queue:

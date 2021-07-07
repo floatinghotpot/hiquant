@@ -5,10 +5,14 @@ import pandas as pd
 
 from ..utils import get_file_modify_time, datetime_today
 from ..data_source import *
+from .symbol import symbol_normalize
 
 def get_cached_download_df(csv_file, download_func, param = None, check_date = False):
     if type(param) == str:
         csv_file = csv_file.replace('{param}', param)
+
+    # like ^GSPC.csv, will cause trouble when manually delete
+    csv_file = csv_file.replace('^','_').replace('$','_')
 
     need_update = False
     if os.path.isfile(csv_file):
@@ -45,6 +49,9 @@ def get_hk_index_list_df(force_update= False):
 
 def get_us_index_list_df(force_update= False):
     return get_cached_download_df('cache/us_index_list.csv', download_us_index_list, check_date= force_update)
+
+def get_world_index_list_df(force_update= False):
+    return get_cached_download_df('cache/world_index_list.csv', download_world_index_list, check_date= force_update)
 
 _market_funcs_get_stock_df = {
     'cn': get_cn_stock_list_df,
@@ -96,6 +103,7 @@ def get_all_stock_list_df(force_update= False):
 
 def get_all_index_list_df(force_update= False):
     df = pd.DataFrame([],  columns=['symbol', 'name'])
+    df = df.append(get_world_index_list_df(), ignore_index= True)
     for market in _enabled_markets:
         func = _market_funcs_get_index_df[ market ]
         market_df = func(force_update= force_update)[['symbol', 'name']]
@@ -105,11 +113,38 @@ def get_all_index_list_df(force_update= False):
 def get_cn_stock_symbol_name():
     return dict_from_df(get_cn_stock_list_df(), 'symbol', 'name')
 
-def get_all_stock_symbol_name():
-    return dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
+def get_all_symbol_name():
+    symbol_name = dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
+    symbol_name.update(dict_from_df(get_all_index_list_df(), 'symbol', 'name'))
+    return symbol_name
 
-def get_all_index_symol_name():
-    return dict_from_df(get_all_index_list_df(), 'symbol', 'name')
+def get_symbol_name_dict(symbols):
+    return dict_from_df(download_us_stock_quote(symbols), 'symbol', 'shortName')
+
+def get_symbol_name(symbol):
+    symbol_name = get_symbol_name_dict([symbol])
+    return symbol_name[ symbol ] if (symbol in symbol_name) else symbol
+
+def symbol_to_name(symbol):
+    all_symbol_name = get_all_symbol_name()
+    if type(symbol) == str:
+        if symbol in all_symbol_name:
+            return all_symbol_name[ symbol ]
+        else:
+            return get_symbol_name(symbol)
+    elif type(symbol) == list:
+        symbol_name = {}
+        other_symbols = []
+        for sym in symbol:
+            if sym in all_symbol_name:
+                symbol_name[ sym ] = all_symbol_name[ sym ]
+            else:
+                other_symbols.append( sym )
+        if len(other_symbols) > 0:
+            symbol_name.update( get_symbol_name_dict(other_symbols) )
+        return symbol_name
+    else:
+        raise ValueError('invalid type for symbol: ' + type(symbol))
 
 def get_stockpool_df(symbols):
     if type(symbols) == str:
@@ -122,36 +157,28 @@ def get_stockpool_df(symbols):
     else:
         raise ValueError('Exptected: symbols as .csv, str, or list')
 
-    df = get_all_stock_list_df()
+    symbols = symbol_normalize(symbols)
 
-    all_symbols = df['symbol'].tolist()
-    invalid_symbols = list(set(symbols) - set(all_symbols))
-    if len(invalid_symbols) > 0:
-        raise ValueError('Symbol not found in list: ' + ', '.join(invalid_symbols))
-
-    return df[ df['symbol'].isin(symbols) ].reset_index(drop=True)
+    symbol_name = symbol_to_name(symbols)
+    df = pd.DataFrame([], columns=['symbol','name'])
+    df['symbol'] = list(symbol_name.keys())
+    df['name'] = list(symbol_name.values())
+    return df
 
 def symbol_market( symbol ):
-    if (len(symbol) == 6) and symbol[0].isdigit():
+    if (len(symbol) == 6) and symbol[0].isdigit(): # 600036
         return 'cn'
-    elif symbol.startswith('sh') or symbol.startswith('sz'):
+    elif symbol.startswith('sh') or symbol.startswith('sz'): # sh000300, index
         return 'cn'
-    elif symbol.startswith('hk'):
+    elif (len(symbol) == 5) and symbol[0].isdigit(): # 00700
         return 'hk'
     else:
         return 'us'
 
-def get_symbol_name_dict(symbols):
-    return dict_from_df(download_us_stock_quote(symbols), 'symbol', 'shortName')
-
-def get_symbol_name(symbol):
-    symbol_name = get_symbol_name_dict([symbol])
-    return symbol_name[ symbol ] if (symbol in symbol_name) else symbol
-
 def get_index_daily( symbol ):
     market = symbol_market( symbol )
     func = _market_funcs_download_index_daily_df[ market ]
-    df = get_cached_download_df('cache/market/{param}_daily.csv', download_func= func, param= symbol, check_date= True)
+    df = get_cached_download_df('cache/market/{param}_1d.csv', download_func= func, param= symbol, check_date= True)
 
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'])
@@ -163,7 +190,7 @@ def get_index_daily( symbol ):
 def get_daily( symbol ):
     market = symbol_market( symbol )
     func = _market_funcs_download_stock_daily_df[ market ]
-    df = get_cached_download_df('cache/market/{param}_daily.csv', download_func= func, param= symbol, check_date= True)
+    df = get_cached_download_df('cache/market/{param}_1d.csv', download_func= func, param= symbol, check_date= True)
 
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'])
@@ -175,7 +202,7 @@ def get_daily( symbol ):
 def get_daily_adjust_factor( symbol ):
     market = symbol_market( symbol )
     if market in ['cn', 'hk']:
-        df = get_cached_download_df('cache/market/{param}_daily_factor.csv', download_func= download_stock_daily_adjust_factor, param= symbol, check_date= True)
+        df = get_cached_download_df('cache/market/{param}_1d_f.csv', download_func= download_stock_daily_adjust_factor, param= symbol, check_date= True)
     else:
         df = get_daily( symbol ).copy()
         df['factor'] = df['adj_close'] / df['close']
@@ -239,10 +266,10 @@ def get_stock_spot(symbols, verbose = False):
         ])
     if len(cn_symbols) > 0:
         cn_df = download_cn_stock_spot(cn_symbols, verbose)
-        df.append(cn_df, ignore_index= True)
+        df = df.append(cn_df, ignore_index= True)
     if len(us_symbols) > 0:
         us_df = download_us_stock_spot(us_symbols, verbose)
-        df.append(us_df, ignore_index= True)
+        df = df.append(us_df, ignore_index= True)
     return df
 
 def get_finance_balance_report(symbol, force_update= False):

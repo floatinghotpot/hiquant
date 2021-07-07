@@ -98,10 +98,10 @@ class BasicStrategy( Strategy ):
                 # or else, may need buy again after sell
                 if price <= cost * self.stop_loss:
                     diff = price / cost - 1
-                    return symbol, -1, LANG('stop loss') + ': {} %'.format(round(100*diff,2))
+                    return symbol, -1, LANG('stop loss') + ': {} %'.format(round(100*(self.stop_loss-1),2))
                 elif price >= cost * self.stop_earn:
                     diff = price / cost - 1
-                    return symbol, -1, LANG('stop earn') + ' {} %'.format(round(100*diff,2))
+                    return symbol, -1, LANG('stop earn') + ' {} %'.format(round(100*(self.stop_earn-1),2))
 
         if (trade_signal > 0) and (symbol in self.targets):
             stock_value = 0.0

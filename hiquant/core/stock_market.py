@@ -4,13 +4,13 @@ import datetime as dt
 import pandas as pd
 
 from ..utils import datetime_today
-from .data_cache import get_all_stock_symbol_name, \
+from .data_cache import get_all_symbol_name, \
     get_daily, get_daily_adjust_factor, adjust_daily_with_factor, \
     get_stock_spot, \
     get_index_daily
 
 class Market:
-    adjust = 'qfq'
+    adjust = 'hfq'
 
     all_symbol_name = {}
     watching_symbols = []
@@ -28,8 +28,8 @@ class Market:
 
     force_open = False
 
-    def __init__(self, start, end, adjust = 'qfq'):
-        self.all_symbol_name = get_all_stock_symbol_name()
+    def __init__(self, start, end, adjust = 'hfq'):
+        self.all_symbol_name = get_all_symbol_name()
         self.watching_symbols = []
         self.symbol_daily = {}
         self.symbol_adjust_factor = {}
@@ -90,9 +90,6 @@ class Market:
             self.load_history_price( symbol )
 
     def update_daily_realtime(self, verbose = False):
-        if not self.is_open():
-            return
-
         now = dt.datetime.now()
         data_updated = False
 
@@ -224,14 +221,8 @@ class Market:
     def allow_trading(self, symbol, date = None):
         if date is None:
             date = self.current_date
-        if not symbol in self.watching_symbols:
-            self.watch([ symbol ])
-            today = datetime_today()
-            if date >= today:
-                self.update_daily_realtime()
-
         df = self.symbol_daily_adjusted[ symbol ]
-        return date in df.index
+        return pd.to_datetime(date) in df.index
 
     def get_all_trading_dates(self):
         date_set = ()

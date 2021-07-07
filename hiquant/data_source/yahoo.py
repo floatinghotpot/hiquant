@@ -36,9 +36,9 @@ def download_us_stock_daily( symbol, start= None, end= None, interval= '1d', adj
     url_template = 'https://query1.finance.yahoo.com/v7/finance/download/{}?period1={}&period2={}&interval={}&events=history&includeAdjustedClose=true'
     url = url_template.format(symbol, start, end, interval)
 
-    print('\rfetching data from yahoo ...', end = '', flush = True)
+    print('\rfetching history data ...', end = '', flush = True)
     r = requests.get(url, headers= yahoo_headers)
-    print('\r', end = '', flush = True)
+    print('')
 
     if 'Will be right back' in r.text:
         raise RuntimeError("*** YAHOO! FINANCE IS CURRENTLY DOWN! ***.")
@@ -60,9 +60,9 @@ def download_us_stock_quote(symbols, verbose = False):
     url_template = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols={}'
     url = url_template.format(','.join(symbols))
 
-    print('\rfetching data from yahoo ...', end = '', flush = True)
+    print('\rfetching quote data ...', end = '', flush = True)
     r = requests.get(url, headers= yahoo_headers)
-    print('\r', end = '', flush = True)
+    print('')
 
     if 'Will be right back' in r.text:
         raise RuntimeError("*** YAHOO! FINANCE IS CURRENTLY DOWN! ***.")
@@ -81,9 +81,9 @@ def download_us_stock_spot(symbols, verbose = False):
     else:
         df = download_us_stock_quote(symbols, verbose= verbose)
         df['date'] = pd.to_datetime(df['regularMarketTime'], unit='s').dt.normalize()
-        wanted_columns = {
+        selected_columns = {
             'symbol': 'symbol',
-            'displayName': 'name',
+            'shortName': 'name',
             'regularMarketOpen': 'open',
             'regularMarketPreviousClose': 'prevclose',
             'regularMarketPrice': 'close',
@@ -92,8 +92,54 @@ def download_us_stock_spot(symbols, verbose = False):
             'regularMarketVolume': 'volume',
             'date': 'date',
         }
-        old_columns = list(wanted_columns.keys())
-        new_columns = list(wanted_columns.values())
-        df = df[ old_columns ]
-        df.columns = new_columns
+        df = df[ list(selected_columns.keys()) ].rename(columns= selected_columns)
         return df
+
+def download_world_index_list(param= None, verbose = False):
+    symbols = '''^BSESN
+^NSEI
+^DJI
+^IXIC
+^N225
+^HSI
+^AXJO
+^TWII
+^STI
+000001.SS
+399001.SZ
+^JKSE
+^KS11
+^GSPC
+^DJI
+^AORD
+^KLSE
+^XAX
+^RUT
+^VIX
+^GSPTSE
+^FTSE
+^GDAXI
+^FCHI
+^STOXX50E
+^N100
+^BFX
+IMOEX.ME
+^BVSP
+^MXX
+^IPSA
+^MERV
+^TA125.TA
+^CASE30
+^JN0U.JO
+^NZ50'''.split('\n')
+    df = download_us_stock_quote(symbols)
+    df = df[['symbol','shortName','exchange','market','currency','region','language']]
+    df = df.rename(columns={'shortName':'name'})
+    return df
+
+#
+# Data source:
+# https://query1.finance.yahoo.com/v7/finance/spark?symbols=%5EAORD&range=1d&interval=5m&indicators=close&includeTimestamps=false&includePrePost=false&corsDomain=in.finance.yahoo.com&.tsrc=finance
+#
+def download_us_stock_spark(symbol, verbose= False):
+    pass

@@ -6,7 +6,7 @@ import time
 import matplotlib.pyplot as plt
 
 from ..utils import datetime_today
-from .data_cache import get_all_index_symol_name, get_symbol_name
+from .data_cache import get_all_symbol_name, get_symbol_name
 
 class Callback:
     context = None
@@ -126,6 +126,9 @@ class Trader:
                 market.current_time = dt.datetime.now()
                 next_time_tick = market.current_time
 
+                # if we run after market, we can update to get today's date
+                market.update_daily_realtime( market.verbose )
+
                 # loop until end of this day
                 while market.current_time < next_date:
                     # if time to call tick
@@ -141,6 +144,7 @@ class Trader:
                                 for callback in self.bar_callbacks:
                                     func = callback.func
                                     func( callback.context )
+                                pass
 
                         for fund in self.funds:
                             fund.after_tick()
@@ -152,11 +156,10 @@ class Trader:
                         if market.current_time >= k:
                             callback_list = timers[k]
                             for callback in callback_list:
-                                if callback.called:
-                                    break
-                                func = callback.func
-                                func( callback.context )
-                                callback.called = True
+                                if not callback.called:
+                                    func = callback.func
+                                    func( callback.context )
+                                    callback.called = True
 
                     now_str = market.current_time.strftime('%Y-%m-%d %H:%M:%S')
                     print('\r... {} ...'.format(now_str), end = '', flush=True)
@@ -224,8 +227,8 @@ class Trader:
             df.index = stat_df.index
 
         if compare_index:
-            index_name = get_all_index_symol_name()
-            compare_index_name = index_name[ compare_index ] if (compare_index in index_name) else get_symbol_name(compare_index)
+            symbol_name = get_all_symbol_name()
+            compare_index_name = symbol_name[ compare_index ] if (compare_index in symbol_name) else get_symbol_name(compare_index)
 
             cmp_value = self.market.get_index_daily(compare_index, start=self.date_start, end=self.date_end)['close']
             cmp_value = (cmp_value / cmp_value.iloc[0] -1) * 100.0

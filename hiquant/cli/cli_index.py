@@ -4,7 +4,7 @@ import os
 import sys
 import tabulate as tb
 
-from ..core import get_all_index_symol_name, get_symbol_name
+from ..core import symbol_normalize, symbol_to_name
 from ..core import date_from_str, get_all_index_list_df, get_order_cost
 from ..core import list_signal_indicators
 from ..core import Market, Stock
@@ -45,14 +45,8 @@ Example:
         print( 'Totally', df.shape[0], 'records.\n')
         return
 
-    symbol_name = get_all_index_symol_name()
-
-    symbol = params[0]
-    if symbol in symbol_name:
-        name = symbol_name[ symbol ]
-    else:
-        print('\nWarning: symbol not found in index list:', symbol)
-        name = get_symbol_name(symbol)
+    symbol = symbol_normalize(params[0])
+    name = symbol_to_name(symbol)
 
     date_start = date_from_str(params[1] if len(params) > 1 else '3 years ago')
     date_end = date_from_str(params[2] if len(params) > 2 else 'yesterday')

@@ -2,6 +2,10 @@
 
 import os
 import sys
+import datetime as dt
+
+from ..utils import date_from_str, datetime_today
+from ..core import Market, Trader, Fund, SimulatedAgent
 
 def get_strategy_template():
     return '''
@@ -69,14 +73,51 @@ def cli_strategy_create(params, options):
     print( 'Strategy file created:\n  ', os.path.abspath(file_to_create))
     print( '\nPlease edit file content before running.' )
 
-def cli_strategy_bench(params, options):
-    pass
+def cli_strategy_backtest(params, options):
+    strategy_file = params[0]
+    start = params[1] if len(params) > 1 else '3 years ago'
+    end = params[2] if len(params) > 2 else 'yesterday'
+    if '-q' in options:
+        start = '3 months ago'
+        end = '1 week ago'
+    verbose = '-d' in options
+    date_start = date_from_str( start )
+    date_end = date_from_str( end )
 
-def cli_strategy_clone(params, options):
-    pass
+    start_tick = dt.datetime.now()
 
-def cli_strategy_publish(params, options):
-    pass
+    # market is a global singleton
+    market = Market(date_start - dt.timedelta(days=90), date_end)
+    trader = Trader(market)
+
+    fund_conf = {
+        'strategy': strategy_file,
+    }
+    fund = Fund(market, trader, fund_conf)
+    agent = SimulatedAgent(market)
+    fund.set_agent(agent)
+    fund.set_name( os.path.basename(strategy_file) )
+    fund.set_start_cash( 1000000.00 )
+    trader.add_fund(fund)
+    market.set_verbose( verbose )
+    trader.set_verbose( verbose )
+    trader.run_fund(date_start, date_end)
+    trader.print_report()
+    end_tick = dt.datetime.now()
+    print('time used:', (end_tick - start_tick))
+
+    compare_index = '^GSPC'
+    out_file = None
+    for option in options:
+        if option.startswith('-out=') and option.endswith('.png'):
+            out_file = option.replace('-out=', '')
+        elif option.startswith('-cmp='):
+            compare_index = option.replace('-cmp=', '')
+
+    # compare with an index
+    trader.plot(compare_index= compare_index, out_file= out_file)
+
+    print('Done.\n')
 
 def cli_strategy(params, options):
     syntax_tips = '''Syntax:
@@ -84,12 +125,20 @@ def cli_strategy(params, options):
 
 Actions:
     create ................ create a strategy python file from template
+    backtest .............. backtest a strategy with default settings
 
 <my_strategy.py> ............ a strategy python file
 
+[options]
+    -cmp=<compare index> .... compare with the index
+    -out=<output.png> ....... output the plot to png file
+
 Example:
     __argv0__ strategy create strategy/my_strategy.py
-    __argv0__ strategy bench strategy/my_strategy.py 20180101
+    __argv0__ strategy backtest strategy/my_strategy.py 20180101 -cmp=sh000300 -out=output/backtest.png
+
+Alias:
+    __argv0__ backtest strategy/my_strategy.py 20180101
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
     if (len(params) == 0) or (params[0] == 'help'):
@@ -101,10 +150,7 @@ Example:
 
     fund_tools = {
         'create': cli_strategy_create,
-
-        'bench': cli_strategy_bench,
-        'clone': cli_strategy_clone,
-        'publish': cli_strategy_publish,
+        'backtest': cli_strategy_backtest,
     }
     if action in fund_tools.keys():
         if (len(params) == 0) or (not (params[0].endswith('.py'))):

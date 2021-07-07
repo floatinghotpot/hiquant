@@ -21,7 +21,7 @@ This software is developed on Mac, and the examples in this document are written
 - **Multi-portfolio**: with some fund strategy configurations for demo purposes, and provides a command to create a new configuration from the template
 - **Simulated backtrade**: Use historical market data to simulate backtesting of one or more portfolio strategies, output data analysis of investment returns, and draw yield curves for comparison
 - **Simulated realtime trading**: Synchronize real-time market data, calculate trading decisions based on strategies, and send email notifications to remind users to trade
-- **TODO: Global market**: currently supports China market (mainland and Hongkong) and USA market, will add support for markets in other countries
+- **Multi markets**: currently supports China market (mainland and Hongkong) and USA market, will add support for markets in other countries
 - **TODO: Automated trading**: call the quantitative trading interface to realize automated trading (not yet implemented, planned)
 
 Other additional features:
@@ -57,9 +57,13 @@ hiquant stock AAPL -all
 hiquant stock AAPL -wr -bias -mix
 
 hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
+
 hiquant strategy create strategy/mystrategy.py
+hiquant backtest strategy/mystrategy.py
+
 hiquant fund create etc/myfund.conf
-hiquant fund backtrade etc/myfund.conf
+hiquant backtrade etc/myfund.conf
+hiquant run etc/myfund.conf
 ```
 
 ## Code quick start
@@ -136,7 +140,7 @@ hiquant stock AAPL -ma -macd -mix
 
 Great appreciate developers of following projects. This project is based on their great works: Pandas, Matplotlib, Mplfinance, Akshare, etc.
 
-Thanks SINA financial and Legu for providing data service from their websites.
+Thanks folloowing websites for providing data service: Sina, Legu, Yahoo, Nasdaq, etc.
 
 Thanks the warm-hearted knowledge sharing on Zhihu and Baidu websites.
 
