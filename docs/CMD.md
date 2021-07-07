@@ -44,18 +44,24 @@ hiquant symbol same my_stocks.csv another.csv -out=outfile.csv
 hiquant strategy create strategy/mystrategy.py
 ```
 
+... edit mystrategy.py ...
+
+```bash
+hiquant backtest strategy/mystrategy.py
+```
+
 ### Create fund configuration from template, and backtrading
 ```bash
 hiquant fund create etc/myfund.conf
 
 ... edit my-fund.conf ...
 
-hiquant fund backtrade my-fund.conf 20180101 20210101
+hiquant backtrade my-fund.conf 20180101 20210101
 ```
 
 ### Realtime simulation and email reminder
 ```bash
-hiquant fund run etc/my-fund.conf
+hiquant run etc/my-fund.conf
 ```
 
 ### List all stocks and indice

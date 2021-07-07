@@ -31,17 +31,18 @@ cd myFund
 hiquant list stock
 hiquant list index
 
-hiquant stock 600036 -ma -macd -kdj
-hiquant stock 600519 -all
-hiquant stock 600036 -wr -bias -mix
+hiquant stock AAPL -ma -macd -kdj
+hiquant stock AAPL -all
+hiquant stock AAPL -wr -bias -mix
 
-hiquant stockpool create stockpool/mystocks.csv 600036 600519 600276 300357 002258
-hiquant finance view stockpool/mystocks.csv
-hiquant pepb view stockpool/mystocks.csv
+hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
 
 hiquant strategy create strategy/mystrategy.py
-hiquant fund create myfund.conf
-hiquant fund backtrade myfund.conf
+hiquant backtest strategy/mystrategy.py
+
+hiquant fund create etc/myfund.conf
+hiquant backtrade etc/myfund.conf
+hiquant run etc/myfund.conf
 ```
 
 ## Usage
@@ -224,21 +225,21 @@ The trading strategy is a snippet of a python program, which needs to contain th
 
 The following is a simple fixed stock pool, based on the MACD indicator trading strategy:
 ```python
+# -*- coding: utf-8; py-indent-offset:4 -*-
 import pandas as pd
 import talib
+import hiquant as hq
 
-from hiquant import *
-
-class MyStrategy( BasicStrategy ):
-    def __init__(self, fund, strategy_file):
-        super().__init__(fund, strategy_file)
+class MyStrategy( hq.BasicStrategy ):
+    def __init__(self, fund):
+        super().__init__(fund, __file__)
         self.max_stocks = 10
         self.max_weight = 1.2
         self.stop_loss = 1 + (-0.10)
         self.stop_earn = 1 + (+0.20)
 
     def select_stock(self):
-        return ['600036', '300122', '600519', '300357', '601888']
+        return ['AAPL', 'MSFT', 'AMZN', 'TSLA', '0700.HK']
 
     def gen_trade_signal(self, symbol, init_data = False):
         market = self.fund.market
@@ -248,28 +249,30 @@ class MyStrategy( BasicStrategy ):
             df = market.get_daily(symbol, end = market.current_date, count = 26+9)
 
         dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
-        return pd.Series( CROSS(dif, dea), index=df.index )
+        return pd.Series( hq.CROSS(dif, dea), index=df.index )
 
     def get_signal_comment(self, symbol, signal):
         return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
 
 def init(fund):
-    strategy = MyStrategy(fund, __file__)
+    strategy = MyStrategy(fund)
 
-    trader = fund.trader
-    trader.run_daily(before_market_open, strategy, time='before_open')
-    trader.run_on_bar_update(trade, strategy)
-    trader.run_daily(trade, strategy, time='14:30')
-    trader.run_daily(after_market_close, strategy, time='after_close')
+if __name__ == '__main__':
+    backtest_args = dict(
+        #start_cash= 1000000.00,
+        #date_start= hq.date_from_str('3 years ago'),
+        #date_end= hq.date_from_str('yesterday'),
+        #out_file= 'output/demo.png',
+        #parallel= True,
+        compare_index= '^GSPC',
+    )
+    hq.backtest_strategy( MyStrategy, **backtest_args )
 
-def before_market_open(strategy):
-    pass
+```
 
-def trade(strategy):
-    strategy.trade()
-
-def after_market_close(strategy):
-    pass
+After modify the strategy file with your own logic, you can backtest with following command:
+```bash
+hiquant backtest strategy/mystrategy.py
 ```
 
 ### Step 7, Create a configration file for portoflios
@@ -315,12 +318,12 @@ passwd =
 
 Historical market data can be used to backtrade the investment portfolio (the default testing period is 3 years):
 ```bash
-hiquant fund backtrade etc/myfund.conf
+hiquant backtrade etc/myfund.conf
 ```
 
 We can also specify any time period (year, month, day format: YYYYMMDD) for backtrade testing:
 ```bash
-hiquant fund backtrade etc/myfund 20160101 20210101
+hiquant backtrade etc/myfund 20160101 20210101
 ```
 
 The results of the backtrade testing are shown with plot:
@@ -344,7 +347,7 @@ passwd =
 
 Then, run following command to run realtime simulation:
 ```bash
-hiquant fund run etc/myfund.conf
+hiquant run etc/myfund.conf
 ```
 
 It will pull the related stock daily data first. If the stock market is not yet opened, it will wait. If it is at the opening time, it will pull the latest stock price/volume data every few minutes, make judgments with the specified strategy.

@@ -3,6 +3,7 @@
     - add option to run backtrade with multiprocessing
     - refactoring, seperate data source out of core
     - add downloading world indices
+    - add symbol rule and normalize
     - update docs
 
 20210705:

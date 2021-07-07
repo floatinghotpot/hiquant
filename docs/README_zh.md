@@ -27,20 +27,21 @@ pip install -e .
 hiquant create myFund
 cd myFund
 
-hiquant stock list update
-hiquant index list update
+hiquant list stock
+hiquant list index
 
-hiquant stock 600036 -ma -macd -kdj
-hiquant stock 600519 -all
-hiquant stock 600036 -wr -bias -mix
+hiquant stock AAPL -ma -macd -kdj
+hiquant stock AAPL -all
+hiquant stock AAPL -wr -bias -mix
 
-hiquant stockpool create stockpool/mystocks.csv 600036 600519 600276 300357 002258
-hiquant finance view stockpool/mystocks.csv
-hiquant pepb view stockpool/mystocks.csv
+hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
 
 hiquant strategy create strategy/mystrategy.py
-hiquant fund create myfund.conf
-hiquant fund backtrade myfund.conf
+hiquant backtest strategy/mystrategy.py
+
+hiquant fund create etc/myfund.conf
+hiquant backtrade etc/myfund.conf
+hiquant run etc/myfund.conf
 ```
 
 ## 如何使用
@@ -222,14 +223,14 @@ hiquant strategy create strategy/mystrategy.py
 
 以下是一个简单的固定股票池，根据 MACD 指标交易的 策略：
 ```python
+# -*- coding: utf-8; py-indent-offset:4 -*-
 import pandas as pd
 import talib
+import hiquant as hq
 
-from hiquant import *
-
-class MyStrategy( BasicStrategy ):
-    def __init__(self, fund, strategy_file):
-        super().__init__(fund, strategy_file)
+class MyStrategy( hq.BasicStrategy ):
+    def __init__(self, fund):
+        super().__init__(fund, __file__)
         self.max_stocks = 10
         self.max_weight = 1.2
         self.stop_loss = 1 + (-0.10)
@@ -246,28 +247,30 @@ class MyStrategy( BasicStrategy ):
             df = market.get_daily(symbol, end = market.current_date, count = 26+9)
 
         dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
-        return pd.Series( CROSS(dif, dea), index=df.index )
+        return pd.Series( hq.CROSS(dif, dea), index=df.index )
 
     def get_signal_comment(self, symbol, signal):
         return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
 
 def init(fund):
-    strategy = MyStrategy(fund, __file__)
+    strategy = MyStrategy(fund)
 
-    trader = fund.trader
-    trader.run_daily(before_market_open, strategy, time='before_open')
-    trader.run_on_bar_update(trade, strategy)
-    trader.run_daily(trade, strategy, time='14:30')
-    trader.run_daily(after_market_close, strategy, time='after_close')
+if __name__ == '__main__':
+    backtest_args = dict(
+        #start_cash= 1000000.00,
+        #date_start= hq.date_from_str('3 years ago'),
+        #date_end= hq.date_from_str('yesterday'),
+        #out_file= 'output/demo.png',
+        #parallel= True,
+        compare_index= 'sh000300',
+    )
+    hq.backtest_strategy( MyStrategy, **backtest_args )
 
-def before_market_open(strategy):
-    pass
+```
 
-def trade(strategy):
-    strategy.trade()
-
-def after_market_close(strategy):
-    pass
+可以手工修改策略文件，写入自己的逻辑，然后运行如下命令进行回测：
+```bash
+hiquant backtest strategy/mystrategy.py
 ```
 
 ### 第 7 步，创建一个投资组合配置文件
@@ -313,12 +316,12 @@ passwd =
 
 可用历史行情数据，来回测投资组合（默认是倒推 3年回测）：
 ```bash
-hiquant fund backtrade etc/myfund.conf
+hiquant backtrade etc/myfund.conf
 ```
 
 也可以指定任意时间段 （年月日格式：YYYYMMDD）进行回测：
 ```bash
-hiquant fund backtrade etc/myfund.conf 20160101 20210101
+hiquant backtrade etc/myfund.conf 20160101 20210101
 ```
 
 回测结果 图形显示为：
@@ -342,7 +345,7 @@ passwd =
 
 然后就可以运行如下命令 开始同步实时行情，进行盯盘和提醒：
 ```bash
-hiquant fund run etc/myfund.conf
+hiquant run etc/myfund.conf
 ```
 
 它会首先获取最新的日线数据。如果还没到股市开市时间，它会等待。如果是股市开市时间，每 5分钟（这个时间间隔，在 myfund.conf 中可以调整，也可以是3分钟、1分钟），它会从财经网站获取最新实时行情，并根据指定的策略进行判断。
