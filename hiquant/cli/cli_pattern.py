@@ -1,5 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
+from hiquant.core.data_cache import symbol_to_name
 import os
 import sys
 import datetime as dt
@@ -81,7 +82,7 @@ def list_existing_daily_files():
     file_list = []
     files = os.listdir('cache/market')
     for file in files:
-        if file.endswith('_daily.csv'):
+        if file.endswith('_1d.csv'):
             file_list.append('cache/market/'+file)
     return file_list
 
@@ -158,14 +159,6 @@ def find_pattern(func):
     return None, [], None
 
 def get_k_value(price, pattern_date, length):
-    '''将开、高、低、收价格数据进行处理，以支持K线图展示
-    Args:
-        pattern: 形态函数返回的标的与时间元组
-        count: 形态数量
-    Return:
-        返回处理后的价格数据，类型为df
-    '''
-
     start = pattern_date - dt.timedelta(days=20)
     end = pattern_date + dt.timedelta(days=20)
     price = price[start:end]
@@ -176,16 +169,14 @@ def get_k_value(price, pattern_date, length):
 
     y_list = {'y1': [], 'y2': [], 'y3': [], 'y4': [], 'c': [], 'al': []}
     
-    # 数据处理
     for i in range(price.shape[0]):
-        # 计算各bar的透明度
-        #print(price.index[i].date(), type(price.index[i].date()))
+        # calc bar transparency
         if price.index[i] in pattern_dates:
             y_list['al'].append(1)
         else:
             y_list['al'].append(0.3)
         
-        # 计算各实体的长度
+        # calc length of candle block
         if price.open[i] > price.close[i]:
             y_list['y1'].append(price.close[i])
             y_list['y2'].append(price.open[i] - price.close[i])
@@ -195,7 +186,7 @@ def get_k_value(price, pattern_date, length):
             y_list['y2'].append(price.close[i] - price.open[i])
             y_list['c'].append('r')
         
-        # 计算各影线的长度
+        # calc length of candle line
         if price.high[i] > price.low[i]:
             y_list['y3'].append(price.low[i])
             y_list['y4'].append(price.high[i] - price.low[i])
@@ -208,16 +199,8 @@ def get_k_value(price, pattern_date, length):
 
     return price
 
-def show_bar(data, title='None', out_file = None):
-    '''将价格数据按实体与影线进行组合
-    Args:
-        data: 处理好的价格数据，df类型
-        title: 图片标题，可选
-    Return:
-        None
-    '''
-
-    # 整合 x 轴与 y 轴数据
+def draw_candle(data, title='None', out_file = None):
+    # merge axis data
     x = [str(date.date()) for date in data.index]
     y1 = data['y1']
     y2 = data['y2']
@@ -225,15 +208,15 @@ def show_bar(data, title='None', out_file = None):
     y3 = data['y3']
     y4 = data['y4']
     
-    fig = plt.figure(figsize=(10, 5))
+    fig = plt.figure(figsize=(8, 6))
 
-    # 画影线，要求对应不同的颜色与透明度
+    # draw candle line with color and transparency
     for i in range(len(data)):
         plt.bar(x[i], y3[i], align='center', alpha=0)
         plt.bar(x[i], y4[i], align='center', color=data['c'][i], 
                 alpha=data['al'][i], bottom=y3[i], width=0.1)
 
-    # 画实体，要求对应不同的颜色与透明度
+    # draw candle block with color and transparency
     for j in range(len(data)):
         plt.bar(x[j], y1[j], align='center', alpha=0)
         plt.bar(x[j], y2[j], align='center', color=data['c'][j], 
@@ -252,7 +235,7 @@ def show_bar(data, title='None', out_file = None):
     else:
         plt.savefig(out_file)
 
-# 检查某标的在某日形成的形态，返回形态描述
+# exam pattern of a day, return pattern name
 def discern_pattern(daily_df, date):
     price = daily_df[ daily_df.index <= date ]
     pattern_function = tl.get_function_groups()['Pattern Recognition']
@@ -273,19 +256,14 @@ def cli_pattern_plot(pattern, out_file = None):
     symbol, signal, df = find_pattern(func)
 
     if len(signal) > 0:
-        # symbol -> name mapping of all stocks and index
-        stock_df = get_all_stock_list_df()
-        index_df = get_all_index_list_df()
-        stock_df = stock_df.append(index_df, ignore_index= True)
-        symbol_name = dict_from_df(stock_df, 'symbol', 'name')
-
-        name = symbol_name[symbol] if (symbol in symbol_name) else ''
+        symbol = symbol.replace('_1d.csv', '')
+        name = symbol_to_name(symbol)
 
         # plot the pattern
         length = _talib_pattern_length[pattern]
         k_value = get_k_value(df, signal.index[0], length)
         title = '{} - {} : {}'.format(symbol, name, func.info['display_name'])
-        show_bar(k_value, title, out_file= out_file)
+        draw_candle(k_value, title, out_file= out_file)
         return True
 
     else:

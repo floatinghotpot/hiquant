@@ -67,8 +67,7 @@ def download_us_stock_quote(symbols, verbose = False):
     if 'Will be right back' in r.text:
         raise RuntimeError("*** YAHOO! FINANCE IS CURRENTLY DOWN! ***.")
     data = r.json()['quoteResponse']['result']
-    df = pd.DataFrame(data, columns=data[0].keys())
-    return df
+    return pd.DataFrame(data, columns=data[0].keys()) if (len(data) > 0) else pd.DataFrame()
 
 def download_us_stock_spot(symbols, verbose = False):
     if len(symbols) > 100:

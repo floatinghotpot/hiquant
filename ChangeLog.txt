@@ -1,4 +1,10 @@
 
+20210707:
+    - add option to run backtrade with multiprocessing
+    - refactoring, seperate data source out of core
+    - add downloading world indices
+    - update docs
+
 20210705:
     - add support to HK market with data source from Sina
     - add support to US market with data source from Yahoo finance
