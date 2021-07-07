@@ -50,8 +50,8 @@ if __name__ == '__main__':
         #parallel= True,
         compare_index= '^GSPC',
     )
-
     hq.backtest_strategy( MyStrategy, **backtest_args )
+
 '''
 
 def cli_strategy_create(params, options):
