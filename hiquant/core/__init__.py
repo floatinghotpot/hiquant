@@ -1,6 +1,5 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from .symbol import *
 from .data_cache import *
 from .stock_market import *
 from .indicator_signal import *

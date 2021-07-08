@@ -1,6 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from hiquant import *
+from hiquant import download_cn_stock_spot
 
 def test_download_spot():
     df = download_cn_stock_spot(['600036', '00700'])

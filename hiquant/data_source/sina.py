@@ -2,6 +2,8 @@
 import requests
 import pandas as pd
 
+from ..utils.symbol import symbol_normalize
+
 def download_cn_stock_spot( symbols, verbose= False ):
     if len(symbols) > 100:
         df = pd.DataFrame()
@@ -27,7 +29,7 @@ def download_cn_stock_spot( symbols, verbose= False ):
         print('\rfetching quote data ...', end = '', flush = True)
         url = 'http://hq.sinajs.cn/list={0}'.format(','.join(sina_symbols))
         r = requests.get(url)
-        print('')
+        print('\r', end = '', flush = True)
 
         table = []
         if(r.status_code == 200):
@@ -43,8 +45,8 @@ def download_cn_stock_spot( symbols, verbose= False ):
                     # sell1-count, sell1-price, ...
                     # date, time
                     symbol = symbol[-6:]
-                    # symbol, name, open, prevclose, lasttrade, high, low, volume, date
-                    row = [symbol, v[1], v[2], v[3], v[4], v[5], v[6], v[9], v[31]]
+                    # symbol, name, open, prevclose, lasttrade, high, low, volume, date, time
+                    row = [symbol, v[1], v[2], v[3], v[4], v[5], v[6], v[9], v[31], v[32]]
                     table.append(row)
                 elif symbol_prefix == 'hk':
                     # return data format:
@@ -52,10 +54,10 @@ def download_cn_stock_spot( symbols, verbose= False ):
                     # pricechange, changepercent, buy1-price, sell1-price, amount, volume, 0, 0, ?, ?,
                     # date, time
                     symbol = 'hk' + symbol[-4:]
-                    # symbol, name, open, prevclose, lasttrade, high, low, volume, date
-                    row = [symbol, v[2], v[3], v[4], v[5], v[6], v[7], v[13], v[18]]
+                    # symbol, name, open, prevclose, lasttrade, high, low, volume, date, time
+                    row = [symbol, v[2], v[3], v[4], v[5], v[6], v[7], v[13], v[18], v[19]]
                     table.append(row)
-        df = pd.DataFrame(table, columns = ['symbol','name','open','prevclose','close','high','low','volume','date'])
+        df = pd.DataFrame(table, columns = ['symbol','name','open','prevclose','close','high','low','volume','date', 'time'])
         df = df.astype({
             'open':'float64',
             'prevclose':'float64',
@@ -65,4 +67,5 @@ def download_cn_stock_spot( symbols, verbose= False ):
             'volume':'int64',
             'date':'datetime64'
         })
+        df['symbol'] = symbol_normalize(df['symbol'].tolist())
         return df

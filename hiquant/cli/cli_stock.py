@@ -2,11 +2,10 @@
 
 import os
 import sys
-
 import tabulate as tb
 
-from ..utils import date_from_str
-from ..core import symbol_normalize, symbol_to_name
+from ..utils import date_from_str, symbol_normalize
+from ..core import symbol_to_name
 from ..core import list_signal_indicators, get_all_stock_list_df, get_order_cost
 from ..core import Market, Stock
 

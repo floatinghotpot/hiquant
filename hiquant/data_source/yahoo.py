@@ -62,7 +62,7 @@ def download_us_stock_quote(symbols, verbose = False):
 
     print('\rfetching quote data ...', end = '', flush = True)
     r = requests.get(url, headers= yahoo_headers)
-    print('')
+    print('\r', end = '', flush = True)
 
     if 'Will be right back' in r.text:
         raise RuntimeError("*** YAHOO! FINANCE IS CURRENTLY DOWN! ***.")
@@ -80,6 +80,7 @@ def download_us_stock_spot(symbols, verbose = False):
     else:
         df = download_us_stock_quote(symbols, verbose= verbose)
         df['date'] = pd.to_datetime(df['regularMarketTime'], unit='s').dt.normalize()
+        df['time'] = pd.to_datetime(df['regularMarketTime'], unit='s').dt.strftime('%H:%S%M')
         selected_columns = {
             'symbol': 'symbol',
             'shortName': 'name',
@@ -90,6 +91,7 @@ def download_us_stock_spot(symbols, verbose = False):
             'regularMarketDayLow': 'low',
             'regularMarketVolume': 'volume',
             'date': 'date',
+            'time': 'time',
         }
         df = df[ list(selected_columns.keys()) ].rename(columns= selected_columns)
         return df

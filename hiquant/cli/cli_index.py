@@ -4,7 +4,8 @@ import os
 import sys
 import tabulate as tb
 
-from ..core import symbol_normalize, symbol_to_name
+from ..utils import symbol_normalize
+from ..core import symbol_to_name
 from ..core import date_from_str, get_all_index_list_df, get_order_cost
 from ..core import list_signal_indicators
 from ..core import Market, Stock
