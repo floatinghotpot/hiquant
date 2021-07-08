@@ -12,12 +12,16 @@ def test_fund_flow():
     df = download_cn_stock_fund_flow_rank()
     print(df)
 
+def test_stock_fund_flow():
     df = download_cn_stock_fund_flow('600036')
     print(df)
 
     df = download_cn_stock_fund_flow('000002')
     print(df)
 
+    df = download_cn_stock_fund_flow('300357')
+    print(df)
 
 if __name__ == "__main__":
     test_fund_flow()
+    test_stock_fund_flow()

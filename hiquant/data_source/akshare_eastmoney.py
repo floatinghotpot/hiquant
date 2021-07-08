@@ -33,6 +33,10 @@ def list_fund_flow_days():
 def list_fund_flow_sectors():
     return _fund_flow_sectors.keys()
 
+#
+# Data source:
+# http://data.eastmoney.com/zjlx/dpzjlx.html
+#
 def download_cn_market_fund_flow():
     df = ak.stock_market_fund_flow()
 
@@ -57,6 +61,10 @@ def download_cn_market_fund_flow():
             df[col] = df[col] / 100000000.00
     return df
 
+#
+# Data source:
+# http://data.eastmoney.com/bkzj/hy.html
+#
 def download_cn_sector_fund_flow_rank(days= '1d', sector= 'industry'):
     if days not in _fund_flow_days:
         raise ValueError('invalid days: ' + days + ', must be one of: ' + ','.join(_fund_flow_days))
@@ -86,6 +94,10 @@ def download_cn_sector_fund_flow_rank(days= '1d', sector= 'industry'):
 
     return df
 
+#
+# Data source:
+# http://data.eastmoney.com/zjlx/detail.html
+#
 def download_cn_stock_fund_flow_rank(days = '1d'):
     if days not in _fund_flow_days:
         raise ValueError('invalid days: ' + days + ', must be one of: ' + ','.join(_fund_flow_days))
@@ -127,8 +139,13 @@ def download_cn_stock_fund_flow_rank(days = '1d'):
 
     return df
 
+#
+# Data source:
+# http://data.eastmoney.com/zjlx/300750.html
+#
 def download_cn_stock_fund_flow(symbol):
-    df = ak.stock_individual_fund_flow(symbol)
+    market = 'sz' if (symbol[0] in ['0','3']) else 'sh'
+    df = ak.stock_individual_fund_flow(symbol, market)
 
     cols = {
         '日期': 'date',
