@@ -79,8 +79,9 @@ def download_us_stock_spot(symbols, verbose = False):
         return df
     else:
         df = download_us_stock_quote(symbols, verbose= verbose)
-        df['date'] = pd.to_datetime(df['regularMarketTime'], unit='s').dt.normalize()
-        df['time'] = pd.to_datetime(df['regularMarketTime'], unit='s').dt.strftime('%H:%S%M')
+        date = pd.to_datetime(df['regularMarketTime'] + df['gmtOffSetMilliseconds'], unit='s')
+        df['date'] = date.dt.normalize()
+        df['time'] = date.dt.strftime('%H:%M:%S')
         selected_columns = {
             'symbol': 'symbol',
             'shortName': 'name',
@@ -92,6 +93,7 @@ def download_us_stock_spot(symbols, verbose = False):
             'regularMarketVolume': 'volume',
             'date': 'date',
             'time': 'time',
+            'market': 'market',
         }
         df = df[ list(selected_columns.keys()) ].rename(columns= selected_columns)
         return df
