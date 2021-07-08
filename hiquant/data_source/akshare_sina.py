@@ -16,7 +16,6 @@ def download_cn_stock_list(param= None, verbose= False):
 
 def download_cn_index_list(param, verbose = False):
     df = ak.stock_zh_index_spot()
-    time.sleep(2)
     df.columns = ['symbol', 'name', 'close', 'amount_diff', 'volume_diff', 'last_close', 'open', 'high', 'low', 'volume', 'amount']
     df = df[['symbol', 'name']]
     if verbose:
@@ -25,7 +24,6 @@ def download_cn_index_list(param, verbose = False):
 
 def download_hk_stock_list(param= None, verbose= False):
     df = ak.stock_hk_spot()
-    time.sleep(2)
     # columns: symbol, name, engname, tradetype, lasttrade, prevclose, open, high, low, volume, amount, ticktime, buy, sell, pricechange, changepercent
     df = df[['symbol', 'name']]
     if verbose:
@@ -336,13 +334,6 @@ def extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
     data['shares'] = round(df.iloc[-1]['shares'] / 100000000.0, 3)
 
     return data
-
-def download_stock_pepb_history(symbol):
-    print('\tfetching pe/pb data ...', symbol)
-    df = ak.stock_a_lg_indicator(symbol)
-    time.sleep(2)
-    df = df.rename(columns={"trade_date":"date"}).sort_values(by='date')
-    return df
 
 def download_macro_bank_interest_rate(country):
     funcs = {
