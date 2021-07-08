@@ -22,6 +22,16 @@ for US user (name in English):
 
 '''
 
+def symbol_market( symbol ):
+    if (len(symbol) == 6) and symbol[0].isdigit(): # 600036
+        return 'cn'
+    elif symbol.startswith('sh') or symbol.startswith('sz'): # sh000300, index
+        return 'cn'
+    elif (len(symbol) == 5) and symbol[0].isdigit(): # 00700
+        return 'hk'
+    else:
+        return 'us'
+
 def symbol_normalize(symbol):
     if type(symbol) == str:
         if symbol[:2] in ['hk','HK','Hk','hK']:

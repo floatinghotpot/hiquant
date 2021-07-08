@@ -1,6 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from hiquant import *
+from hiquant.data_source.yahoo import *
 
 def test_download_yahoo():
     df = download_world_index_list()

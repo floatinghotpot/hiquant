@@ -1,6 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from hiquant import *
+from hiquant.data_source.nasdaq import *
 
 def test_download_nasdaq():
     df = download_us_stock_list()

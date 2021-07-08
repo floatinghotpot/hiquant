@@ -5,7 +5,7 @@ import pandas as pd
 
 from ..utils import datetime_today
 from .data_cache import get_all_symbol_name, \
-    get_daily, get_daily_adjust_factor, adjust_daily_with_factor, \
+    get_daily, get_daily_adjust_factor, adjust_daily_with_factor, get_stock_fund_flow_daily, \
     get_stock_spot, \
     get_index_daily
 
@@ -69,7 +69,16 @@ class Market:
             self.symbol_daily[ symbol ] = df
             self.symbol_daily_adjusted[ symbol ] = df
         else:
+            # OHCLV
             df = get_daily( symbol )
+
+            # fund flow
+            fund_df = get_stock_fund_flow_daily( symbol )
+            if fund_df is not None:
+                df['main_fund'] = fund_df['main_fund']
+                df['main_pct'] = fund_df['main_pct']
+                df = df.fillna(0)
+
             self.symbol_daily[ symbol ] = df
 
             if (self.adjust == 'hfq' or self.adjust == 'qfq'):

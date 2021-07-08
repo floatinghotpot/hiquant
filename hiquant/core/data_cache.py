@@ -4,7 +4,7 @@ import os
 import datetime as dt
 import pandas as pd
 
-from ..utils import get_file_modify_time, datetime_today, symbol_normalize, dict_from_df
+from ..utils import get_file_modify_time, datetime_today, symbol_normalize, symbol_market, dict_from_df
 
 from ..data_source import *
 
@@ -166,16 +166,6 @@ def get_stockpool_df(symbols):
     df['name'] = list(symbol_name.values())
     return df
 
-def symbol_market( symbol ):
-    if (len(symbol) == 6) and symbol[0].isdigit(): # 600036
-        return 'cn'
-    elif symbol.startswith('sh') or symbol.startswith('sz'): # sh000300, index
-        return 'cn'
-    elif (len(symbol) == 5) and symbol[0].isdigit(): # 00700
-        return 'hk'
-    else:
-        return 'us'
-
 def get_index_daily( symbol ):
     market = symbol_market( symbol )
     func = _market_funcs_download_index_daily_df[ market ]
@@ -248,6 +238,28 @@ def adjust_daily_with_factor(daily_df, factor_df, adjust: str = 'qfq'):
 def adjust_daily(symbol, daily_df, adjust: str = 'hfq'):
     factor_df = get_daily_adjust_factor( symbol )
     return adjust_daily_with_factor(daily_df, factor_df, adjust)
+
+def get_market_fund_flow_daily():
+    return get_cached_download_df('cache/market/cn_market_ff.csv', download_func= download_cn_market_fund_flow, param= None, check_date= True)
+
+def get_stock_fund_flow_daily(symbol):
+    market = symbol_market( symbol )
+    if market == 'cn':
+        df = get_cached_download_df('cache/market/{param}_ff.csv', download_func= download_cn_stock_fund_flow, param= symbol, check_date= True)
+        if 'date' in df.columns:
+            df['date'] = pd.to_datetime(df['date'])
+            df.set_index('date', inplace= True, drop= True)
+            df = df.astype(float)
+        return df
+
+    else:
+        return None
+
+def get_cn_stock_fund_flow_rank(days = '1d'):
+    return download_cn_stock_fund_flow_rank(days)
+
+def get_cn_sector_fund_flow_rank(days= '1d', sector= 'industry'):
+    return download_cn_sector_fund_flow_rank(days, sector)
 
 def get_stock_spot(symbols, verbose = False):
     cn_symbols = []

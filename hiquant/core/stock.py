@@ -137,6 +137,14 @@ class Stock:
         if len(cols) > 0:
             more_plot.append(mpf.make_addplot(df[cols], panel=0, **linestyles))
 
+        if 'main_fund' in df.columns:
+            main_fund = df['main_fund']
+            trade_color = ['r' if v >= 0 else 'g' for v in main_fund]
+            more_plot.append(mpf.make_addplot(main_fund, type='bar', panel=next_panel, color=trade_color, ylabel='main\nfund\nflow'))
+            more_plot.append(mpf.make_addplot(df['main_pct'], type='line', width=0.8, panel=next_panel, color='b'))
+            next_panel = next_panel +1
+            panel_ratios.append(0.5)
+
         if 'macd_hist' in df.columns:
             macd = df.macd_hist
             macd_color = ['r' if v >= 0 else 'g' for v in macd]
@@ -191,7 +199,7 @@ class Stock:
             if k.endswith('.'):
                 ret_cols.append(k)
         if len(ret_cols) > 0:
-            more_plot.append(mpf.make_addplot(df['close']/df['close'].iloc[0]-1, panel=next_panel, color='b', ylabel='cum\nreturn', **linestyles))
+            more_plot.append(mpf.make_addplot(df['close']/df['close'].iloc[0]-1, panel=next_panel, color='b', ylabel='return', **linestyles))
             more_plot.append(mpf.make_addplot(df[ret_cols], panel=next_panel, secondary_y=False, **linestyles))
             last_panel = next_panel
             next_panel = next_panel +1

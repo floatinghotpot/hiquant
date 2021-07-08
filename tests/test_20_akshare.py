@@ -1,6 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from hiquant import *
+from hiquant.data_source import *
 
 def test_download_szse():
     df = download_cn_stock_list(None)
