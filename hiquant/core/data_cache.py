@@ -232,8 +232,8 @@ def adjust_daily_with_factor(daily_df, factor_df):
     return daily_df
 
 def adjust_daily(symbol, daily_df, adjust: str = 'hfq'):
-    factor_df = get_daily_adjust_factor( symbol )
-    return adjust_daily_with_factor(daily_df, factor_df, adjust)
+    factor_df = get_daily_adjust_factor( symbol, adjust )
+    return adjust_daily_with_factor(daily_df, factor_df)
 
 def get_market_fund_flow_daily():
     return get_cached_download_df('cache/market/cn_market_ff.csv', download_func= download_cn_market_fund_flow, param= None, check_date= True)

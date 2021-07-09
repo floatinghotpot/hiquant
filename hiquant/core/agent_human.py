@@ -40,7 +40,8 @@ class HumanAgent(SimulatedAgent):
     def load_portoflio_from_file(self):
         if os.path.isfile(self.portfolio_load_file):
             load_modified_time = get_file_modify_time(self.portfolio_load_file)
-            stock_df = pd.read_csv(self.portfolio_load_file, dtype= str).astype({
+            stock_df = pd.read_csv(self.portfolio_load_file, dtype= str)
+            stock_df = stock_df.astype({
                 'shares': 'float64',
                 'cost': 'float64',
             })
