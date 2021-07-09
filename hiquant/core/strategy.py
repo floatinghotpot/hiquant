@@ -56,7 +56,7 @@ class BasicStrategy( Strategy ):
         trader = fund.trader
         trader.run_daily(self.before_market_open, None, time='before_open')
         trader.run_on_bar_update(self.trade, None)
-        trader.run_daily(self.trade, None, time='14:30')
+        trader.run_daily(self.trade, None, time='10:00')
         trader.run_daily(self.after_market_close, None, time='after_close')
 
     def select_stock(self):
@@ -69,8 +69,8 @@ class BasicStrategy( Strategy ):
         pass
 
     def init_trade_signal(self, symbol):
-        if self.fund.verbose:
-            print('\tinit history trade signal:', symbol)
+        #if self.fund.verbose:
+        #    print('init history signal:', symbol)
         return symbol, self.gen_trade_signal(symbol, True)
 
     def get_trade_decision(self, symbol, market, portfolio, max_pos_per_stock):
@@ -89,7 +89,7 @@ class BasicStrategy( Strategy ):
         if (symbol in portfolio.positions):
             cost = portfolio.positions[ symbol ].cost
             if (trade_signal < 0):
-                return symbol, -1, LANG('signal') + self.get_signal_comment(symbol, trade_signal)
+                return symbol, -1, LANG('signal') + ': ' + self.get_signal_comment(symbol, trade_signal)
             elif (trade_signal > 0):
                 # will handle it below
                 pass
@@ -97,18 +97,18 @@ class BasicStrategy( Strategy ):
                 # only stop loss/earn when no signal to buy or sell
                 # or else, may need buy again after sell
                 if price <= cost * self.stop_loss:
-                    diff = price / cost - 1
-                    return symbol, -1, LANG('stop loss') + ': {} %'.format(round(100*(self.stop_loss-1),2))
+                    stop_percent = round(100*(self.stop_loss-1),2)
+                    return symbol, -1, LANG('stop loss') + ': {} %'.format(stop_percent)
                 elif price >= cost * self.stop_earn:
-                    diff = price / cost - 1
-                    return symbol, -1, LANG('stop earn') + ' {} %'.format(round(100*(self.stop_earn-1),2))
+                    stop_percent = round(100*(self.stop_earn-1),2)
+                    return symbol, -1, LANG('stop earn') + ' {} %'.format(stop_percent)
 
         if (trade_signal > 0) and (symbol in self.targets):
             stock_value = 0.0
             if symbol in portfolio.positions:
                 stock_value = price * portfolio.positions[ symbol ].shares
             if stock_value < max_pos_per_stock:
-                return symbol, 1, LANG('signal') + self.get_signal_comment(symbol, trade_signal)
+                return symbol, 1, LANG('signal') + ': ' + self.get_signal_comment(symbol, trade_signal)
 
         return symbol, 0, ''
 
@@ -122,11 +122,13 @@ class BasicStrategy( Strategy ):
         max_stocks = min(self.max_stocks, len(self.targets))
         max_pos_per_stock = total_value / max_stocks * self.max_weight
 
-        # calc and cache the trade signal for history data
-        concerned_stocks = list(set(self.targets) | set(portfolio.positions.keys()))
-        concerned_stocks.sort()
+        # we merge the targets and in stock shares, but keep tarets ahead of others with higher priority to buy
+        concerned_stocks = self.targets + list(set(portfolio.positions.keys()) - set(self.targets))
+
+        # make sure the daily data in cache of market object
         market.watch( concerned_stocks )
 
+        # for those symbol witout signal, we need init the data
         symbol_list = list(set(concerned_stocks) - self.symbol_signal.keys())
         symbol_signal_list = [self.init_trade_signal(symbol) for symbol in symbol_list]
         for symbol, signal in symbol_signal_list:

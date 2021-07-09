@@ -10,10 +10,10 @@ _fund_flow_common_column_mapping = {
     '中单净流入-净占比': 'medium_pct',
     '小单净流入-净占比': 'small_pct',
     '主力净流入-净额': 'main_fund',
-    '超大单净流入-净额': 'super_fund',
-    '大单净流入-净额': 'large_fund',
-    '中单净流入-净额': 'medium_fund',
-    '小单净流入-净额': 'small_fund',
+    #'超大单净流入-净额': 'super_fund',
+    #'大单净流入-净额': 'large_fund',
+    #'中单净流入-净额': 'medium_fund',
+    #'小单净流入-净额': 'small_fund',
 }
 _fund_flow_days = {
     '1d': '今日',
@@ -37,7 +37,7 @@ def list_fund_flow_sectors():
 # Data source:
 # http://data.eastmoney.com/zjlx/dpzjlx.html
 #
-def download_cn_market_fund_flow():
+def download_cn_market_fund_flow() -> pd.DataFrame:
     df = ak.stock_market_fund_flow()
 
     cols = {
@@ -65,7 +65,7 @@ def download_cn_market_fund_flow():
 # Data source:
 # http://data.eastmoney.com/bkzj/hy.html
 #
-def download_cn_sector_fund_flow_rank(days= '1d', sector= 'industry'):
+def download_cn_sector_fund_flow_rank(days= '1d', sector= 'industry') -> pd.DataFrame:
     if days not in _fund_flow_days:
         raise ValueError('invalid days: ' + days + ', must be one of: ' + ','.join(_fund_flow_days))
     if sector not in _fund_flow_sectors:
@@ -98,12 +98,14 @@ def download_cn_sector_fund_flow_rank(days= '1d', sector= 'industry'):
 # Data source:
 # http://data.eastmoney.com/zjlx/detail.html
 #
-def download_cn_stock_fund_flow_rank(days = '1d'):
+def download_cn_stock_fund_flow_rank(days = '1d') -> pd.DataFrame:
     if days not in _fund_flow_days:
         raise ValueError('invalid days: ' + days + ', must be one of: ' + ','.join(_fund_flow_days))
     zh_days = _fund_flow_days[ days ]
 
+    print('\rfetching fund flow data ...', end = '', flush = True)
     df = ak.stock_individual_fund_flow_rank(indicator= zh_days)
+    print('\r', end = '', flush = True)
 
     cols = {
         #'序号': 'index',
@@ -143,7 +145,7 @@ def download_cn_stock_fund_flow_rank(days = '1d'):
 # Data source:
 # http://data.eastmoney.com/zjlx/300750.html
 #
-def download_cn_stock_fund_flow(symbol):
+def download_cn_stock_fund_flow(symbol) -> pd.DataFrame:
     market = 'sz' if (symbol[0] in ['0','3']) else 'sh'
     df = ak.stock_individual_fund_flow(symbol, market)
 

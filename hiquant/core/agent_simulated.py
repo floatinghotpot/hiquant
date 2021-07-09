@@ -167,7 +167,7 @@ class SimulatedAgent:
             self.sell_count += 1
 
         earn = round(price - cost, 2)
-        earn_str = ' --> {} %'.format( round(earn / cost * 100,2) ) if cost > 0 else ''
+        earn_str = '--> {} %, '.format( round(earn / cost * 100,2) ) if cost > 0 else ''
         self.exec_order(symbol, round(real_count), round(real_price,3), earn_str, comment)
 
     def order_target(self, symbol, target_count, price = None, comment = ''):

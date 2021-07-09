@@ -16,3 +16,4 @@ from .sar import *
 from .trix import *
 from .vhf import *
 from .wr import *
+from .mffi import *

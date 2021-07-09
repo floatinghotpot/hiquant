@@ -4,13 +4,13 @@ import datetime as dt
 import pandas as pd
 
 from ..utils import datetime_today
-from .data_cache import get_all_symbol_name, \
+from .data_cache import get_all_symbol_name, get_cn_stock_fund_flow_rank, \
     get_daily, get_daily_adjust_factor, adjust_daily_with_factor, get_stock_fund_flow_daily, \
     get_stock_spot, \
     get_index_daily
 
 class Market:
-    adjust = 'hfq'
+    adjust = 'qfq'
 
     all_symbol_name = {}
     watching_symbols = []
@@ -26,9 +26,9 @@ class Market:
     current_date = None
     current_time = None
 
-    force_open = False
+    is_testing = False
 
-    def __init__(self, start, end, adjust = 'hfq'):
+    def __init__(self, start, end, adjust = 'qfq'):
         self.all_symbol_name = get_all_symbol_name()
         self.watching_symbols = []
         self.symbol_daily = {}
@@ -45,17 +45,13 @@ class Market:
         self.verbose = verbose
 
     # for testing purpose
-    def set_force_open(self, force_open = True):
-        self.force_open = force_open
-
-    # for testing purpose
     def set_date_range(self, start, end):
         self.date_start = start
         self.date_end = end
         self.current_date = self.current_time = start
 
     def is_open(self):
-        if self.force_open:
+        if self.is_testing:
             return True
 
         now = dt.datetime.now()
@@ -82,9 +78,9 @@ class Market:
             self.symbol_daily[ symbol ] = df
 
             if (self.adjust == 'hfq' or self.adjust == 'qfq'):
-                factor_df = get_daily_adjust_factor( symbol )
+                factor_df = get_daily_adjust_factor( symbol, self.adjust )
                 self.symbol_adjust_factor[ symbol ] = factor_df
-                self.symbol_daily_adjusted[ symbol ] = adjust_daily_with_factor(df, factor_df, self.adjust)
+                self.symbol_daily_adjusted[ symbol ] = adjust_daily_with_factor(df, factor_df)
             else:
                 self.symbol_daily_adjusted[ symbol ] = df
 
@@ -131,6 +127,21 @@ class Market:
                         new_row_adjusted[ k ] *= adjust_factor
                 self.symbol_daily_adjusted[ symbol ].loc[spot_date] = new_row_adjusted
 
+            # merge fund flow data into df
+            fund_df = get_cn_stock_fund_flow_rank()
+            fund_df = fund_df[ fund_df.symbol.isin(self.watching_symbols) ]
+            fund_df = fund_df.sort_values(by='symbol').reset_index(drop= True)
+            if verbose:
+                print('')
+                print(fund_df)
+            for i, fund_row in fund_df.iterrows():
+                symbol = fund_row['symbol']
+                if symbol not in self.watching_symbols:
+                    continue
+                df = self.symbol_daily_adjusted[ symbol ]
+                if 'main_pct' in df.columns:
+                    df['main_pct'].loc[ today ] = fund_row['main_pct']
+
         return data_updated
 
     def get_index_daily(self, symbol, start = None, end = None, count = None):
@@ -174,7 +185,9 @@ class Market:
     def get_spot(self, symbol, date = None):
         if date is None:
             date = self.current_date
+
         df = self.get_daily(symbol, end = date, count = 1)
+
         if df.shape[0] > 0:
             return df.iloc[-1]
         else:
@@ -183,9 +196,19 @@ class Market:
     def get_price(self, symbol, date = None):
         if date is None:
             date = self.current_date
+
+        if type(symbol) == list:
+            return [self.get_price(sym) for sym in symbol]
+
+        if symbol == 'cash':
+            return 1.0
+
+        # adjusted daily
         df = self.get_daily(symbol, end = date, count = 1)
+
         if df.shape[0] > 0:
-            return df.iloc[-1]['close']
+            row = df.iloc[-1]
+            return row['open'] * 0.25 + row['close'] * 0.75
         else:
             print(date, 'not trading day')
             return 0
@@ -193,15 +216,24 @@ class Market:
     def get_real_price(self, symbol, date = None):
         if date is None:
             date = self.current_date
+
+        if type(symbol) == list:
+            return [self.get_real_price(sym) for sym in symbol]
+
+        if symbol == 'cash':
+            return 1.0
+
         if not symbol in self.watching_symbols:
             self.watch([ symbol ])
             today = datetime_today()
             if date and (date >= today):
                 self.update_daily_realtime()
+
         df = self.symbol_daily[ symbol ]
         df = df[:date]
         if df.shape[0] > 0:
-            return df['close'].iloc[-1]
+            row = df.iloc[-1]
+            return row['open'] * 0.25 + row['close'] * 0.75
         else:
             print(date, 'not trading day')
             return 0

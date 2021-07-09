@@ -5,7 +5,7 @@ import mplfinance as mpf
 import matplotlib.pyplot as plt
 from cycler import cycler
 
-from .indicator_signal import gen_indicator_signal, signal_to_long, get_all_signal_indicators
+from .indicator_signal import gen_indicator_signal, long_to_signal, signal_to_long, get_all_signal_indicators
 
 class Stock:
     symbol = ''
@@ -23,49 +23,40 @@ class Stock:
         self.cost = 0.0
         self.price = 0.0
 
+    def calc_cum_return(self, df, signal, mix= False, order_cost = None):
+        long_trend = signal_to_long(signal)
+        long_pos = long_trend.fillna(0)
+        act_return = long_pos * df['daily_return']
+
+        if mix:
+            df['trade_signal'] = signal
+            df['long_pos'] = long_pos
+            df['act_return'] = act_return
+
+        # use a column start with "." to store the performance data
+        if order_cost is not None:
+            sell_cost = signal.copy()
+            sell_cost[ sell_cost > 0 ] = 0
+            buy_cost = signal.copy()
+            buy_cost[ buy_cost < 0 ] = 0
+            sell_cost = (-1) * sell_cost * (act_return * 0.75 + order_cost.close_commission + order_cost.close_tax)
+            buy_cost = buy_cost * (act_return * 0.75 + order_cost.open_commission)
+            cost = (buy_cost + sell_cost)
+        else:
+            cost = 0
+        cum_return = (1 + act_return - cost).cumprod() -1
+        return cum_return
+
     def add_indicator(self, indicators, mix = False, inplace = False, order_cost = None):
         df = self.daily_df
         df['daily_return'] = df.close.pct_change()
         if mix:
             signal = gen_indicator_signal(df, indicators, inplace=inplace)
-            long_trend = signal_to_long(signal)
-            df['trade_signal'] = signal
-            df['long_pos'] = long_trend.shift(1).fillna(0)
-            df['act_return'] = df.long_pos * df.daily_return
-
-            # use a column start with "." to store the performance data
-            if order_cost is not None:
-                sell_cost = signal.copy()
-                sell_cost[ sell_cost > 0 ] = 0
-                buy_cost = signal.copy()
-                buy_cost[ buy_cost < 0 ] = 0
-                sell_cost = sell_cost * (order_cost.close_commission + order_cost.close_tax) * (-1)
-                buy_cost = buy_cost * order_cost.open_commission
-                return_after_cost = df.act_return - (buy_cost + sell_cost)
-
-                df['return.'] = (1 + return_after_cost).cumprod() -1
-            else:
-                df['return.'] = (1 + df.act_return).cumprod() -1
+            df['return.'] = self.calc_cum_return(df, signal, mix= True, order_cost= order_cost)
         else:
             for k in indicators:
                 signal = gen_indicator_signal(df, [k], inplace=inplace)
-                long_trend = signal_to_long(signal)
-                long_pos = long_trend.shift(1).fillna(0)
-                act_return = long_pos * df.daily_return
-
-                # use a column start with "." to store the performance data
-                if order_cost is not None:
-                    sell_cost = signal.copy()
-                    sell_cost[ sell_cost > 0 ] = 0
-                    buy_cost = signal.copy()
-                    buy_cost[ buy_cost < 0 ] = 0
-                    sell_cost = sell_cost * (order_cost.close_commission + order_cost.close_tax) * (-1)
-                    buy_cost = buy_cost * order_cost.open_commission
-                    return_after_cost = act_return - (buy_cost + sell_cost)
-                    df[k + '.'] = (1 + return_after_cost).cumprod() - 1
-                else:
-                    df[k + '.'] = (1 + act_return).cumprod() - 1
-
+                df[k + '.'] = self.calc_cum_return(df, signal, mix= False, order_cost= order_cost)
 
     def rank_indicator(self, by = 'overall'):
         df = self.daily_df.copy()
@@ -137,13 +128,12 @@ class Stock:
         if len(cols) > 0:
             more_plot.append(mpf.make_addplot(df[cols], panel=0, **linestyles))
 
-        if 'main_fund' in df.columns:
-            main_fund = df['main_fund']
-            trade_color = ['r' if v >= 0 else 'g' for v in main_fund]
-            more_plot.append(mpf.make_addplot(main_fund, type='bar', panel=next_panel, color=trade_color, ylabel='main\nfund\nflow'))
-            more_plot.append(mpf.make_addplot(df['main_pct'], type='line', width=0.8, panel=next_panel, color='b'))
+        if 'mffi' in df.columns:
+            mffi = df['mffi']
+            trade_color = ['r' if v >= 0 else 'g' for v in mffi]
+            more_plot.append(mpf.make_addplot(mffi, type='bar', panel=next_panel, color=trade_color, ylabel='MFFI'))
             next_panel = next_panel +1
-            panel_ratios.append(0.5)
+            panel_ratios.append(0.8)
 
         if 'macd_hist' in df.columns:
             macd = df.macd_hist
@@ -160,7 +150,7 @@ class Stock:
 
         indicators = get_all_signal_indicators()
         for key, values in indicators.items():
-            if key in ['ma', 'macd']:
+            if key in ['ma', 'macd', 'mffi']:
                 continue
             ind_label = values['label']
             ind_cols = values['cols']
@@ -186,7 +176,7 @@ class Stock:
             next_panel = next_panel +1
             panel_ratios.append(0.3)
 
-        if 'act_return' in df.columns:
+        if False: #'act_return' in df.columns:
             if 'daily_return' in df.columns:
                 more_plot.append(mpf.make_addplot(df['daily_return'], panel=next_panel, color='b', ylabel='return', **linestyles))
             more_plot.append(mpf.make_addplot(df['act_return'], panel=next_panel, color='r', secondary_y=False, **linestyles))

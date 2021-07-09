@@ -37,7 +37,7 @@ class Portfolio:
             row = [symbol, stock.name, shares, cost]
             table.append(row)
 
-        return pd.DataFrame(table,columns=['symbol','name','amount','cost'])
+        return pd.DataFrame(table,columns=['symbol','name','shares','cost'])
 
     def from_dataframe(self, df, use_real_price = True):
         market = self.market
@@ -48,11 +48,11 @@ class Portfolio:
         for i, row in df.iterrows():
             symbol = row['symbol']
             if symbol == 'cash':
-                self.available_cash = float(row['amount'])
+                self.available_cash = float(row['shares'])
             else:
                 name = row['name']
                 cost = float(row['cost'])
-                shares = float(row['amount'])
+                shares = float(row['shares'])
 
                 if use_real_price:
                     adjust_factor = market.get_adjust_factor(symbol)
@@ -63,11 +63,3 @@ class Portfolio:
                 stock.shares = shares
                 stock.cost = cost
                 self.positions[ symbol ] = stock
-
-    def to_csv(self, csvfile, use_real_price = True):
-        df = self.to_dataframe(use_real_price)
-        df.to_csv(csvfile, index=False)
-
-    def from_csv(self, csvfile, use_real_price = True):
-        df = pd.read_csv(csvfile, dtype=str)
-        self.from_dataframe(df, use_real_price)

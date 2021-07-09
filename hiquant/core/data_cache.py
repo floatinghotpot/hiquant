@@ -190,29 +190,25 @@ def get_daily( symbol ):
 
     return df
 
-def get_daily_adjust_factor( symbol ):
+def get_daily_adjust_factor( symbol, adjust = 'hfq' ):
     market = symbol_market( symbol )
     if market in ['cn', 'hk']:
         df = get_cached_download_df('cache/market/{param}_1d_f.csv', download_func= download_stock_daily_adjust_factor, param= symbol, check_date= True)
+        if 'date' in df.columns:
+            df['date'] = pd.to_datetime(df['date'])
+            df.set_index('date', inplace= True, drop= True)
+            df = df.astype(float)
     else:
         df = get_daily( symbol ).copy()
         df['factor'] = df['adj_close'] / df['close']
-        df['factor'] = df['factor'] / df.iloc[0]['factor']
         df = df[['factor']]
 
-    if 'date' in df.columns:
-        df['date'] = pd.to_datetime(df['date'])
-        df.set_index('date', inplace= True, drop= True)
-        df = df.astype(float)
+    adjust_base = df.iloc[0]['factor'] if (adjust == 'hfq') else df.iloc[-1]['factor']
+    df['factor'] = df['factor'] / adjust_base
 
     return df
 
-def adjust_daily_with_factor(daily_df, factor_df, adjust: str = 'qfq'):
-    if adjust == 'qfq':
-        factor_df = factor_df.copy()
-        max_date_factor = factor_df.iloc[-1]['factor']
-        factor_df['factor'] = factor_df['factor'] / max_date_factor
-
+def adjust_daily_with_factor(daily_df, factor_df):
     if 'factor' in daily_df.columns:
         del daily_df['factor']
 

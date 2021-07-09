@@ -2,6 +2,7 @@
 
 import os
 
+import pandas as pd
 from ..utils import get_file_modify_time, str_now
 from .portfolio import Portfolio
 from .agent_simulated import SimulatedAgent
@@ -39,9 +40,17 @@ class HumanAgent(SimulatedAgent):
     def load_portoflio_from_file(self):
         if os.path.isfile(self.portfolio_load_file):
             load_modified_time = get_file_modify_time(self.portfolio_load_file)
-            self.portfolio.from_csv( self.portfolio_load_file )
+            stock_df = pd.read_csv(self.portfolio_load_file, dtype= str).astype({
+                'shares': 'float64',
+                'cost': 'float64',
+            })
+            self.portfolio.from_dataframe( stock_df )
             self.last_load_modified_time = load_modified_time
             print('\n... {} |'.format(str_now()), 'loaded:', self.portfolio_load_file, load_modified_time)
+            if self.verbose:
+                stock_df['price'] = self.market.get_real_price(stock_df['symbol'].tolist())
+                stock_df['value'] = stock_df['price'] * stock_df['shares']
+                print(stock_df)
 
     def init_portfolio(self, start_cash):
         self.portfolio = Portfolio(self.market)
@@ -68,8 +77,13 @@ class HumanAgent(SimulatedAgent):
             need_save = True
 
         if need_save:
-            self.portfolio.to_csv( self.portfolio_save_file )
+            stock_df = self.portfolio.to_dataframe()
+            stock_df.to_csv( self.portfolio_save_file, index= False)
             print('\n... {} |'.format(str_now()), 'updated:', self.portfolio_save_file)
+            if self.verbose:
+                stock_df['price'] = self.market.get_real_price(stock_df['symbol'].tolist())
+                stock_df['value'] = stock_df['price'] * stock_df['shares']
+                print(stock_df)
 
         if os.path.isfile(self.portfolio_load_file):
             load_modified_time = get_file_modify_time(self.portfolio_load_file)

@@ -52,7 +52,7 @@ Example:
     date_start = date_from_str(params[1] if len(params) > 1 else '3 years ago')
     date_end = date_from_str(params[2] if len(params) > 2 else 'yesterday')
 
-    market = Market(date_start, date_end)
+    market = Market(date_start, date_end, adjust='qfq')
     df = market.get_daily(symbol, start = date_start, end = date_end)
     stock = Stock(symbol, name, df)
 

@@ -14,6 +14,8 @@ class EmailPush( PushBase ):
     user = ''
     passwd = ''
 
+    is_testing = False
+
     def __init__(self, conf):
         super().__init__(conf)
 
@@ -44,6 +46,9 @@ class EmailPush( PushBase ):
             print('Failed to connect to SMTP server')
 
     def flush(self):
+        if self.is_testing:
+            return
+
         if not self.msg_queue:
             return
 

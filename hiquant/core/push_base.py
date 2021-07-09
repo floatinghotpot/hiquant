@@ -22,8 +22,6 @@ class PushBase:
         trade = LANG('You can buy') if count > 0 else LANG('You can sell')
         msg = '{} {}, {} {} * {}, {} {}'.format(symbol, name, trade, count, price, earn_str, comment)
         self.msg_queue.append(msg)
-        if self.verbose:
-            print(msg)
 
     def clear(self):
         self.msg_queue = []
