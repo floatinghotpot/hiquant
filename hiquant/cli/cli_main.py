@@ -106,6 +106,10 @@ Example:
         main_conf = dict_from_config_items(config.items('main'))
         if 'lang' in main_conf:
             set_lang(main_conf['lang'])
+        else:
+            lang = os.getenv('LANG')
+            if lang is not None:
+                set_lang(lang[:2])
 
     command = params[0]
 
