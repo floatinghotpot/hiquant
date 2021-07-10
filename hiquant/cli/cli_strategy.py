@@ -22,6 +22,10 @@ class MyStrategy( hq.BasicStrategy ):
         self.stop_loss = 1 + (-0.10)
         self.stop_earn = 1 + (+0.20)
 
+    def schedule_task(self, trader):
+        trader.run_daily(self.trade, None, time='09:30')
+        trader.run_on_bar_update(self.trade, None)
+
     def select_stock(self):
         return ['AAPL', 'MSFT', 'AMZN', 'TSLA', '0700.HK']
 
@@ -33,7 +37,14 @@ class MyStrategy( hq.BasicStrategy ):
             df = market.get_daily(symbol, end = market.current_date, count = 26+9)
 
         dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
-        return pd.Series( hq.CROSS(dif, dea), index=df.index )
+        signal = pd.Series( hq.CROSS(dif, dea), index=df.index )
+
+        # Notice!!! Important !!!
+        # if we used the close price of the day to calc indicator,
+        # to avoid "future data or function" in backtesting, it should not be used for today's trading
+        # either we trade at 14:30 before market close
+        # or, shift(1) and trade next morning
+        return signal.shift(1).fillna(0)
 
     def get_signal_comment(self, symbol, signal):
         return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
