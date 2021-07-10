@@ -10,4 +10,10 @@ add_lang('en', {
     'signal': 'signal',
     'You can buy': 'You can buy',
     'You can sell': 'You can sell',
+    'price': 'price',
+    'volume': 'volume',
+    'trade': 'trade',
+    'position': 'position',
+    'return(%)': 'return(%)',
+    'drawdown(%)': 'drawdown(%)',
 })

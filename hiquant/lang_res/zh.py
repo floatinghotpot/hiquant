@@ -10,4 +10,10 @@ add_lang('zh', {
     'signal': '信号',
     'You can buy': '建议买入',
     'You can sell': '建议卖出',
+    'price': '价格',
+    'volume': '成交量',
+    'trade': '交易',
+    'position': '持仓',
+    'return(%)': '收益率(%)',
+    'drawdown(%)': '回撤(%)',
 })
