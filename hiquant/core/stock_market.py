@@ -26,6 +26,9 @@ class Market:
     current_date = None
     current_time = None
 
+    biz_time = None
+    biz_hour = (11.5 - 9.5) + (15.0 - 13.0)
+
     is_testing = False
 
     def __init__(self, start, end, adjust = 'qfq'):
@@ -40,6 +43,20 @@ class Market:
         self.date_end = end
         self.current_date = self.current_time = start
         self.last_spot_time = dt.datetime.now() - dt.timedelta(minutes =10)
+
+        self.set_business_time(morning= ['9:30', '11:30'], afternoon= ['13:00', '15:00'])
+
+    def set_business_time(self, morning= ['9:30', '11:30'], afternoon= ['13:00', '15:00']):
+        business_time = morning + afternoon
+
+        biz_time = []
+        for k in business_time:
+            time_only = dt.datetime.strptime(k, '%H:%M')
+            biz_time.append(time_only.hour + time_only.minute / 60.0)
+        self.biz_time = biz_time
+
+        morning_start, morning_end, afternoon_start, afternoon_end = self.biz_time
+        self.biz_hour = (morning_end - morning_start) + (afternoon_end - afternoon_start)
 
     def set_verbose(self, verbose = True):
         self.verbose = verbose
@@ -193,6 +210,18 @@ class Market:
         else:
             return False
 
+    def get_time_factor(self):
+        cur_hour = self.current_time.hour + self.current_time.minute / 60.0
+
+        # convert to valid biz time
+        morning_start, morning_end, afternoon_start, afternoon_end = self.biz_time
+        cur_hour = min(max(cur_hour, morning_start), afternoon_end)
+        if (cur_hour > morning_end) and (cur_hour < afternoon_start):
+            cur_hour = afternoon_start
+
+        hour = (cur_hour - morning_start) if (cur_hour <= morning_end) else (cur_hour - afternoon_start + (morning_end - morning_start))
+        return hour / self.biz_hour
+
     def get_price(self, symbol, date = None):
         if date is None:
             date = self.current_date
@@ -208,7 +237,12 @@ class Market:
 
         if df.shape[0] > 0:
             row = df.iloc[-1]
-            return row['open'] * 0.25 + row['close'] * 0.75
+            close_price = row['close']
+            if self.current_time > datetime_today():
+                return close_price
+            else:
+                open_price = row['open']
+                return open_price + (close_price - open_price) * self.get_time_factor()
         else:
             print(date, 'not trading day')
             return 0
@@ -233,7 +267,12 @@ class Market:
         df = df[:date]
         if df.shape[0] > 0:
             row = df.iloc[-1]
-            return row['open'] * 0.25 + row['close'] * 0.75
+            close_price = row['close']
+            if self.current_time > datetime_today():
+                return close_price
+            else:
+                open_price = row['open']
+                return open_price + (close_price - open_price) * self.get_time_factor()
         else:
             print(date, 'not trading day')
             return 0
