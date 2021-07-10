@@ -1,17 +1,21 @@
 
-from hiquant import *
+import pandas as pd
+import hiquant as hq
 
-class StrategyStockIndicator( BasicStrategy ):
+class StrategyStockIndicator( hq.BasicStrategy ):
     symbol_indicators = {}
     indicators = []
 
     def __init__(self, fund):
         super().__init__(fund, __file__)
-        self.default_indicators = self.conf['indicators'].replace(' ','').split('+')
+        self.indicators = ['macd', 'kdj']
+
+    def schedule_task(self, trader):
+        trader.run_daily(self.trade, None, time='14:40')
+        trader.run_on_bar_update(self.trade, None)
 
     def select_stock(self):
-        # read stock from stock pool
-        stock_df = get_stockpool_df(self.conf['stock_pool'])
+        stock_df = pd.read_csv('stockpool/t0_white_horse_20_idx.csv', dtype=str)
         if self.fund.verbose:
             print(stock_df)
 
@@ -28,7 +32,14 @@ class StrategyStockIndicator( BasicStrategy ):
             df = market.get_daily(symbol, end = market.current_date, count = 60)
 
         indicators = self.symbol_indicators[symbol] if (symbol in self.symbol_indicators) else self.indicators
-        return gen_indicator_signal(df, indicators)
+        signal = hq.gen_indicator_signal(df, indicators)
+
+        # Notice!!! Important !!!
+        # if we used the close price of the day to calc indicator,
+        # to avoid "future data or function" in backtesting, it should not be used for today's trading
+        # either we trade at 14:30 before market close
+        # or, shift(1) and trade next morning
+        return signal
 
     def get_signal_comment(self, symbol, signal):
         if symbol in self.symbol_indicators:
@@ -36,11 +47,16 @@ class StrategyStockIndicator( BasicStrategy ):
         else:
             return ' + '.join(self.default_indicators)
 
-    def before_market_open(self, param = None):
-        pass
-
-    def after_market_close(self, param = None):
-        pass
-
 def init(fund):
     strategy = StrategyStockIndicator(fund)
+
+if __name__ == '__main__':
+    backtest_args = dict(
+        #start_cash= 1000000.00,
+        date_start= hq.date_from_str('6 months ago'),
+        #date_end= hq.date_from_str('yesterday'),
+        #out_file= 'output/demo.png',
+        #parallel= True,
+        compare_index= 'sh000300',
+    )
+    hq.backtest_strategy( StrategyStockIndicator, **backtest_args )
