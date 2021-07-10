@@ -97,9 +97,9 @@ class SimulatedAgent:
                 return
 
         p = self.portfolio
-        if count > 0 and p.available_cash < price * count:
-            # no enough cash to buy stock, ignore order
-            return
+
+        # make sure the count is within our budget
+        count = min(count, p.available_cash / price)
 
         real_price = market.get_real_price(symbol)
         real_count = price * count / real_price
@@ -112,6 +112,8 @@ class SimulatedAgent:
                 # buy, or not sell all, a hand must be times of 100
                 real_count = int(real_count / 100) * 100
                 if real_count == 0:
+                    if self.verbose:
+                        print('must buy/sell no less than 1 hand', symbol, count, real_count, real_price, p.available_cash)
                     return
 
                 count = real_count * real_price / price
@@ -129,10 +131,13 @@ class SimulatedAgent:
                 p.history[symbol] = stock
                 del p.positions[symbol]
         elif count > 0:
-            xcount = count
+            name = market.get_name(symbol)
+
             # a hand must be times of 100
             real_count = int(real_count / 100) * 100
             if real_count == 0:
+                if self.verbose:
+                    print('must buy no less than 1 hand', symbol, name, count, real_count, real_price, p.available_cash)
                 return
 
             count = real_count * real_price / price
@@ -141,12 +146,13 @@ class SimulatedAgent:
                 stock = p.history[symbol]
                 del p.history[symbol]
             else:
-                stock = Stock(symbol, market.get_name(symbol))
+                stock = Stock(symbol, name)
             stock.cost = price
             stock.shares = count
             p.positions[symbol] = stock
 
         else:
+            raise ValueError('attempt sell shares with no position')
             return
 
         # calculate trade cost
