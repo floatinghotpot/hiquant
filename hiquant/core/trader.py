@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 from ..utils import datetime_today
 from .data_cache import get_all_symbol_name, get_symbol_name
+from .lang import LANG
 
 class Callback:
     context = None
@@ -245,21 +246,21 @@ class Trader:
         # now plot to visualize
         if len(report) > 1:
             # if multi strategy, we compare the performance
-            df.plot(figsize = (10,6), grid = True, xlabel = 'date', ylabel = 'return (%)', title = 'performance')
+            df.plot(figsize = (10,6), grid = True, xlabel = 'date', ylabel = LANG('return(%)'), title = 'performance')
             plt.show()
         else:
             # if only one strategy, we also plot the buy/sell and drawdown
             fig, axes = plt.subplots(nrows=3, gridspec_kw={'height_ratios': [3, 1, 1]})
 
             fund_name = report[0]['name']
-            df[[fund_name, compare_index_name]].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], label = 'date', ylabel = 'return (%)', title = 'performance')
+            df[[fund_name, compare_index_name]].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], label = 'date', ylabel = LANG('return(%)'), title = 'performance')
 
             axes[1].bar(df.index, df.buy, color='r')
             axes[1].bar(df.index, df.sell, color='g')
-            axes[1].set_ylabel('trade count')
+            axes[1].set_ylabel(LANG('trade'))
 
             df['drawdown'] = df['drawdown'] * 100.0
-            df[['drawdown']].plot(ax=axes[2], grid = True, sharex=axes[0], ylabel = 'drawdown (%)', legend=False)
+            df[['drawdown']].plot(ax=axes[2], grid = True, sharex=axes[0], ylabel = LANG('drawdown(%)'), legend=False)
 
             plt.xticks(rotation=45)
 
