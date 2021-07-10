@@ -10,7 +10,8 @@ def add_lang(lang, translation):
     _lang_res[ lang ] = translation
 
 def set_lang(lang = 'en'):
-    _lang_res['_current_lang'] = lang
+    if lang in _lang_res:
+        _lang_res['_current_lang'] = lang
 
 def get_lang():
     return _lang_res['_current_lang']
