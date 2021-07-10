@@ -11,7 +11,7 @@ class Strategy:
     conf = {}
 
     max_stocks = 10
-    max_weight = 1.2
+    max_weight = 1.0
     stop_loss = 0.0
     stop_earn = 10000.0
 
@@ -53,11 +53,11 @@ class BasicStrategy( Strategy ):
         concerned_stocks.sort()
         market.watch( concerned_stocks )
 
-        trader = fund.trader
-        trader.run_daily(self.before_market_open, None, time='before_open')
+        self.schedule_task(fund.trader)
+
+    def schedule_task(self, trader):
+        trader.run_daily(self.trade, None, time='14:30')
         trader.run_on_bar_update(self.trade, None)
-        trader.run_daily(self.trade, None, time='10:00')
-        trader.run_daily(self.after_market_close, None, time='after_close')
 
     def select_stock(self):
         pass
@@ -69,8 +69,6 @@ class BasicStrategy( Strategy ):
         pass
 
     def init_trade_signal(self, symbol):
-        #if self.fund.verbose:
-        #    print('init history signal:', symbol)
         return symbol, self.gen_trade_signal(symbol, True)
 
     def get_trade_decision(self, symbol, market, portfolio, max_pos_per_stock):
@@ -82,7 +80,11 @@ class BasicStrategy( Strategy ):
             return symbol, 0, ''
 
         if market.current_date < datetime_today():
-            trade_signal = self.symbol_signal[ symbol ].loc[ market.current_date ]
+            date_signal = self.symbol_signal[ symbol ]
+            if market.current_date in date_signal:
+                trade_signal = date_signal.loc[ market.current_date ]
+            else:
+                trade_signal = self.gen_trade_signal(symbol, init_data=False).iloc[-1]
         else:
             trade_signal = self.gen_trade_signal(symbol, init_data=False).iloc[-1]
 
@@ -144,11 +146,7 @@ class BasicStrategy( Strategy ):
 
         # now buy
         for symbol, signal, reason in decision_list:
-            if signal > 0:
+            if portfolio.count() >= max_stocks:
+                break
+            if (signal > 0) and (symbol not in portfolio.positions):
                 agent.order_target_value(symbol, max_pos_per_stock, comment = reason)
-
-    def before_market_open(self, param = None):
-        pass
-
-    def after_market_close(self, param = None):
-        pass

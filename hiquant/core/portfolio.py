@@ -16,6 +16,9 @@ class Portfolio:
         self.positions = {}
         self.history = {}
 
+    def count(self):
+        return len(list(self.positions.keys()))
+
     def total_value(self):
         market = self.market
         value = self.available_cash

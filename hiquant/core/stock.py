@@ -5,7 +5,8 @@ import mplfinance as mpf
 import matplotlib.pyplot as plt
 from cycler import cycler
 
-from .indicator_signal import gen_indicator_signal, long_to_signal, signal_to_long, get_all_signal_indicators
+from .indicator_signal import gen_indicator_signal, signal_to_long, get_all_signal_indicators
+from .lang import get_lang, LANG
 
 class Stock:
     symbol = ''
@@ -24,32 +25,46 @@ class Stock:
         self.price = 0.0
 
     def calc_cum_return(self, df, signal, mix= False, order_cost = None):
-        long_trend = signal_to_long(signal)
-        long_pos = long_trend.fillna(0)
+        # Notice!!! Important !!!
+        #
+        # when calc signal, we used the close price of today,
+        # to avoid "future data or function", it cannot be used for today's trading
+        # the signal only impact next day, so here shift(1) to next day
+        #
+        # only for MFFI, we should catch the signal and buy/sell immediately
+        #
+        if 'mffi' in df.columns:
+            long_pos = signal_to_long(signal, time_factor=0.50)
+        else:
+            long_pos = signal_to_long(signal).shift(1).fillna(0)
+
         act_return = long_pos * df['daily_return']
 
         if mix:
-            df['trade_signal'] = signal
+            df['trade'] = signal.astype(int)
             df['long_pos'] = long_pos
-            df['act_return'] = act_return
 
         # use a column start with "." to store the performance data
         if order_cost is not None:
-            sell_cost = signal.copy()
-            sell_cost[ sell_cost > 0 ] = 0
             buy_cost = signal.copy()
             buy_cost[ buy_cost < 0 ] = 0
-            sell_cost = (-1) * sell_cost * (act_return * 0.75 + order_cost.close_commission + order_cost.close_tax)
-            buy_cost = buy_cost * (act_return * 0.75 + order_cost.open_commission)
+            sell_cost = signal.copy()
+            sell_cost[ sell_cost > 0 ] = 0
+            buy_cost = buy_cost * (order_cost.open_commission)
+            sell_cost = (-1) * sell_cost * (order_cost.close_commission + order_cost.close_tax)
             cost = (buy_cost + sell_cost)
         else:
             cost = 0
         cum_return = (1 + act_return - cost).cumprod() -1
-        return cum_return
+        return cum_return.fillna(0)
 
     def add_indicator(self, indicators, mix = False, inplace = False, order_cost = None):
+        # if only one indicator, we auto show trade & position
+        if len(indicators) == 1:
+            mix = True
+
         df = self.daily_df
-        df['daily_return'] = df.close.pct_change()
+        df['daily_return'] = df.close.pct_change().fillna(0)
         if mix:
             signal = gen_indicator_signal(df, indicators, inplace=inplace)
             df['return.'] = self.calc_cum_return(df, signal, mix= True, order_cost= order_cost)
@@ -80,11 +95,14 @@ class Stock:
 
     # Visualization
     # --------------------------------------------------------------------------------
-    def plot(self, red_up = True, out_file = None):
+    def plot(self, out_file = None):
         # China market candle color, red for up, green for down
+        up_red = (get_lang() == 'zh')
+        long_color = 'red' if up_red else 'green'
+        short_color = 'green' if up_red else 'red'
         mc = mpf.make_marketcolors(
-            up = 'red' if red_up else 'green',
-            down = 'green' if red_up else 'red',
+            up = long_color,
+            down = short_color,
             edge = 'i',
             wick = 'i',
             volume = 'in',
@@ -130,14 +148,14 @@ class Stock:
 
         if 'mffi' in df.columns:
             mffi = df['mffi']
-            trade_color = ['r' if v >= 0 else 'g' for v in mffi]
+            trade_color = [long_color if v >= 0 else short_color for v in mffi]
             more_plot.append(mpf.make_addplot(mffi, type='bar', panel=next_panel, color=trade_color, ylabel='MFFI'))
             next_panel = next_panel +1
             panel_ratios.append(0.8)
 
         if 'macd_hist' in df.columns:
             macd = df.macd_hist
-            macd_color = ['r' if v >= 0 else 'g' for v in macd]
+            macd_color = [long_color if v >= 0 else short_color for v in macd]
             more_plot.append(mpf.make_addplot(macd, type='bar', width=0.4, panel=next_panel, color=macd_color, ylabel='MACD'))
             cols = []
             for k in ['macd_dif', 'macd_dea']:
@@ -161,25 +179,21 @@ class Stock:
                 next_panel = next_panel +1
                 panel_ratios.append(0.3)
 
-        if 'trade_signal' in df.columns:
-            trade_signal = df['trade_signal']
-            trade_color = ['r' if v >= 0 else 'g' for v in trade_signal]
-            more_plot.append(mpf.make_addplot(trade_signal, type='bar', panel=next_panel, color=trade_color, ylabel='trade'))
+        if 'trade' in df.columns:
+            # as the signal calculated with close price of today,
+            # to avoid "future data", we can only trade before market close, or morning of next day
+            trade_action = df['trade']
+
+            trade_color = [long_color if v >= 0 else short_color for v in trade_action]
+            more_plot.append(mpf.make_addplot(trade_action, type='bar', panel=next_panel, color=trade_color, ylabel=LANG('trade')))
             next_panel = next_panel +1
             panel_ratios.append(0.3)
 
         if 'long_pos' in df.columns:
+            price_change = df['close'] - df['open']
+            pos_color = [long_color if v >= 0 else short_color for v in price_change]
             long_pos = df['long_pos']
-            short_pos = 1 - long_pos
-            more_plot.append(mpf.make_addplot(long_pos, type='bar', panel=next_panel, color='r', ylabel='position'))
-            more_plot.append(mpf.make_addplot(short_pos, type='bar', panel=next_panel, color='g', secondary_y=False))
-            next_panel = next_panel +1
-            panel_ratios.append(0.3)
-
-        if False: #'act_return' in df.columns:
-            if 'daily_return' in df.columns:
-                more_plot.append(mpf.make_addplot(df['daily_return'], panel=next_panel, color='b', ylabel='return', **linestyles))
-            more_plot.append(mpf.make_addplot(df['act_return'], panel=next_panel, color='r', secondary_y=False, **linestyles))
+            more_plot.append(mpf.make_addplot(long_pos, type='bar', panel=next_panel, color=pos_color, ylabel=LANG('position')))
             next_panel = next_panel +1
             panel_ratios.append(0.3)
 
@@ -189,19 +203,22 @@ class Stock:
             if k.endswith('.'):
                 ret_cols.append(k)
         if len(ret_cols) > 0:
-            more_plot.append(mpf.make_addplot(df['close']/df['close'].iloc[0]-1, panel=next_panel, color='b', ylabel='return', **linestyles))
-            more_plot.append(mpf.make_addplot(df[ret_cols], panel=next_panel, secondary_y=False, **linestyles))
+            price_change_percent = (df['close']/df['close'].iloc[0]-1) * 100
+            more_plot.append(mpf.make_addplot(price_change_percent, panel=next_panel, color='b', ylabel=LANG('return(%)'), **linestyles))
+            more_plot.append(mpf.make_addplot(df[ret_cols] * 100, panel=next_panel, secondary_y=False, **linestyles))
             last_panel = next_panel
             next_panel = next_panel +1
             panel_ratios.append(1.0 if (len(ret_cols)>1) else 1.0)
+
+        print(df)
 
         kwargs = dict(
             title = self.symbol + ' - ' + self.name,
             type = "candle",
             volume = True,
             datetime_format = '%Y-%m-%d',
-            ylabel = "price",
-            ylabel_lower = "volume",
+            ylabel = LANG("price"),
+            ylabel_lower = LANG("volume"),
             figratio = (10,6),
             figscale = 1.0,
             panel_ratios = panel_ratios,

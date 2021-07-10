@@ -71,10 +71,19 @@ class Market:
         if self.is_testing:
             return True
 
+        # business hour:
+        # monday to friday, 9:30 ~ 11:30, 13:00 ~ 15:00
         now = dt.datetime.now()
         wday = now.weekday() +1
-        # monday to friday, 9:00 - 15:00 treat as open time
-        return (wday>=1) and (wday<=5) and (now.hour>=9 and now.hour<15)
+        if (wday >= 1) and (wday <= 5):
+            hour = now.hour + now.minute / 60.0
+            morning_start, morning_end, afternoon_start, afternoon_end = self.biz_time
+            if (hour >= morning_start) and (hour < morning_end):
+                return True
+            if (hour >= afternoon_start) and (hour < afternoon_end):
+                return True
+
+        return False
 
     def load_history_price(self, symbol):
         if symbol.startswith('sh') or symbol.startswith('sz'):
