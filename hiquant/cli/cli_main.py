@@ -12,7 +12,7 @@ import configparser
 
 from ..version import __version__
 from ..utils import parse_params_options, dict_from_config_items
-from ..core import set_lang
+from ..core import set_lang, get_hiquant_conf
 
 from .cli_create import cli_create
 from .cli_finance import cli_finance
@@ -98,18 +98,14 @@ Example:
         print( syntax_tips )
         return
 
-    config_file = 'hiquant.conf'
-    if os.path.isfile(config_file):
-        print( 'reading config from from:', config_file)
-        config = configparser.ConfigParser()
-        config.read(config_file, encoding='utf-8')
-        main_conf = dict_from_config_items(config.items('main'))
-        if 'lang' in main_conf:
-            set_lang(main_conf['lang'])
-        else:
-            lang = os.getenv('LANG')
-            if lang is not None:
-                set_lang(lang[:2])
+    config = get_hiquant_conf()
+    main_conf = dict_from_config_items(config.items('main'))
+    if 'lang' in main_conf:
+        set_lang(main_conf['lang'])
+    else:
+        lang = os.getenv('LANG')
+        if lang is not None:
+            set_lang(lang[:2])
 
     command = params[0]
 

@@ -1,9 +1,7 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-import os
-import configparser
-
 from ..utils import dict_from_config_items
+from .conf import get_hiquant_conf
 
 class OrderCost:
     close_tax = 0.001
@@ -22,11 +20,8 @@ def get_order_cost(global_config = None):
     if (global_config is not None) and ('order_cost' in global_config.sections()):
         order_cost_conf = dict_from_config_items(global_config.items('order_cost'))
     else:
-        hiquant_conf_file = 'hiquant.conf'
-        if os.path.isfile(hiquant_conf_file):
-            config = configparser.ConfigParser()
-            config.read(hiquant_conf_file, encoding='utf-8')
-            order_cost_conf = dict_from_config_items(config.items('order_cost'))
+        config = get_hiquant_conf()
+        order_cost_conf = dict_from_config_items(config.items('order_cost'))
 
     if order_cost_conf is not None:
         return OrderCost(
