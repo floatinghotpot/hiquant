@@ -143,12 +143,13 @@ class Market:
             if symbol not in self.watching_symbols:
                 continue
             df = self.symbol_daily_adjusted[ symbol ]
-            if 'main_pct' in df.columns:
-                df.loc[ today ]['main_pct'] = fund_row['main_pct']
-            if 'main_fund' in df.columns:
-                df.loc[ today ]['main_fund'] = fund_row['main_fund']
+            if today in df.index:
+                if 'main_pct' in df.columns:
+                    df.loc[ today ]['main_pct'] = fund_row['main_pct']
+                if 'main_fund' in df.columns:
+                    df.loc[ today ]['main_fund'] = fund_row['main_fund']
 
-        return df
+        return fund_df
 
     def update_daily_realtime(self, verbose = False) -> bool:
         now = dt.datetime.now()
