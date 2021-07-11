@@ -15,6 +15,9 @@ def test_data_cache():
     df = get_index_daily('sh000300')
     print(df)
 
+    df = get_index_daily('^GSPC')
+    print(df)
+
     df = get_daily('600036')
     print(df)
     factor_df = get_daily_adjust_factor('600036')
