@@ -82,7 +82,7 @@ class Fund:
 
         self.max_value = self.agent.get_portfolio().total_value()
 
-        columns = ['buy', 'sell', 'value', 'cash', 'drawdown']
+        columns = ['buy', 'sell', 'value', 'cash', 'position', 'drawdown']
         self.stat_df = pd.DataFrame([], columns = columns, index = pd.to_datetime([]))
         self.update_stat(self.market.current_date - dt.timedelta(days=1))
 
@@ -96,7 +96,14 @@ class Fund:
         value = portfolio.total_value()
         self.max_value = max(value, self.max_value)
         buy_count, sell_count = agent.get_transaction_count()
-        row = [buy_count, - sell_count, value, portfolio.available_cash, (value / self.max_value -1)]
+        row = [
+            buy_count,
+            - sell_count,
+            value,
+            portfolio.available_cash,
+            (value - portfolio.available_cash) / value,
+            (value / self.max_value -1),
+        ]
 
         if date is None:
             date = self.market.current_date
@@ -141,4 +148,5 @@ class Fund:
         }
 
     def get_stat(self):
-        return self.stat_df
+        df = self.stat_df
+        return df

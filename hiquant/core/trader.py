@@ -42,18 +42,9 @@ class Trader:
         for fund in self.funds:
             fund.set_verbose(verbose)
 
-    def run_daily(self, func, context, time='open'):
-        # map to time
-        _run_time = {
-            'before_open': '7:00',
-            'open': '9:30',
-            'after_open': '10:00',
-            'before_close': '14:30',
-            'after_close': '16:00',
-        }
-        for k in _run_time:
-            if time == k:
-                time = _run_time[k]
+    def run_daily(self, func, context, time='09:30'):
+        time_only = dt.datetime.strptime(time, '%H:%M')
+        time = time_only.strftime('%H:%M')
 
         if time in self.timer_callbacks:
             callback_list = self.timer_callbacks[ time ]
@@ -219,13 +210,16 @@ class Trader:
             fund_name = fund['name']
             stat_df = fund['stat']
 
-            # if only one strategy, we also plot the buy/sell and drawdown
-            if len(report) == 1:
-                df = stat_df[['buy', 'sell', 'drawdown']]
-
             value = stat_df['value']
-            df[ fund_name ] = (value / value.iloc[0] - 1) * 100.0
+            df[ fund_name + '.' ] = (value / value.iloc[0] - 1) * 100.0
+            df[ fund_name + ':'] = stat_df['drawdown'] * 100
+            df[ fund_name + ','] = stat_df['position'] * 100
             df.index = stat_df.index
+
+            # if only one strategy, we also plot the buy/sell
+            if len(report) == 1:
+                df['buy'] = stat_df['buy']
+                df['sell'] = stat_df['sell']
 
         if compare_index:
             symbol_name = get_all_symbol_name()
@@ -243,28 +237,41 @@ class Trader:
         plt.rcParams['font.family'] = 'sans-serif'
         plt.rcParams["axes.unicode_minus"] = False
 
-        # now plot to visualize
         if len(report) > 1:
-            # if multi strategy, we compare the performance
-            df.plot(figsize = (10,6), grid = True, xlabel = 'date', ylabel = LANG('return(%)'), title = 'performance')
-            plt.show()
+            plot_rows = 3
+            grid_ratios = [3, 1, 1]
         else:
-            # if only one strategy, we also plot the buy/sell and drawdown
-            fig, axes = plt.subplots(nrows=3, gridspec_kw={'height_ratios': [3, 1, 1]})
+            plot_rows = 4
+            grid_ratios = [3, 1, 1, 1]
 
-            fund_name = report[0]['name']
-            df[[fund_name, compare_index_name]].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], label = 'date', ylabel = LANG('return(%)'), title = 'performance')
+        fig, axes = plt.subplots(nrows = plot_rows, gridspec_kw = {'height_ratios': grid_ratios})
 
-            axes[1].bar(df.index, df.buy, color='r')
-            axes[1].bar(df.index, df.sell, color='g')
-            axes[1].set_ylabel(LANG('trade'))
+        fund_list = []
+        pos_list = []
+        drawdown_list = []
+        for k in df.columns:
+            if k.endswith('.'):
+                fund_list.append(k)
+            elif k.endswith(':'):
+                drawdown_list.append(k)
+            elif k.endswith(','):
+                pos_list.append(k)
 
-            df['drawdown'] = df['drawdown'] * 100.0
-            df[['drawdown']].plot(ax=axes[2], grid = True, sharex=axes[0], ylabel = LANG('drawdown(%)'), legend=False)
+        fund_list.append( compare_index_name )
+        df[ fund_list ].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], label = 'date', ylabel = LANG('return(%)'), title = LANG('quantitative backtesting'))
 
-            plt.xticks(rotation=45)
+        if len(report) == 1:
+            ax_id = plot_rows -3
+            axes[ax_id].set_ylabel(LANG('trade'))
+            axes[ax_id].bar(df.index, df.buy, color='r')
+            axes[ax_id].bar(df.index, df.sell, color='g')
 
-            if out_file is not None:
-                plt.savefig(out_file)
-            else:
-                plt.show()
+        df[ pos_list ].plot(ax=axes[plot_rows -2], grid = True, sharex=axes[0], ylabel = LANG('position(%)'), legend=False)
+        df[ drawdown_list ].plot(ax=axes[plot_rows -1], grid = True, sharex=axes[0], ylabel = LANG('drawdown(%)'), legend=False)
+
+        #plt.xticks(rotation=30)
+
+        if out_file is not None:
+            plt.savefig(out_file)
+        else:
+            plt.show()

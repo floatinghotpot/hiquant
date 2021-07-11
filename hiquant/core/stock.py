@@ -15,6 +15,7 @@ class Stock:
     shares = 0
     cost = 0.0
     price = 0.0
+    sellable = True
 
     def __init__(self, symbol, name = '', daily_df = None):
         self.symbol = symbol
@@ -33,7 +34,7 @@ class Stock:
         #
         # only for MFFI, we should catch the signal and buy/sell immediately
         #
-        if 'mffi' in df.columns:
+        if signal.name == 'mffi':
             long_pos = signal_to_long(signal, time_factor=0.50)
         else:
             long_pos = signal_to_long(signal).shift(1).fillna(0)
@@ -67,10 +68,12 @@ class Stock:
         df['daily_return'] = df.close.pct_change().fillna(0)
         if mix:
             signal = gen_indicator_signal(df, indicators, inplace=inplace)
+            if len(indicators) == 1:
+                signal.rename(indicators[0], inplace= True)
             df['return.'] = self.calc_cum_return(df, signal, mix= True, order_cost= order_cost)
         else:
             for k in indicators:
-                signal = gen_indicator_signal(df, [k], inplace=inplace)
+                signal = gen_indicator_signal(df, [k], inplace=inplace).rename(k)
                 df[k + '.'] = self.calc_cum_return(df, signal, mix= False, order_cost= order_cost)
 
     def rank_indicator(self, by = 'overall'):

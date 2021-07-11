@@ -15,5 +15,7 @@ add_lang('zh', {
     'trade': '交易',
     'position': '持仓',
     'return(%)': '收益率(%)',
+    'position(%)': '仓位(%)',
     'drawdown(%)': '回撤(%)',
+    'quantitative backtesting': '量化回测',
 })

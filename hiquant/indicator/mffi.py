@@ -14,6 +14,6 @@ def signal_mffi(df, inplace=False):
     sell_signal = -5
 
     signal = (mffi >= buy_signal).astype(int) - (mffi <= sell_signal).astype(int)
-    return signal_no_dup(signal)
+    return signal #signal_no_dup(signal)
 
 register_signal_indicator('mffi', signal_mffi, ['mffi'], 'MFFI', 'volume')

@@ -87,4 +87,7 @@ def gen_indicator_signal(df, indicators, time_factor = 1.0, inplace=False):
         else:
             print(k, 'not found in registered indicators')
 
+    signal[ signal > 0 ] = 1
+    signal[ signal < 0 ] = -1
+
     return signal_no_dup(signal)

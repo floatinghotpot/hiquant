@@ -16,3 +16,4 @@ from .push_email import *
 from .push_master import *
 from .lang import *
 from .backtest import *
+from .conf import *

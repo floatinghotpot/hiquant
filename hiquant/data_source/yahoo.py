@@ -136,7 +136,7 @@ IMOEX.ME
 ^JN0U.JO
 ^NZ50'''.split('\n')
     df = download_us_stock_quote(symbols)
-    df = df[['symbol','shortName','exchange','market','currency','region','language']]
+    df = df[['symbol','shortName','exchange','market','currency']]
     df = df.rename(columns={'shortName':'name'})
     return df
 

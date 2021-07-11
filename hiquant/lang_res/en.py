@@ -15,5 +15,7 @@ add_lang('en', {
     'trade': 'trade',
     'position': 'position',
     'return(%)': 'return(%)',
+    'position(%)': 'position(%)',
     'drawdown(%)': 'drawdown(%)',
+    'quantitative backtesting': 'Quantitative backtesting',
 })

@@ -47,7 +47,8 @@ class SimulatedAgent:
     def before_day(self):
         self.buy_count = 0
         self.sell_count = 0
-        pass
+        for symbol, stock in self.portfolio.positions.items():
+            stock.sellable = True
 
     def after_day(self):
         pass
@@ -121,18 +122,23 @@ class SimulatedAgent:
                 stock.cost = (stock.cost * stock.shares + price * count) / target_count
                 stock.shares += count
             else:
-                # sell all
-                count = - stock.shares
-                real_count = price * count / real_price
+                if stock.sellable:
+                    # sell all
+                    count = - stock.shares
+                    real_count = price * count / real_price
 
-                cost = stock.cost
-                stock.cost = 0.0
-                stock.shares = 0
-                p.history[symbol] = stock
-                del p.positions[symbol]
+                    cost = stock.cost
+                    stock.cost = 0.0
+                    stock.shares = 0
+                    p.history[symbol] = stock
+                    del p.positions[symbol]
+                else:
+                    if self.verbose:
+                        print('stock just buy in, not sellable', symbol, stock.name)
+                    return
+
         elif count > 0:
             name = market.get_name(symbol)
-
             # a hand must be times of 100
             real_count = int(real_count / 100) * 100
             if real_count == 0:
@@ -147,8 +153,11 @@ class SimulatedAgent:
                 del p.history[symbol]
             else:
                 stock = Stock(symbol, name)
+
             stock.cost = price
             stock.shares = count
+            stock.sellable = (market.sell_rule == 'T+0')
+
             p.positions[symbol] = stock
 
         else:

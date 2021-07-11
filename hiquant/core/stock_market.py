@@ -28,6 +28,7 @@ class Market:
 
     biz_time = None
     biz_hour = (11.5 - 9.5) + (15.0 - 13.0)
+    sell_rule = 'T+1'
 
     is_testing = False
 
@@ -45,6 +46,10 @@ class Market:
         self.last_spot_time = dt.datetime.now() - dt.timedelta(minutes =10)
 
         self.set_business_time(morning= ['9:30', '11:30'], afternoon= ['13:00', '15:00'])
+        self.set_sell_rule(sell_rule= 'T+1')
+
+    def set_sell_rule(self, sell_rule = 'T+1'):
+        self.sell_rule = sell_rule
 
     def set_business_time(self, morning= ['9:30', '11:30'], afternoon= ['13:00', '15:00']):
         business_time = morning + afternoon
@@ -67,7 +72,7 @@ class Market:
         self.date_end = end
         self.current_date = self.current_time = start
 
-    def is_open(self):
+    def is_open(self) -> bool:
         if self.is_testing:
             return True
 
@@ -100,15 +105,17 @@ class Market:
                 df['main_fund'] = fund_df['main_fund']
                 df['main_pct'] = fund_df['main_pct']
                 df = df.fillna(0)
-
             self.symbol_daily[ symbol ] = df
 
             if (self.adjust == 'hfq' or self.adjust == 'qfq'):
                 factor_df = get_daily_adjust_factor( symbol, self.adjust )
                 self.symbol_adjust_factor[ symbol ] = factor_df
-                self.symbol_daily_adjusted[ symbol ] = adjust_daily_with_factor(df, factor_df)
-            else:
-                self.symbol_daily_adjusted[ symbol ] = df
+                df = adjust_daily_with_factor(df, factor_df)
+                if fund_df is not None:
+                    df['main_fund'] = fund_df['main_fund']
+                    df['main_pct'] = fund_df['main_pct']
+                    df = df.fillna(0)
+            self.symbol_daily_adjusted[ symbol ] = df
 
     def watch(self, symbols):
         for symbol in symbols:
@@ -120,7 +127,30 @@ class Market:
         for symbol in self.watching_symbols:
             self.load_history_price( symbol )
 
-    def update_daily_realtime(self, verbose = False):
+    def update_fundflow_realtime(self, verbose = False) -> pd.DataFrame:
+        today = pd.to_datetime( datetime_today() )
+
+        # merge fund flow data into df
+        fund_df = get_cn_stock_fund_flow_rank()
+        fund_df = fund_df[ fund_df.symbol.isin(self.watching_symbols) ]
+        fund_df = fund_df.sort_values(by='main_pct', ascending=False).reset_index(drop= True)
+        if verbose:
+            print('')
+            print(fund_df)
+
+        for i, fund_row in fund_df.iterrows():
+            symbol = fund_row['symbol']
+            if symbol not in self.watching_symbols:
+                continue
+            df = self.symbol_daily_adjusted[ symbol ]
+            if 'main_pct' in df.columns:
+                df.loc[ today ]['main_pct'] = fund_row['main_pct']
+            if 'main_fund' in df.columns:
+                df.loc[ today ]['main_fund'] = fund_row['main_fund']
+
+        return df
+
+    def update_daily_realtime(self, verbose = False) -> bool:
         now = dt.datetime.now()
         data_updated = False
 
@@ -153,24 +183,9 @@ class Market:
                         new_row_adjusted[ k ] *= adjust_factor
                 self.symbol_daily_adjusted[ symbol ].loc[spot_date] = new_row_adjusted
 
-            # merge fund flow data into df
-            fund_df = get_cn_stock_fund_flow_rank()
-            fund_df = fund_df[ fund_df.symbol.isin(self.watching_symbols) ]
-            fund_df = fund_df.sort_values(by='symbol').reset_index(drop= True)
-            if verbose:
-                print('')
-                print(fund_df)
-            for i, fund_row in fund_df.iterrows():
-                symbol = fund_row['symbol']
-                if symbol not in self.watching_symbols:
-                    continue
-                df = self.symbol_daily_adjusted[ symbol ]
-                if 'main_pct' in df.columns:
-                    df['main_pct'].loc[ today ] = fund_row['main_pct']
-
         return data_updated
 
-    def get_index_daily(self, symbol, start = None, end = None, count = None):
+    def get_index_daily(self, symbol, start = None, end = None, count = None) -> pd.DataFrame:
         if end is None:
             end = self.date_end
         if start is None:
@@ -186,7 +201,7 @@ class Market:
 
         return df
 
-    def get_daily(self, symbol, start = None, end = None, count = None):
+    def get_daily(self, symbol, start = None, end = None, count = None) -> pd.DataFrame:
         if end is None:
             end = self.date_end
         if start is None:
@@ -208,7 +223,7 @@ class Market:
 
         return df
 
-    def get_spot(self, symbol, date = None):
+    def get_spot(self, symbol, date = None) -> pd.Series:
         if date is None:
             date = self.current_date
 
@@ -217,9 +232,9 @@ class Market:
         if df.shape[0] > 0:
             return df.iloc[-1]
         else:
-            return False
+            return None
 
-    def get_time_factor(self):
+    def get_time_factor(self) -> float:
         cur_hour = self.current_time.hour + self.current_time.minute / 60.0
 
         # convert to valid biz time
@@ -231,7 +246,7 @@ class Market:
         hour = (cur_hour - morning_start) if (cur_hour <= morning_end) else (cur_hour - afternoon_start + (morning_end - morning_start))
         return hour / self.biz_hour
 
-    def get_price(self, symbol, date = None):
+    def get_price(self, symbol, date = None) -> float:
         if date is None:
             date = self.current_date
 
@@ -251,12 +266,15 @@ class Market:
                 return close_price
             else:
                 open_price = row['open']
-                return open_price + (close_price - open_price) * self.get_time_factor()
+                # assume the price change is function of time, either linear, quadratic, or cubic
+                f = 1 - self.get_time_factor()
+                price = close_price - (close_price - open_price) * (f * f * f)
+                return price
         else:
             print(date, 'not trading day')
             return 0
 
-    def get_real_price(self, symbol, date = None):
+    def get_real_price(self, symbol, date = None) -> float:
         if date is None:
             date = self.current_date
 
@@ -281,12 +299,15 @@ class Market:
                 return close_price
             else:
                 open_price = row['open']
-                return open_price + (close_price - open_price) * self.get_time_factor()
+                # assume the price change is function of time, either linear, quadratic, or cubic
+                f = 1 - self.get_time_factor()
+                price = close_price - (close_price - open_price) * f * f * f
+                return price
         else:
             print(date, 'not trading day')
             return 0
 
-    def get_adjust_factor(self, symbol, date = None):
+    def get_adjust_factor(self, symbol, date = None) -> pd.Series:
         if date is None:
             date = self.current_date
         if not symbol in self.watching_symbols:
@@ -301,22 +322,62 @@ class Market:
             print(factor_df)
         return factor
 
-    def get_name(self, symbol):
+    def get_name(self, symbol) -> str:
         if symbol in self.all_symbol_name:
             return self.all_symbol_name[ symbol ]
         else:
             return ''
 
-    def allow_trading(self, symbol, date = None):
+    def allow_trading(self, symbol, date = None) -> bool:
         if date is None:
             date = self.current_date
         df = self.symbol_daily_adjusted[ symbol ]
         return pd.to_datetime(date) in df.index
 
-    def get_all_trading_dates(self):
+    def get_all_trading_dates(self) -> list:
         date_set = ()
         for symbol, df in self.symbol_daily.items():
             date_set |= set(df.index)
         dates = list(date_set)
         dates.sort()
         return dates
+
+    def get_main_fundflow_rank(self, symbols) -> pd.DataFrame:
+        if self.current_date >= datetime_today():
+            # get the fund flow ranking from web for today
+            df = self.update_fundflow_realtime()
+            df = df[ df['symbol'].isin(symbols) ]
+            df = df[['symbol','main_pct', 'main_fund']]
+        else:
+            # or, merge them from history data
+            table = []
+            for symbol in symbols:
+                if not symbol in self.watching_symbols:
+                    self.watch([ symbol ])
+                main_pct, main_fund = 0.0, 0.0
+                if symbol in self.symbol_daily_adjusted:
+                    daily_df = self.symbol_daily_adjusted[ symbol ]
+                    the_date = pd.to_datetime(self.current_date)
+                    if the_date in daily_df.index:
+                        row = daily_df.loc[ the_date ]
+                        main_pct, main_fund = row['main_pct'], row['main_fund']
+                else:
+                    print('symbol not in symbol_daily_adjusted:', symbol)
+                row = [symbol, main_pct, main_fund]
+                table.append(row)
+
+            df = pd.DataFrame(table, columns=['symbol', 'main_pct', 'main_fund'])
+
+        # now sort by main fundflow percentage
+        df = df.sort_values(by='main_pct', ascending= False).reset_index(drop= True)
+        return df
+
+    def get_main_fundflow(self, symbol) -> set:
+        if symbol in self.symbol_daily_adjusted:
+            daily_df = self.symbol_daily_adjusted[ symbol ]
+            the_date = pd.to_datetime( self.current_date )
+            if the_date in daily_df.index:
+                row = daily_df.loc[ the_date ]
+                if ('main_pct' in row) and ('main_fund' in row):
+                    return (row['main_pct'], row['main_fund'])
+        return (0.0, 0.0)
