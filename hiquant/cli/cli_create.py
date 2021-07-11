@@ -1,35 +1,9 @@
+# -*- coding: utf-8; py-indent-offset:4 -*-
 
 import os
 import sys
 
-from ..core.data_cache import get_all_stock_list_df, get_all_index_list_df
-
-def init_hiquant_conf(config_file):
-    hiquant_conf_template = '''
-[main]
-lang = en
-market = cn, hk, us
-
-[order_cost]
-close_tax = 0.001
-open_commission = 0.0003
-close_commission = 0.0003
-min_commission = 5
-
-[indicator]
-# add your own indicators here
-# my_abc = indicator/my_abc.py
-
-[strategy]
-# add your own strategy here
-# 001 = strategy/001_macd.py
-'''
-
-    print('  Creating', config_file)
-    fp = open(config_file, 'w')
-    fp.write(hiquant_conf_template)
-    fp.close()
-    pass
+from ..core import init_hiquant_conf
 
 def cli_create(params, options):
     syntax_tips = '''Syntax:
@@ -90,6 +64,8 @@ log/
         os.mkdir(subfolder)
 
     # init hiquant config file
-    init_hiquant_conf( folder + '/hiquant.conf' )
+    conf_file = folder + '/hiquant.conf'
+    print('  Creating', conf_file)
+    init_hiquant_conf(conf_file)
 
     print('Done.\n')
