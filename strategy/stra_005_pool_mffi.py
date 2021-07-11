@@ -15,7 +15,10 @@ class MyStrategy( hq.BasicStrategy ):
         # trade immediately after observing the main fund flow,
         # get a changed price vary from open to close price,
         # grab chance of timing, the early, the better
-        trader.run_daily(self.trade, None, time='11:00')
+        trader.run_daily(self.trade, None, time='9:45')
+        trader.run_daily(self.trade, None, time='10:00')
+        trader.run_daily(self.trade, None, time='10:15')
+        trader.run_daily(self.trade, None, time='10:30')
         #trader.run_on_bar_update(self.trade, None)
 
     def select_stock(self):
