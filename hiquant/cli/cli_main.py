@@ -25,6 +25,7 @@ from .cli_stock import cli_stock
 from .cli_index import cli_index
 from .cli_pattern import cli_pattern
 from .cli_indicator import cli_indicator
+from .cli_fundflow import cli_fundflow
 
 def cli_main_params_options(params, options):
     # parse command line arguments
@@ -48,6 +49,7 @@ Project Commands:
     index .................. Plot index with indicators
     pattern ................ Draw K-line patterns
     indicator .............. List indicators
+    fundflow ............... View main fundflow of stocks
 
 Options:
     -v, --version .......... print out the version
@@ -60,21 +62,20 @@ Example:
     __argv0__ list stock
     __argv0__ list index
 
-    __argv0__ stockpool create my_stocks.csv 600036 000002 600276 300357
-    __argv0__ finance view my_stocks.csv
-    __argv0__ pepb view my_stocks.csv
+    __argv0__ stockpool create stockpool/mystocks.csv 600036 000002 600276 300357
 
-    __argv0__ stock 600036 -ma -macd -kdj
+    __argv0__ stock AAPL -macd
+    __argv0__ stock AAPL -ma -macd -kdj
 
-    __argv0__ strategy create my_strategy.py
+    __argv0__ strategy create strategy/mystrategy.py
     ... modify my_strategy.py ...
+    __argv9__ backtest strategy/mystrategy.py
 
-    __argv0__ fund create my_fund.conf my_strategy.py
+    __argv0__ fund create etc/myfund.conf
     ... modify my_fund.conf ...
+    __argv0__ backtrade etc/myfund.conf
+    __argv0__ run etc/myfund.conf
 
-    __argv0__ fund backtrade my_fund.conf
-
-    __argv0__ fund run my_fund.conf
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
     cli_tools = {
@@ -88,6 +89,7 @@ Example:
         'index': cli_index,
         'indicator': cli_indicator,
         'pattern': cli_pattern,
+        'fundflow': cli_fundflow,
     }
 
     if ('-v' in options) or ('--version' in options):
