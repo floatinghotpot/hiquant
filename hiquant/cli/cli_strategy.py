@@ -4,7 +4,8 @@ import os
 import sys
 import datetime as dt
 
-from ..utils import date_from_str, datetime_today
+from ..utils import date_from_str, dict_from_config_items
+from ..core import get_lang, get_hiquant_conf
 from ..core import Market, Trader, Fund, SimulatedAgent
 
 def get_strategy_template():
@@ -117,7 +118,13 @@ def cli_strategy_backtest(params, options):
     end_tick = dt.datetime.now()
     print('time used:', (end_tick - start_tick))
 
-    compare_index = '^GSPC'
+    config = get_hiquant_conf()
+    main_conf = dict_from_config_items(config.items('main'))
+    if 'compare_index' in main_conf:
+        compare_index = main_conf[ 'compare_index' ]
+    else:
+        compare_index = 'sh000300' if (get_lang() == 'zh') else '^GSPC'
+
     out_file = None
     for option in options:
         if option.startswith('-out=') and option.endswith('.png'):
