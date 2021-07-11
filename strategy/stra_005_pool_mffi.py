@@ -1,7 +1,6 @@
 
 # -*- coding: utf-8; py-indent-offset:4 -*-
 import datetime
-import pandas as pd
 import hiquant as hq
 
 class MyStrategy( hq.BasicStrategy ):
@@ -13,22 +12,32 @@ class MyStrategy( hq.BasicStrategy ):
         self.stop_earn = 1 + (+0.50)
 
     def schedule_task(self, trader):
-        # trade at 10:00 after observing the main fund flow,
-        # may get a changed price between open and close with time factor 0.5
-        #trader.run_daily(self.trade, None, time='10:00')
-        trader.run_daily(self.trade, None, time='13:00')
-        trader.run_on_bar_update(self.trade, None)
+        # trade immediately after observing the main fund flow,
+        # get a changed price vary from open to close price,
+        # grab chance of timing, the early, the better
+        trader.run_daily(self.trade, None, time='11:00')
+        #trader.run_on_bar_update(self.trade, None)
 
     def select_stock(self):
         # read stock from stock pool
         stock_df = hq.get_stockpool_df('stockpool/realtime_trade.csv')
         if self.fund.verbose:
             print(stock_df)
-
         return stock_df['symbol'].tolist()
+
+    def trade(self, param = None):
+        # sort the target stocks by main fund flow
+        # then has higher priority to buy
+        market = self.fund.market
+        df = market.get_main_fundflow_rank( self.targets )
+        self.targets = df['symbol'].tolist()
+
+        # now call trade func of base class
+        super().trade(param)
 
     def gen_trade_signal(self, symbol, init_data = False):
         market = self.fund.market
+
         if init_data:
             df = market.get_daily(symbol)
         else:
@@ -56,7 +65,7 @@ if __name__ == '__main__':
         #date_end= hq.date_from_str('yesterday'),
         #out_file= 'output/demo.png',
         #parallel= True,
-        compare_index= '000651',
+        compare_index= 'sh000300',
     )
     hq.backtest_strategy( MyStrategy, **backtest_args )
 

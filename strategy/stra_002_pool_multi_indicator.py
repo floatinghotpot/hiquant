@@ -7,10 +7,10 @@ class StrategyMultiIndicator( hq.BasicStrategy ):
 
     def __init__(self, fund):
         super().__init__(fund, __file__)
-        self.indicators = ['macd', 'kdj']
+        self.indicators = ['macd']
 
     def schedule_task(self, trader):
-        trader.run_daily(self.trade, None, time='9:30')
+        trader.run_daily(self.trade, None, time='09:30')
         trader.run_on_bar_update(self.trade, None)
 
     def select_stock(self):
