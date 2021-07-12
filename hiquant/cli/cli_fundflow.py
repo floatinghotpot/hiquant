@@ -7,12 +7,12 @@ import pandas as pd
 import tabulate as tb
 import matplotlib.pyplot as plt
 
-from ..core import get_cn_stock_fund_flow_rank, get_stock_fund_flow_daily, LANG, get_all_symbol_name
+from ..core import get_cn_stock_fund_flow_rank, get_stock_fund_flow_daily, get_all_symbol_name, get_daily
 
-def cli_fundflow_rank(symbols):
+def cli_fundflow_rank(symbols, options):
     df = get_cn_stock_fund_flow_rank()
-    df = df[ df.symbol.isin(symbols) ]
-    df = df[ (df.main_pct > 3) | (df.main_pct < -3) ]
+    df = df[ df['symbol'].isin(symbols) ]
+    df = df[ (df['main_pct'] > 3) | (df['main_pct'] < -3) ]
     df = df.sort_values(by='main_pct', ascending=False).reset_index(drop=True)
     df = df.drop(columns=['medium_pct', 'small_pct'])
     print( tb.tabulate(df, headers='keys', tablefmt='psql') )
@@ -26,9 +26,9 @@ def trim_axs(axs, N):
         ax.remove()
     return axs[:N]
 
-def cli_fundflow_view(symbols):
+def cli_fundflow_view(symbols, options):
     df = get_cn_stock_fund_flow_rank()
-    df = df[ df.symbol.isin(symbols) ]
+    df = df[ df['symbol'].isin(symbols) ]
     df = df.sort_values(by='main_pct', ascending=False).reset_index(drop=True)
     symbols = df.symbol.tolist()
     all_symbol_name = get_all_symbol_name()
@@ -44,10 +44,23 @@ def cli_fundflow_view(symbols):
     axs = trim_axs(axs, len(symbols))
     for ax, symbol in zip(axs, symbols):
         ax.set_title(symbol + ' - ' + all_symbol_name[symbol])
+
         df = get_stock_fund_flow_daily(symbol)
-        main_pct = df.main_pct.tail(30)
-        color = ['r' if v >= 0 else 'g' for v in main_pct]
-        ax.bar(main_pct.index, main_pct, color=color)
+        fundflow = 'main_pct' if ('-pct' in options) else 'main_fund'
+        data = df[ fundflow ].tail(20)
+        color = ['r' if v >= 0 else 'g' for v in data]
+        ax.bar(data.index, data, color=color)
+
+        max_y = max(data)
+        min_y = min(data)
+
+        df = get_daily(symbol).tail(20)
+        data = df['close']
+        max_data = max(data)
+        min_data = min(data)
+        data = (data - min_data) / (max_data - min_data) * (max_y - min_y) + min_y
+        ax.plot(data.index, data, color='black', linewidth=1)
+
         ax.set_xticks([])
 
     plt.show()
@@ -60,9 +73,14 @@ Actioin:
     rank ............................. rank the main fund flow
     view ............................. view & plot history fund flow of symbols
 
+Options:
+    -pct ............................. plot main fundflow percertage data
+    -fund ............................ by default, plot main fundflow fund data
+
 Example:
     __argv0__ fundflow 600036 000002 600276
-    __argv0__ fundflow stockpool/realtime_trade.csv
+    __argv0__ fundflow stockpool/realtime_trade.csv -pct
+
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
     action = params[0]
@@ -79,7 +97,7 @@ Example:
         symbols = params
 
     if action == 'rank':
-        cli_fundflow_rank(symbols)
+        cli_fundflow_rank(symbols, options)
     elif action == 'view':
-        cli_fundflow_view(symbols)
+        cli_fundflow_view(symbols, options)
     
