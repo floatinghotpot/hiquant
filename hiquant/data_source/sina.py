@@ -24,8 +24,9 @@ def download_cn_stock_spot( symbols, verbose= False ):
                 sina_symbols.append( 'hk' + symbol )
             elif symbol[:2].capitalize() == 'HK':
                 sina_symbols.append( 'hk0' + symbol[-4:] )
-            else:
-                sina_symbols.append( symbol )
+            # ignore others, might invalid or index
+            #else:
+            #    sina_symbols.append( symbol )
         print('\rfetching quote data ...', end = '', flush = True)
         url = 'http://hq.sinajs.cn/list={0}'.format(','.join(sina_symbols))
         r = requests.get(url)

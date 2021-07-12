@@ -12,11 +12,19 @@ from ..core import get_cn_stock_fund_flow_rank, get_all_symbol_name
 from ..core import Market
 
 def cli_fundflow_rank(symbols, options):
-    df = get_cn_stock_fund_flow_rank()
+    days = '5d'
+    for d in ['-1d', '-3d', '-5d', '-10d']:
+        if d in options:
+            days = d.replace('-', '')
+
+    df = get_cn_stock_fund_flow_rank(days= days)
     df = df[ df['symbol'].isin(symbols) ]
-    df = df[ (df['main_pct'] > 3) | (df['main_pct'] < -3) ]
-    df = df.sort_values(by='main_pct', ascending=False).reset_index(drop=True)
-    df = df.drop(columns=['medium_pct', 'small_pct'])
+    #df = df[ (df['main_pct'] > 3) | (df['main_pct'] < -3) ]
+
+    fundflow_col = 'main_pct' if ('-pct' in options) else 'main_fund'
+    df = df.sort_values(by=fundflow_col, ascending=False).reset_index(drop=True)
+
+    df = df.drop(columns=['super_pct', 'large_pct', 'medium_pct', 'small_pct'])
     print( tb.tabulate(df, headers='keys', tablefmt='psql') )
 
 def trim_axs(axs, N):
@@ -29,20 +37,33 @@ def trim_axs(axs, N):
     return axs[:N]
 
 def cli_fundflow_view(symbols, options):
-    df = get_cn_stock_fund_flow_rank()
+    days = '5d'
+    for d in ['-1d', '-3d', '-5d', '-10d']:
+        if d in options:
+            days = d.replace('-', '')
+
+    df = get_cn_stock_fund_flow_rank(days= days)
     df = df[ df['symbol'].isin(symbols) ]
-    df = df.sort_values(by='main_pct', ascending=False).reset_index(drop=True)
+    df = df.head(100)
+
+    fundflow_col = 'main_pct' if ('-pct' in options) else 'main_fund'
+    df = df.sort_values(by= fundflow_col, ascending= False).reset_index(drop= True)
+
     symbols = df.symbol.tolist()
     all_symbol_name = get_all_symbol_name()
 
-    plt.rcParams['font.sans-serif'] = ['SimHei'] # Chinese font
-    plt.rcParams['font.family'] = 'sans-serif'
-    plt.rcParams["axes.unicode_minus"] = False
+    plt.rcParams.update({
+        'font.family': 'sans-serif',
+        'font.sans-serif': ['SimHei'], # Chinese font
+        'axes.unicode_minus': False,
+        'axes.titlesize': 'medium', # large, medium, small
+    })
 
     market = Market(start= date_from_str('3 month ago'), end=date_from_str('today'), adjust='qfq')
     market.watch( symbols )
+    market.update_daily_realtime()
 
-    figsize = (20, 8)
+    figsize = (18, 9)
     cols = 10
     rows = len(symbols) // cols + 1
     axs = plt.figure(figsize=figsize, constrained_layout=True).subplots(rows, cols)
@@ -53,7 +74,6 @@ def cli_fundflow_view(symbols, options):
         df = market.get_daily(symbol, count=30)
         df.index = df.index.strftime('%Y-%m%d')
 
-        fundflow_col = 'main_pct' if ('-pct' in options) else 'main_fund'
         fundflow = df[ fundflow_col ]
         color = ['r' if v >= 0 else 'g' for v in fundflow]
         ax.bar(fundflow.index, fundflow, color=color)
@@ -79,6 +99,7 @@ Actioin:
 Options:
     -pct ............................. plot main fundflow percertage data
     -fund ............................ by default, plot main fundflow fund data
+    -1d, -3d, -5d, -10d .............. rank by fund flow of the days
 
 Example:
     __argv0__ fundflow 600036 000002 600276
@@ -96,6 +117,8 @@ Example:
     if params[0].endswith('.csv'):
         stock_df = pd.read_csv(params[0], dtype=str)
         symbols = stock_df['symbol'].tolist()
+    elif params[0] == 'all':
+        symbols = list(get_all_symbol_name().keys())
     else:
         symbols = params
 

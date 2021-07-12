@@ -123,8 +123,6 @@ class Market:
                 self.watching_symbols.append(symbol)
                 self.load_history_price(symbol)
 
-        self.update_daily_realtime()
-
     def keep_daily_uptodate(self):
         for symbol in self.watching_symbols:
             self.load_history_price( symbol )
@@ -218,7 +216,6 @@ class Market:
                 self.update_daily_realtime()
 
         df = self.symbol_daily_adjusted[ symbol ]
-
         if start:
             df = df[ pd.to_datetime(start) : ]
         if end:

@@ -33,34 +33,34 @@ def get_cached_download_df(csv_file, download_func, param = None, check_date = F
 
     return df
 
-def get_cn_stock_list_df(force_update= False):
-    return get_cached_download_df('cache/cn_stock_list.csv', download_cn_stock_list, check_date= force_update)
+def get_cn_stock_list_df():
+    return get_cached_download_df('cache/cn_stock_list.csv', download_cn_stock_list, check_date= True)
 
-def get_hk_stock_list_df(force_update= False):
-    return get_cached_download_df('cache/hk_stock_list.csv', download_hk_stock_list, check_date= force_update)
+def get_hk_stock_list_df():
+    return get_cached_download_df('cache/hk_stock_list.csv', download_hk_stock_list, check_date= True)
 
-def get_us_stock_list_df(force_update= False):
-    return get_cached_download_df('cache/us_stock_list.csv', download_us_stock_list, check_date= force_update)
+def get_us_stock_list_df():
+    return get_cached_download_df('cache/us_stock_list.csv', download_us_stock_list, check_date= True)
 
-def get_cn_index_list_df(force_update= False):
-    return get_cached_download_df('cache/cn_index_list.csv', download_cn_index_list, check_date= force_update)
+def get_cn_index_list_df():
+    return get_cached_download_df('cache/cn_index_list.csv', download_cn_index_list, check_date= True)
 
-def get_hk_index_list_df(force_update= False):
-    return get_cached_download_df('cache/hk_index_list.csv', download_hk_index_list, check_date= force_update)
+def get_hk_index_list_df():
+    return get_cached_download_df('cache/hk_index_list.csv', download_hk_index_list, check_date= True)
 
-def get_us_index_list_df(force_update= False):
-    return get_cached_download_df('cache/us_index_list.csv', download_us_index_list, check_date= force_update)
+def get_us_index_list_df():
+    return get_cached_download_df('cache/us_index_list.csv', download_us_index_list, check_date= True)
 
-def get_world_index_list_df(force_update= False):
-    return get_cached_download_df('cache/world_index_list.csv', download_world_index_list, check_date= force_update)
+def get_world_index_list_df():
+    return get_cached_download_df('cache/world_index_list.csv', download_world_index_list, check_date= True)
 
-_market_funcs_get_stock_df = {
+_market_funcs_get_stock_list_df = {
     'cn': get_cn_stock_list_df,
     'hk': get_hk_stock_list_df,
     'us': get_us_stock_list_df,
 }
 
-_market_funcs_get_index_df = {
+_market_funcs_get_index_list_df = {
     'cn': get_cn_index_list_df,
     'hk': get_hk_index_list_df,
     'us': get_us_index_list_df,
@@ -81,7 +81,7 @@ _market_funcs_download_index_daily_df = {
 _enabled_markets = ['cn', 'hk', 'us']
 
 def get_supported_market():
-    return list(_market_funcs_get_stock_df.keys())
+    return list(_market_funcs_get_stock_list_df.keys())
 
 def enable_market(markets):
     if len(markets) == 0:
@@ -94,20 +94,20 @@ def enable_market(markets):
 def get_enabled_market():
     return _enabled_markets
 
-def get_all_stock_list_df(force_update= False):
+def get_all_stock_list_df():
     df = pd.DataFrame([],  columns=['symbol', 'name'])
     for market in _enabled_markets:
-        func = _market_funcs_get_stock_df[ market ]
-        market_df = func(force_update= force_update)[['symbol', 'name']]
+        func = _market_funcs_get_stock_list_df[ market ]
+        market_df = func()[['symbol', 'name']]
         df = df.append(market_df, ignore_index=True)
     return df.reset_index(drop= True)
 
-def get_all_index_list_df(force_update= False):
+def get_all_index_list_df():
     df = pd.DataFrame([],  columns=['symbol', 'name'])
     df = df.append(get_world_index_list_df(), ignore_index= True)
     for market in _enabled_markets:
-        func = _market_funcs_get_index_df[ market ]
-        market_df = func(force_update= force_update)[['symbol', 'name']]
+        func = _market_funcs_get_index_list_df[ market ]
+        market_df = func()[['symbol', 'name']]
         df = df.append(market_df, ignore_index=True)
     return df.reset_index(drop= True)
 
@@ -316,31 +316,55 @@ def get_finance_indicator(symbol, force_update= False):
     dividend_df = get_dividend_history(symbol, force_update= force_update)
     return extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
 
-def get_finance_indicator_df(symbols = None, force_update= False):
+def update_finance_indicator_df(up_to_date = None):
+    default_date = dt.datetime(2000, 1, 1)
+
+    if up_to_date is None:
+        up_to_date = default_date
+
     symbol_name = get_cn_stock_symbol_name()
+    symbols = list( symbol_name.keys() )
+    symbols.sort()
+
+    report_updatetime = {}
+    for symbol in symbols:
+        report_updatetime[ symbol ] = default_date
+
+    if os.path.isfile('cache/cn_stock_indicator.csv'):
+        indicator_df = pd.read_csv('cache/cn_stock_indicator.csv', dtype= str)
+        indicator_df = indicator_df.astype({
+            'last_report': 'datetime64',
+        })
+        indicator_updatetime = dict_from_df(indicator_df, 'symbol', 'last_report' )
+        report_updatetime.update( indicator_updatetime )
+
     table = []
     cols = None
     i = 0
     n = len(symbols)
     for symbol in symbols:
-        name = symbol_name[ symbol ]
         i += 1
+        name = symbol_name[ symbol ]
         print('\r... {}/{} - {} {} ...'.format(i, n, symbol, name), end='', flush= True)
-        row = get_finance_indicator(symbol, force_update= force_update)
+
+        need_update = report_updatetime[ symbol ] < up_to_date
+        row = get_finance_indicator(symbol, force_update= need_update)
+
         if cols is None:
             cols = list( row.keys() )
             cols.append('name')
+
         row = list(row.values())
         row.append(name)
+
         table.append( row )
+
     print('')
     return pd.DataFrame(table, columns= cols)
 
-def get_finance_indicator_all(force_update= False):
-    symbol_name = get_cn_stock_symbol_name()
-    all_symbols = symbol_name.keys()
+def get_finance_indicator_df(symbols = None, up_to_date = None, force_update = False):
     print('Processing finance indicators for all stocks ...')
-    df = get_cached_download_df('cache/cn_stock_indicator.csv', get_finance_indicator_df, param= all_symbols, check_date = force_update)
+    df = get_cached_download_df('cache/cn_stock_indicator.csv', update_finance_indicator_df, param= up_to_date, check_date = force_update)
     df = df.astype({
         'ipo_years': 'float64',
         '3yr_grow_rate': 'float64',
@@ -358,6 +382,8 @@ def get_finance_indicator_all(force_update= False):
         'equity': 'float64',
         'shares': 'float64',
     })
+    if symbols is not None:
+        df = df[ df['symbol'].isin(symbols) ].reset_index(drop= True)
     return df
 
 def get_stock_pepb_history(symbol, force_update= False):

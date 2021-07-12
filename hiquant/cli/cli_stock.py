@@ -36,12 +36,7 @@ Example:
         return
 
     if params[0] == 'list':
-        force_update = False
-        if len(params) > 1 and (params[1] == 'update'):
-            force_update = True
-        if '-update' in options or '-u' in options:
-            force_update = True
-        df = get_all_stock_list_df(force_update= force_update)
+        df = get_all_stock_list_df()
         print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
         print( 'Totally', df.shape[0], 'rows.\n')
         return

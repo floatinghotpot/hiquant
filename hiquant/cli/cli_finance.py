@@ -1,12 +1,12 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 import os
 import sys
-
+import datetime as dt
 import pandas as pd
 import tabulate as tb
 
-from ..core.data_cache import get_finance_indicator_all, get_finance_indicator_df
-from ..utils import sort_with_options, filter_with_options
+from ..core.data_cache import get_finance_indicator_df
+from ..utils import sort_with_options, filter_with_options, date_from_str, datetime_today
 
 def cli_finance(params, options):
     syntax_tips = '''Syntax:
@@ -51,15 +51,24 @@ Example:
         print('\nError: invalid action: ', action)
         return
 
+    if action == 'update':
+        if len(params) > 0:
+            up_to_date = date_from_str(params[0])
+        else:
+            up_to_date = dt.datetime(datetime_today().year-1, 12, 31)
+        df = get_finance_indicator_df(up_to_date= up_to_date, force_update= True)
+        print(df)
+        return
+
     if params[0] == 'all':
-        df = get_finance_indicator_all(force_update= (action == 'update'))
+        df = get_finance_indicator_df()
     else:
         if params[0].endswith('.csv'):
             stock_df = pd.read_csv(params[0], dtype=str)
             symbols = stock_df['symbol'].tolist()
         else:
             symbols = params
-        df = get_finance_indicator_df(symbols, force_update= (action == 'update'))
+        df = get_finance_indicator_df(symbols)
 
     total_n = df.shape[0]
 
