@@ -330,8 +330,8 @@ def update_finance_indicator_df(up_to_date = None):
     for symbol in symbols:
         report_updatetime[ symbol ] = default_date
 
-    if os.path.isfile('cache/cn_stock_indicator.csv'):
-        indicator_df = pd.read_csv('cache/cn_stock_indicator.csv', dtype= str)
+    if os.path.isfile('cache/finance/cn_stock_indicator.csv'):
+        indicator_df = pd.read_csv('cache/finance/cn_stock_indicator.csv', dtype= str)
         indicator_df = indicator_df.astype({
             'last_report': 'datetime64',
         })
@@ -364,7 +364,7 @@ def update_finance_indicator_df(up_to_date = None):
 
 def get_finance_indicator_df(symbols = None, up_to_date = None, force_update = False):
     print('Processing finance indicators for all stocks ...')
-    df = get_cached_download_df('cache/cn_stock_indicator.csv', update_finance_indicator_df, param= up_to_date, check_date = force_update)
+    df = get_cached_download_df('cache/finance/cn_stock_indicator.csv', update_finance_indicator_df, param= up_to_date, check_date = force_update)
     df = df.astype({
         'ipo_years': 'float64',
         '3yr_grow_rate': 'float64',

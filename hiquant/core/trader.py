@@ -1,13 +1,10 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-import pandas as pd
 import datetime as dt
 import time
-import matplotlib.pyplot as plt
 
 from ..utils import datetime_today
-from .data_cache import get_all_symbol_name, get_symbol_name
-from .lang import LANG
+from .fund import Fund
 
 class Callback:
     context = None
@@ -169,109 +166,18 @@ class Trader:
         pass
 
     def get_report(self):
-        report = []
-        for fund in self.funds:
-            report.append({
-                'name': fund.fund_name,
-                'summary': fund.get_summary(),
-                'stat': fund.get_stat(),
-            })
-        return report
+        return [fund.get_report() for fund in self.funds]
 
     def print_report(self, report = None):
         if report is None:
             report = self.get_report()
 
-        summary_df = pd.DataFrame()
-        for fund in report:
-            symmary = fund['summary']
-            if summary_df.shape[0] == 0:
-                summary_df = pd.DataFrame([], columns = list(symmary.keys()))
-            summary_df = summary_df.append(symmary, ignore_index = True)
-
-        summary_df = summary_df.T
-        summary_df.index.name = ''
-        summary_df.columns.name = ''
-        summary_df.index = summary_df.index.str.pad(15, side='left')
-
-        print('-' * 80)
-        print(summary_df)
-        print('-' * 80)
+        fund = self.funds[0] if (len(self.funds) > 0) else Fund(self.market, self)
+        fund.print_report(report= report)
 
     def plot(self, report = None, compare_index = None, out_file= None):
         if report is None:
             report = self.get_report()
 
-        date_start = self.date_start if (self.date_start is not None) else self.market.date_start
-        date_end = self.date_end if (self.date_end is not None) else self.market.date_end
-
-        df = pd.DataFrame([], index=pd.date_range(start=date_start, end=date_end))
-        for fund in report:
-            fund_name = fund['name']
-            stat_df = fund['stat']
-
-            value = stat_df['value']
-            df[ fund_name + '.' ] = (value / value.iloc[0] - 1) * 100.0
-            df[ fund_name + ':'] = stat_df['drawdown'] * 100
-            df[ fund_name + ','] = stat_df['position'] * 100
-            df.index = stat_df.index
-
-            # if only one strategy, we also plot the buy/sell
-            if len(report) == 1:
-                df['buy'] = stat_df['buy']
-                df['sell'] = stat_df['sell']
-
-        if compare_index:
-            symbol_name = get_all_symbol_name()
-            compare_index_name = symbol_name[ compare_index ] if (compare_index in symbol_name) else get_symbol_name(compare_index)
-
-            cmp_value = self.market.get_index_daily(compare_index, start=self.date_start, end=self.date_end)['close']
-            cmp_value = (cmp_value / cmp_value.iloc[0] -1) * 100.0
-
-            df[ compare_index_name ] = cmp_value
-
-        df.dropna(inplace=True)
-        df.index = df.index.strftime('%Y-%m-%d')
-
-        plt.rcParams['font.sans-serif'] = ['SimHei'] # Chinese font
-        plt.rcParams['font.family'] = 'sans-serif'
-        plt.rcParams["axes.unicode_minus"] = False
-
-        if len(report) > 1:
-            plot_rows = 3
-            grid_ratios = [3, 1, 1]
-        else:
-            plot_rows = 4
-            grid_ratios = [3, 1, 1, 1]
-
-        fig, axes = plt.subplots(nrows = plot_rows, gridspec_kw = {'height_ratios': grid_ratios})
-
-        fund_list = []
-        pos_list = []
-        drawdown_list = []
-        for k in df.columns:
-            if k.endswith('.'):
-                fund_list.append(k)
-            elif k.endswith(':'):
-                drawdown_list.append(k)
-            elif k.endswith(','):
-                pos_list.append(k)
-
-        fund_list.append( compare_index_name )
-        df[ fund_list ].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], label = 'date', ylabel = LANG('return(%)'), title = LANG('quantitative backtesting'))
-
-        if len(report) == 1:
-            ax_id = plot_rows -3
-            axes[ax_id].set_ylabel(LANG('trade'))
-            axes[ax_id].bar(df.index, df.buy, color='r')
-            axes[ax_id].bar(df.index, df.sell, color='g')
-
-        df[ pos_list ].plot(ax=axes[plot_rows -2], grid = True, sharex=axes[0], ylabel = LANG('position(%)'), legend=False)
-        df[ drawdown_list ].plot(ax=axes[plot_rows -1], grid = True, sharex=axes[0], ylabel = LANG('drawdown(%)'), legend=False)
-
-        #plt.xticks(rotation=30)
-
-        if out_file is not None:
-            plt.savefig(out_file)
-        else:
-            plt.show()
+        fund = self.funds[0] if (len(self.funds) > 0) else Fund(self.market, self)
+        fund.plot(report= report, compare_index= compare_index, out_file= out_file)
