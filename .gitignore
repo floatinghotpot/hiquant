@@ -8,10 +8,10 @@ __pycache__
 hiquant.egg-info
 build
 dist
-cache/finance/*
-cache/market/*
-cache/pepb/*
-cache/bank/*
+cache/finance/*.csv
+cache/market/*.csv
+cache/pepb/*.csv
+cache/bank/*.csv
 cache/*.csv
 data
 output
