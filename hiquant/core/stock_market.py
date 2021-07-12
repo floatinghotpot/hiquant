@@ -123,6 +123,8 @@ class Market:
                 self.watching_symbols.append(symbol)
                 self.load_history_price(symbol)
 
+        self.update_daily_realtime()
+
     def keep_daily_uptodate(self):
         for symbol in self.watching_symbols:
             self.load_history_price( symbol )
@@ -178,11 +180,13 @@ class Market:
                         new_row[ k ] = spot_row[ k ]
                 self.symbol_daily[ symbol ].loc[spot_date] = new_row
 
-                new_row_adjusted = new_row.copy()
+                new_row_adjusted = self.symbol_daily_adjusted[ symbol ].iloc[-1].copy()
                 if (self.adjust == 'hfq' or self.adjust == 'qfq'):
                     for k in ['open', 'high', 'low', 'close']:
-                        new_row_adjusted[ k ] *= adjust_factor
+                        new_row_adjusted[ k ] = new_row[ k ] * adjust_factor
                 self.symbol_daily_adjusted[ symbol ].loc[spot_date] = new_row_adjusted
+
+        self.update_fundflow_realtime(verbose= verbose)
 
         return data_updated
 
@@ -198,7 +202,7 @@ class Market:
         if end:
             df = df[ : pd.to_datetime(end) ]
         if count:
-            df = df.iloc[ -count : ]
+            df = df.tail(count)
 
         return df
 
@@ -220,7 +224,7 @@ class Market:
         if end:
             df = df[ : pd.to_datetime(end) ]
         if count:
-            df = df.iloc[ -count : ]
+            df = df.tail(count)
 
         return df
 

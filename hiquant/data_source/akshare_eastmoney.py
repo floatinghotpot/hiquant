@@ -127,11 +127,7 @@ def download_cn_stock_fund_flow_rank(days = '1d') -> pd.DataFrame:
         if col.endswith('price') or col.endswith('_fund') or col.endswith('_pct'):
             float_types[col] = 'float64'
             # some cells are '-', change to '0' to avoid error of type converting
-            values = df[col]
-            for i in range(df.shape[0]):
-                value = values.iloc[i]
-                if (type(value) == str) and (value == '-'):
-                    values.iloc[i] = '0'
+            df[col] = ['0' if ((type(v) == str) and (v == '-')) else v for v in df[col]]
     df = df.astype( float_types )
 
     # number of is too large, we divide to unit '亿' and easier to read

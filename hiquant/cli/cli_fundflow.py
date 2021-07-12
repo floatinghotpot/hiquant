@@ -7,7 +7,9 @@ import pandas as pd
 import tabulate as tb
 import matplotlib.pyplot as plt
 
-from ..core import get_cn_stock_fund_flow_rank, get_stock_fund_flow_daily, get_all_symbol_name, get_daily
+from ..utils import date_from_str
+from ..core import get_cn_stock_fund_flow_rank, get_all_symbol_name
+from ..core import Market
 
 def cli_fundflow_rank(symbols, options):
     df = get_cn_stock_fund_flow_rank()
@@ -37,6 +39,9 @@ def cli_fundflow_view(symbols, options):
     plt.rcParams['font.family'] = 'sans-serif'
     plt.rcParams["axes.unicode_minus"] = False
 
+    market = Market(start= date_from_str('3 month ago'), end=date_from_str('today'), adjust='qfq')
+    market.watch( symbols )
+
     figsize = (20, 8)
     cols = 10
     rows = len(symbols) // cols + 1
@@ -45,21 +50,19 @@ def cli_fundflow_view(symbols, options):
     for ax, symbol in zip(axs, symbols):
         ax.set_title(symbol + ' - ' + all_symbol_name[symbol])
 
-        df = get_stock_fund_flow_daily(symbol)
-        fundflow = 'main_pct' if ('-pct' in options) else 'main_fund'
-        data = df[ fundflow ].tail(20)
-        color = ['r' if v >= 0 else 'g' for v in data]
-        ax.bar(data.index, data, color=color)
+        df = market.get_daily(symbol, count=30)
+        df.index = df.index.strftime('%Y-%m%d')
 
-        max_y = max(data)
-        min_y = min(data)
+        fundflow_col = 'main_pct' if ('-pct' in options) else 'main_fund'
+        fundflow = df[ fundflow_col ]
+        color = ['r' if v >= 0 else 'g' for v in fundflow]
+        ax.bar(fundflow.index, fundflow, color=color)
 
-        df = get_daily(symbol).tail(20)
-        data = df['close']
-        max_data = max(data)
-        min_data = min(data)
-        data = (data - min_data) / (max_data - min_data) * (max_y - min_y) + min_y
-        ax.plot(data.index, data, color='black', linewidth=1)
+        price = df['close']
+        max_price, min_price = max(price), min(price)
+        max_y, min_y = max(fundflow), min(fundflow)
+        price_trend = (price - min_price) / (max_price - min_price) * (max_y - min_y) + min_y
+        ax.plot(price_trend.index, price_trend, color='black', linewidth=0.6)
 
         ax.set_xticks([])
 
