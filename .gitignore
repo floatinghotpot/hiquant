@@ -13,7 +13,7 @@ cache/market/*
 cache/pepb/*
 cache/bank/*
 cache/*.csv
-data/*
+data
 output
 log
 tmp
