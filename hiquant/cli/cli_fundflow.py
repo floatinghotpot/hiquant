@@ -111,10 +111,6 @@ Example:
     action = params[0]
     params = params[1:]
 
-    if action not in ['rank', 'view']:
-        print('\nError: invalid action: ', action)
-        return
-
     if params[0].endswith('.csv'):
         stock_df = pd.read_csv(params[0], dtype=str)
         symbols = stock_df['symbol'].tolist()
@@ -125,6 +121,7 @@ Example:
 
     if action == 'rank':
         cli_fundflow_rank(symbols, options)
-    elif action == 'view':
+    elif action in ['view', 'show', 'plot']:
         cli_fundflow_view(symbols, options)
-    
+    else:
+        print('\nError: invalid action: ', action)

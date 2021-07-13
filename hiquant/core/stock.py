@@ -237,8 +237,8 @@ class Stock:
         fig, axes = mpf.plot(df[['open','close','high','low','volume']], **kwargs)
 
         # matplotlib subplot does not support legend, we do it by ourselves
-        if(len(ret_cols) > 1):
+        if(len(ret_cols) > 0):
             ret_cols.insert(0, 'price')
-            axes[ last_panel * 2].legend(ret_cols, loc = 'upper left')
+            axes[ last_panel * 2].legend(ret_cols, loc = 'best')
 
         plt.show()

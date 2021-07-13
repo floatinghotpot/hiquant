@@ -43,7 +43,7 @@ class MyStrategy( hq.BasicStrategy ):
         else:
             df = market.get_daily(symbol, end = market.current_date, count = 5)
 
-        signal = hq.signal_mffi(df, days= 1, percent= 10.0)
+        signal = hq.signal_mffi(df, days= 1, percent= 5.0)
 
         # Notice!!! Important !!!
         # if we used the close price of the day to calc indicator,
