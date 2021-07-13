@@ -8,17 +8,14 @@ class MyStrategy( hq.BasicStrategy ):
         super().__init__(fund, __file__)
         self.max_stocks = 10
         self.max_weight = 1.0
-        self.stop_loss = 1 + (-0.10)
-        self.stop_earn = 1 + (+0.50)
+        self.stop_loss = 1 + (-0.05)
+        self.stop_earn = 1 + (+0.10)
 
     def schedule_task(self, trader):
         # trade immediately after observing the main fund flow,
         # get a changed price vary from open to close price,
         # grab chance of timing, the early, the better
-        trader.run_daily(self.trade, None, time='9:45')
         trader.run_daily(self.trade, None, time='10:00')
-        trader.run_daily(self.trade, None, time='10:15')
-        trader.run_daily(self.trade, None, time='10:30')
         #trader.run_on_bar_update(self.trade, None)
 
     def select_stock(self):
@@ -44,9 +41,9 @@ class MyStrategy( hq.BasicStrategy ):
         if init_data:
             df = market.get_daily(symbol)
         else:
-            df = market.get_daily(symbol, end = market.current_date, count = 1)
+            df = market.get_daily(symbol, end = market.current_date, count = 5)
 
-        signal = hq.signal_mffi(df)
+        signal = hq.signal_mffi(df, days= 1, percent= 10.0)
 
         # Notice!!! Important !!!
         # if we used the close price of the day to calc indicator,

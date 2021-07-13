@@ -12,7 +12,7 @@ from ..core import get_cn_stock_fund_flow_rank, get_all_symbol_name
 from ..core import Market
 
 def cli_fundflow_rank(symbols, options):
-    days = '5d'
+    days = '1d'
     for d in ['-1d', '-3d', '-5d', '-10d']:
         if d in options:
             days = d.replace('-', '')
@@ -23,6 +23,7 @@ def cli_fundflow_rank(symbols, options):
 
     fundflow_col = 'main_pct' if ('-pct' in options) else 'main_fund'
     df = df.sort_values(by=fundflow_col, ascending=False).reset_index(drop=True)
+    df = df.head(50)
 
     df = df.drop(columns=['super_pct', 'large_pct', 'medium_pct', 'small_pct'])
     print( tb.tabulate(df, headers='keys', tablefmt='psql') )
@@ -37,7 +38,7 @@ def trim_axs(axs, N):
     return axs[:N]
 
 def cli_fundflow_view(symbols, options):
-    days = '5d'
+    days = '1d'
     for d in ['-1d', '-3d', '-5d', '-10d']:
         if d in options:
             days = d.replace('-', '')
