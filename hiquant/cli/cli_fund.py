@@ -85,7 +85,6 @@ def cli_run_fund(config_file, start, end, options):
         fund_conf = dict_from_config_items(global_config.items(fund_id), verbose= verbose)
         fund = Fund(market, trader, fund_conf)
 
-        agent = None
         if date_end > datetime_today():
             if 'stat_file' in fund_conf:
                 fund.set_stat_file(fund_conf['stat_file'])
@@ -94,26 +93,25 @@ def cli_run_fund(config_file, start, end, options):
                 fund.set_plot_file(fund_conf['plot_file'])
                 fund.set_compare_index( compare_index )
 
-            if 'agent' in fund_conf:
-                agent_conf = dict_from_config_items(global_config.items(fund_conf['agent']))
-                agent_type = agent_conf['agent_type']
-                if agent_type == 'human':
-                    agent = HumanAgent(market, agent_conf)
-                #elif agent_type == 'automated':
-                #    agent = AutomatedAgent(market, agent_conf)
-                else:
-                    agent = SimulatedAgent(market, agent_conf)
+        if 'agent' in fund_conf:
+            agent_conf = dict_from_config_items(global_config.items(fund_conf['agent']))
+            agent_type = agent_conf['agent_type']
+            if agent_type == 'human':
+                agent = HumanAgent(market, agent_conf)
+            #elif agent_type == 'automated':
+            #    agent = AutomatedAgent(market, agent_conf)
+            else:
+                agent = SimulatedAgent(market, agent_conf)
 
-                if (agent is not None) and ('push_to' in agent_conf):
-                    push_list = agent_conf['push_to'].replace(' ','').split(',')
-                    for push_to in push_list:
-                        push_conf = dict_from_config_items(global_config.items(push_to))
-                        push_type = push_conf['push_type']
-                        if push_type == 'email':
-                            agent.add_push_service(EmailPush(push_conf))
-
-        if agent is None:
-            agent = SimulatedAgent(market, None)
+            if (agent is not None) and ('push_to' in agent_conf):
+                push_list = agent_conf['push_to'].replace(' ','').split(',')
+                for push_to in push_list:
+                    push_conf = dict_from_config_items(global_config.items(push_to))
+                    push_type = push_conf['push_type']
+                    if push_type == 'email':
+                        agent.add_push_service(EmailPush(push_conf))
+        else:
+            agent = SimulatedAgent(market, {})
 
         fund.set_agent( agent, get_order_cost(global_config) )
 

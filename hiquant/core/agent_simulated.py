@@ -1,10 +1,13 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from ..utils import datetime_today
+import os
+
+from ..utils import datetime_today, get_file_modify_time, str_now
 from .portfolio import Portfolio
 from .order_cost import OrderCost
 from .push_master import MasterPush
 from .stock import Stock
+from .lang import LANG
 
 class SimulatedAgent:
     conf = {}
@@ -13,6 +16,10 @@ class SimulatedAgent:
     market = None
     order_cost = None
     push_service = None
+
+    last_order_time = None
+    order_file = ''
+    bot_position_file = ''
 
     portfolio = None
     sell_count = 0
@@ -32,7 +39,7 @@ class SimulatedAgent:
     def set_order_cost(self, order_cost):
         self.order_cost = order_cost
 
-    def __init__(self, market, agent_conf = None):
+    def __init__(self, market, agent_conf = {}):
         self.agent_type = 'simulated'
         self.market = market
         self.conf = agent_conf
@@ -43,6 +50,11 @@ class SimulatedAgent:
 
         self.sell_count = 0
         self.buy_count = 0
+
+        if 'order' in self.conf:
+            self.order_file = self.conf['order']
+        if 'portfolio_save' in self.conf:
+            self.portfolio_save_file = self.conf['portfolio_save']
 
     def before_day(self):
         self.buy_count = 0
@@ -62,6 +74,18 @@ class SimulatedAgent:
         else:
             self.push_service.flush()
 
+        if self.portfolio_save_file:
+            if os.path.isfile(self.portfolio_save_file):
+                save_modified_time = get_file_modify_time(self.portfolio_save_file)
+                need_save = (self.last_order_time > save_modified_time)
+            else:
+                need_save = True
+
+            if need_save:
+                stock_df = self.portfolio.to_dataframe()
+                stock_df.to_csv( self.portfolio_save_file, index= False)
+                print('\n... {} |'.format(str_now()), 'updated:', self.portfolio_save_file)
+
     def get_portfolio(self):
         return self.portfolio
 
@@ -71,6 +95,7 @@ class SimulatedAgent:
     def init_portfolio(self, start_cash):
         self.portfolio = Portfolio(self.market)
         self.portfolio.available_cash = start_cash
+        self.last_order_time = self.market.current_time
 
     def transfer_cash(self, amount, bank_to_security = True):
         if bank_to_security:
@@ -84,11 +109,23 @@ class SimulatedAgent:
         market = self.market
         name = market.get_name(symbol)
 
+        self.last_order_time = market.current_time
+
         str_now = market.current_time.strftime('%Y-%m-%d %H:%M:%S')
-        trade = 'buy' if real_count > 0 else 'sell'
+        trade = LANG('buy') if real_count > 0 else LANG('sell')
         msg = '{} | {} {} | {}: {} * {} | {} {}'.format(str_now, symbol, name, trade, round(real_count), round(real_price,2), earn_str, comment)
         if self.verbose:
             print('\r'+msg)
+
+        if self.order_file:
+            fp = open(self.order_file, 'a+')
+            fp.write(msg + '\n')
+            fp.close()
+
+        if self.push_service is not None:
+            market = self.market
+            name = market.get_name(symbol)
+            self.push_service.add_order(symbol, name, real_count, real_price, earn_str, comment)
 
     def order(self, symbol, count, price = None, comment = ''):
         market = self.market
