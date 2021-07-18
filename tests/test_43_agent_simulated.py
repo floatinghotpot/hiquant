@@ -26,3 +26,6 @@ def test_agent_simulated():
     p = agent.get_portfolio()
     df = p.to_dataframe()
     value = p.total_value()
+
+if __name__ == '__main__':
+    test_agent_simulated()

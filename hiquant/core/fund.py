@@ -88,11 +88,11 @@ class Fund:
             self.start_cash = float(self.conf['start_cash'])
 
         if self.agent is None:
-            self.set_agent(SimulatedAgent(self.market, None), OrderCost())
+            self.set_agent(SimulatedAgent(self.market), OrderCost())
 
         # for backtrade, we force to use simulated agent
         if (not realtime_trade) and (self.agent.agent_type != 'simulated'):
-            self.set_agent(SimulatedAgent(self.market, None), self.agent.order_cost)
+            self.set_agent(SimulatedAgent(self.market), self.agent.order_cost)
 
         self.agent.init_portfolio( self.start_cash )
 

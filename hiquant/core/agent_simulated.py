@@ -19,7 +19,7 @@ class SimulatedAgent:
 
     last_order_time = None
     order_file = ''
-    bot_position_file = ''
+    portfolio_save_file = ''
 
     portfolio = None
     sell_count = 0

@@ -20,9 +20,6 @@ def test_data_cache():
 
     df = get_daily('600036')
     print(df)
-    factor_df = get_daily_adjust_factor('600036')
-    adjusted_df = adjust_daily_with_factor(df, factor_df)
-    adjusted_df = adjust_daily('600036', df)
 
     df = get_stock_spot(['600036','000002'])
     print(df)

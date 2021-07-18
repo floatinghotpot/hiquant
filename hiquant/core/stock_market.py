@@ -5,18 +5,15 @@ import pandas as pd
 
 from ..utils import datetime_today
 from .data_cache import get_all_symbol_name, get_cn_stock_fund_flow_rank, \
-    get_daily, get_daily_adjust_factor, adjust_daily_with_factor, get_stock_fund_flow_daily, \
+    get_daily, get_stock_fund_flow_daily, \
     get_stock_spot, \
     get_index_daily
 
 class Market:
-    adjust = 'qfq'
-
     all_symbol_name = {}
     watching_symbols = []
 
     symbol_daily = {}
-    symbol_adjust_factor = {}
     symbol_daily_adjusted = {}
 
     verbose = False
@@ -32,14 +29,12 @@ class Market:
 
     is_testing = False
 
-    def __init__(self, start, end, adjust = 'qfq'):
+    def __init__(self, start, end):
         self.all_symbol_name = get_all_symbol_name()
         self.watching_symbols = []
         self.symbol_daily = {}
-        self.symbol_adjust_factor = {}
         self.symbol_daily_adjusted = {}
 
-        self.adjust = adjust
         self.date_start = start
         self.date_end = end
         self.current_date = self.current_time = start
@@ -92,7 +87,7 @@ class Market:
 
     def load_history_price(self, symbol):
         if symbol.startswith('sh') or symbol.startswith('sz'):
-            df = get_daily( symbol )
+            df = get_index_daily( symbol )
             self.symbol_daily[ symbol ] = df
             self.symbol_daily_adjusted[ symbol ] = df
         else:
@@ -107,14 +102,10 @@ class Market:
                 df = df.fillna(0)
             self.symbol_daily[ symbol ] = df
 
-            if (self.adjust == 'hfq' or self.adjust == 'qfq'):
-                factor_df = get_daily_adjust_factor( symbol, self.adjust )
-                self.symbol_adjust_factor[ symbol ] = factor_df
-                df = adjust_daily_with_factor(df, factor_df)
-                if fund_df is not None:
-                    df['main_fund'] = fund_df['main_fund']
-                    df['main_pct'] = fund_df['main_pct']
-                    df = df.fillna(0)
+            if 'factor' in df.columns:
+                df = df.copy()
+                for k in ['open', 'close', 'high', 'low']:
+                    df[k] = df[k] * df['factor']
             self.symbol_daily_adjusted[ symbol ] = df
 
     def watch(self, symbols):
@@ -166,23 +157,24 @@ class Market:
 
             today = pd.to_datetime( datetime_today() )
             for i, spot_row in spot_df.iterrows():
-                symbol = spot_row['symbol']
-                adjust_factor = self.symbol_adjust_factor[ symbol ]['factor'].iloc[-1]
-                spot_date = spot_row['date'] if ('date' in spot_df.columns) else today
+                spot_date = spot_row['date'] if ('date' in spot_row) else today
+                if spot_date >= today:
+                    data_updated = True
 
-                data_updated = (spot_date >= today)
+                    symbol = spot_row['symbol']
 
-                new_row = self.symbol_daily[ symbol ].iloc[-1].copy()
-                for k in ['open', 'high', 'low', 'close', 'volume']:
-                    if k in spot_row:
-                        new_row[ k ] = spot_row[ k ]
-                self.symbol_daily[ symbol ].loc[spot_date] = new_row
+                    new_row = self.symbol_daily[ symbol ].iloc[-1].copy()
+                    for k in ['open', 'high', 'low', 'close', 'volume']:
+                        if k in spot_row:
+                            new_row[ k ] = spot_row[ k ]
+                    self.symbol_daily[ symbol ].loc[spot_date] = new_row
 
-                new_row_adjusted = self.symbol_daily_adjusted[ symbol ].iloc[-1].copy()
-                if (self.adjust == 'hfq' or self.adjust == 'qfq'):
-                    for k in ['open', 'high', 'low', 'close']:
-                        new_row_adjusted[ k ] = new_row[ k ] * adjust_factor
-                self.symbol_daily_adjusted[ symbol ].loc[spot_date] = new_row_adjusted
+                    if 'factor' in new_row:
+                        new_row = new_row.copy()
+                        adjust_factor = new_row['factor']
+                        for k in ['open', 'high', 'low', 'close']:
+                            new_row[ k ] = new_row[ k ] * adjust_factor
+                    self.symbol_daily_adjusted[ symbol ].loc[spot_date] = new_row
 
         self.update_fundflow_realtime(verbose= verbose)
 
@@ -294,6 +286,7 @@ class Market:
 
         df = self.symbol_daily[ symbol ]
         df = df[:date]
+
         if df.shape[0] > 0:
             row = df.iloc[-1]
             close_price = row['close']
@@ -310,18 +303,10 @@ class Market:
             return 0
 
     def get_adjust_factor(self, symbol, date = None) -> pd.Series:
-        if date is None:
-            date = self.current_date
-        if not symbol in self.watching_symbols:
-            self.watch([ symbol ])
-            today = datetime_today()
-            if date and (date >= today):
-                self.update_daily_realtime()
-        factor_df = self.symbol_adjust_factor[ symbol ]
-        df = factor_df[:date]
+        df = self.get_daily(symbol, end = date, count = 1)
         factor =  df['factor'].iloc[-1] if (df.shape[0] > 0) else False
         if not factor:
-            print(factor_df)
+            print(df)
         return factor
 
     def get_name(self, symbol) -> str:

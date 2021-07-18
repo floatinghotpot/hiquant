@@ -190,51 +190,6 @@ def get_daily( symbol ):
 
     return df
 
-def get_daily_adjust_factor( symbol, adjust = 'hfq' ):
-    market = symbol_market( symbol )
-    if market in ['cn', 'hk']:
-        df = get_cached_download_df('cache/market/{param}_1d_f.csv', download_func= download_stock_daily_adjust_factor, param= symbol, check_date= True)
-        if 'date' in df.columns:
-            df['date'] = pd.to_datetime(df['date'])
-            df.set_index('date', inplace= True, drop= True)
-            df = df.astype(float)
-    else:
-        df = get_daily( symbol ).copy()
-        df['factor'] = df['adj_close'] / df['close']
-        df = df[['factor']]
-
-    adjust_base = df.iloc[0]['factor'] if (adjust == 'hfq') else df.iloc[-1]['factor']
-    df['factor'] = df['factor'] / adjust_base
-
-    return df
-
-def adjust_daily_with_factor(daily_df, factor_df):
-    if 'factor' in daily_df.columns:
-        del daily_df['factor']
-
-    daily_df = pd.merge(
-        daily_df, factor_df, left_index=True, right_index=True, how="outer"
-    )
-    daily_df.fillna(method="ffill", inplace=True)
-    daily_df = daily_df.astype(float)
-    daily_df.dropna(inplace=True)
-    daily_df.drop_duplicates(subset=["open", "high", "low", "close", "volume"], inplace=True)
-    daily_df["open"] = daily_df["open"] * daily_df["factor"]
-    daily_df["high"] = daily_df["high"] * daily_df["factor"]
-    daily_df["close"] = daily_df["close"] * daily_df["factor"]
-    daily_df["low"] = daily_df["low"] * daily_df["factor"]
-    daily_df["open"] = round(daily_df["open"], 2)
-    daily_df["high"] = round(daily_df["high"], 2)
-    daily_df["low"] = round(daily_df["low"], 2)
-    daily_df["close"] = round(daily_df["close"], 2)
-    daily_df.dropna(inplace=True)
-
-    return daily_df
-
-def adjust_daily(symbol, daily_df, adjust: str = 'hfq'):
-    factor_df = get_daily_adjust_factor( symbol, adjust )
-    return adjust_daily_with_factor(daily_df, factor_df)
-
 def get_market_fund_flow_daily():
     return get_cached_download_df('cache/market/cn_market_ff.csv', download_func= download_cn_market_fund_flow, param= None, check_date= True)
 

@@ -23,9 +23,9 @@ for US user (name in English):
 '''
 
 def symbol_market( symbol ):
-    if (len(symbol) == 6) and symbol[0].isdigit(): # 600036
+    if (len(symbol) == 6) and symbol[0].isdigit(): # 600036, 000002, 300357
         return 'cn'
-    elif symbol.startswith('sh') or symbol.startswith('sz'): # sh000300, index
+    elif symbol.startswith('sh') or symbol.startswith('sz'): # sh000300, sz399001, index
         return 'cn'
     elif (len(symbol) == 5) and symbol[0].isdigit(): # 00700
         return 'hk'
@@ -42,3 +42,20 @@ def symbol_normalize(symbol):
         return [symbol_normalize(sym) for sym in symbol]
     else:
         raise ValueError('invalid symbol type: ' + type(symbol))
+
+def symbol_yahoo_style(symbol):
+    if (len(symbol) == 6) and symbol[0].isdigit():
+        if symbol[0] in ['0','3']: # 000002, 300357
+            return symbol + '.SZ'
+        elif symbol[0] in ['6']: # 600036
+            return symbol + '.SS'
+        else:
+            raise ValueError('invalid symbol: ' + symbol)
+    elif symbol.startswith('sh'): # sh000300, shanghai index
+        return symbol[-6:] + '.SS'
+    elif symbol.startswith('sz'): # sz399001, shenzhen index
+        return symbol[-6:] + '.SZ'
+    elif (len(symbol) == 5) and symbol[0].isdigit(): # 00700
+        return symbol[-4:] + '.HK'
+    else:
+        return symbol

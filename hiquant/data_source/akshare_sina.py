@@ -38,19 +38,19 @@ def download_hk_index_list(param, verbose = False):
 
 def download_cn_index_daily( symbol ):
     daily_df = ak.stock_zh_index_daily(symbol = symbol)
-    time.sleep(2)
+    time.sleep(3)
     daily_df['date'] = pd.to_datetime(daily_df.index.date)
     daily_df.set_index('date', inplace=True, drop=True)
     return daily_df
 
-def download_cn_stock_daily( symbol, adjust = '' ):
+'''
+def _download_cn_stock_daily( symbol, adjust = '' ):
     start = '20000101'
     end = dt.datetime.now().strftime('%Y%m%d')
 
-    print('\rfetching history data {} {} ...'.format(symbol, adjust))
     if len(symbol) == 5:
         df = ak.stock_hk_daily(symbol=symbol, adjust = adjust)
-        time.sleep(2)
+        time.sleep(3)
         df.index = df.index.set_names('date')
     elif len(symbol) == 6:
         if symbol[0] == '6':
@@ -58,7 +58,7 @@ def download_cn_stock_daily( symbol, adjust = '' ):
         elif symbol[0] in ['0','3']:
             symbol = 'sz' + symbol
         df = ak.stock_zh_a_daily(symbol=symbol, start_date=start, end_date=end, adjust = adjust)
-        time.sleep(2)
+        time.sleep(3)
     else:
         raise ValueError('unknown symbol: ' + symbol)
 
@@ -75,15 +75,33 @@ def download_cn_stock_daily( symbol, adjust = '' ):
 
     return df
 
-def download_stock_daily_adjust_factor( symbol ):
-    df = download_cn_stock_daily( symbol, adjust = 'hfq-factor')
+def _download_stock_daily_adjust_factor( symbol, adjust ):
+    df = _download_cn_stock_daily( symbol, adjust )
     if len(symbol) == 6:
         df.columns = ['factor']
     elif len(symbol) == 5:
         df.columns = ['factor', 'cash']
     else:
         raise ValueError('unknown symbol: ' + symbol)
+    return df[['factor']]
+
+#
+# download cn stock daily from yahoo is more efficient
+# (1) yahoo will not block IP
+# (2) yahoo provide adj_close with close, easier to calc adjust factor
+#
+def download_cn_stock_daily( symbol ):
+    print('\rfetching history data {} ...'.format(symbol))
+    daily_df = _download_cn_stock_daily( symbol )
+    factor_df = _download_stock_daily_adjust_factor( symbol, 'hfq-factor' )
+    df = pd.merge(
+        daily_df, factor_df, left_index=True, right_index=True, how='outer'
+    )
+    df = df.fillna(method='ffill').astype(float).dropna().drop_duplicates(subset=['open', 'high', 'low', 'close', 'volume'])
+    df['factor'] = df['factor'] / df['factor'].iloc[-1]
+    df['adj_close'] = df['close'] * df['factor']
     return df
+'''
 
 def download_finance_report(symbol, report_type = 'balance'):
     en_zh = {'balance':'资产负债表', 'income':'利润表', 'cashflow':'现金流量表'}
@@ -94,7 +112,7 @@ def download_finance_report(symbol, report_type = 'balance'):
 
     print('\rfetching ' + report_type + ' report ...')
     df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
-    time.sleep(1)
+    time.sleep(3)
 
     df.rename(columns={'报表日期':'date'}, inplace= True)
     val = df.iloc[0]['date']
@@ -202,12 +220,12 @@ def extract_abstract_from_report(symbol, balance_df, income_df, cashflow_df):
 
 def download_ipo(symbol):
     df = ak.stock_ipo_info(stock= symbol)
-    time.sleep(2)
+    time.sleep(3)
     return df
 
 def download_dividend_history(symbol):
     df = ak.stock_history_dividend_detail(indicator="分红", stock=symbol, date='')
-    time.sleep(2)
+    time.sleep(3)
     df = df[df['进度'] == '实施']
     df.index = pd.to_datetime(df['公告日期'])
     df = df.astype({
@@ -220,7 +238,7 @@ def download_dividend_history(symbol):
 
 def download_rightissue_history(symbol):
     df = ak.stock_history_dividend_detail(indicator="配股", stock=symbol, date='')
-    time.sleep(2)
+    time.sleep(3)
     df = df[df['查看详细'] == '查看']
     df.index = pd.to_datetime(df['公告日期'])
     df = df.astype({
@@ -344,7 +362,7 @@ def download_macro_bank_interest_rate(country):
     if country in funcs:
         func = funcs[ country ]
         data = func()
-        time.sleep(2)
+        time.sleep(3)
         return pd.DataFrame({'date':data.index, 'rate':data.values})
     else:
         raise ValueError('Invalid country, not supported yet: ' + country)

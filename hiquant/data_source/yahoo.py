@@ -6,6 +6,8 @@ import time
 import pandas as pd
 import io
 
+from ..utils import symbol_yahoo_style
+
 # headers and params used to bypass NASDAQ's anti-scraping mechanism in function __exchange2df
 yahoo_headers = {
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
@@ -18,7 +20,7 @@ yahoo_headers = {
 # Data source:
 # https://query1.finance.yahoo.com/v7/finance/download/0700.HK?period1=1594019968&period2=1625555968&interval=1d&events=history&includeAdjustedClose=true
 #
-def download_us_stock_daily( symbol, start= None, end= None, interval= '1d', adjust= '' ):
+def download_us_stock_daily( symbol, start= None, end= None, interval= '1d' ):
     if start is None:
         start = '2000-01-01'
 
@@ -45,12 +47,18 @@ def download_us_stock_daily( symbol, start= None, end= None, interval= '1d', adj
 
     df = pd.read_csv(io.StringIO(r.text))
     df.columns = ['date', 'open', 'high', 'low', 'close', 'adj_close', 'volume']
+    df['factor'] = df['adj_close'] / df['close']
     df['date'] = pd.to_datetime(df['date'])
     df = df.set_index('date', drop= True)
     return df
 
 def download_us_index_daily( symbol ):
     return download_us_stock_daily(symbol)
+
+def download_cn_stock_daily( symbol ):
+    symbol = symbol_yahoo_style(symbol)
+    df = download_us_stock_daily( symbol )
+    return df
 
 #
 # Data source:
@@ -69,6 +77,9 @@ def download_us_stock_quote(symbols, verbose = False):
     data = r.json()['quoteResponse']['result']
     return pd.DataFrame(data, columns=data[0].keys()) if (len(data) > 0) else pd.DataFrame()
 
+#
+# NOTICE: yahoo quote delay 15 min than real market time, don't rely it on realtime trade
+#
 def download_us_stock_spot(symbols, verbose = False):
     if len(symbols) > 100:
         df = pd.DataFrame()

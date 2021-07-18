@@ -60,7 +60,7 @@ def cli_fundflow_view(symbols, options):
         'axes.titlesize': 'medium', # large, medium, small
     })
 
-    market = Market(start= date_from_str('3 month ago'), end=date_from_str('today'), adjust='qfq')
+    market = Market(start= date_from_str('3 month ago'), end=date_from_str('today'))
     market.watch( symbols )
     market.update_daily_realtime()
 
