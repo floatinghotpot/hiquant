@@ -111,8 +111,13 @@ def download_finance_report(symbol, report_type = 'balance'):
         raise ValueError('Unknown finance report type: ' + report_type)
 
     print('\rfetching ' + report_type + ' report ...')
-    df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
-    time.sleep(3)
+    try:
+        df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
+        time.sleep(3)
+    except ValueError:
+        print('sina rejected, try again after 5 min')
+        time.sleep(60 * 5)
+        df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
 
     df.rename(columns={'报表日期':'date'}, inplace= True)
     val = df.iloc[0]['date']
@@ -219,13 +224,25 @@ def extract_abstract_from_report(symbol, balance_df, income_df, cashflow_df):
     return df
 
 def download_ipo(symbol):
-    df = ak.stock_ipo_info(stock= symbol)
-    time.sleep(3)
+    try:
+        df = ak.stock_ipo_info(stock= symbol)
+        time.sleep(3)
+    except ValueError:
+        print('sina rejected, try again after 5 min')
+        time.sleep(60 * 5)
+        df = ak.stock_ipo_info(stock= symbol)
+        #time.sleep(3)
     return df
 
 def download_dividend_history(symbol):
-    df = ak.stock_history_dividend_detail(indicator="分红", stock=symbol, date='')
-    time.sleep(3)
+    try:
+        df = ak.stock_history_dividend_detail(indicator="分红", stock=symbol, date='')
+        time.sleep(3)
+    except ValueError:
+        print('sina rejected, try again after 5 min')
+        time.sleep(60 * 5)
+        df = ak.stock_history_dividend_detail(indicator="分红", stock=symbol, date='')
+
     df = df[df['进度'] == '实施']
     df.index = pd.to_datetime(df['公告日期'])
     df = df.astype({
@@ -237,8 +254,14 @@ def download_dividend_history(symbol):
     return df
 
 def download_rightissue_history(symbol):
-    df = ak.stock_history_dividend_detail(indicator="配股", stock=symbol, date='')
-    time.sleep(3)
+    try:
+        df = ak.stock_history_dividend_detail(indicator="配股", stock=symbol, date='')
+        time.sleep(3)
+    except ValueError:
+        print('sina rejected, try again after 5 min')
+        time.sleep(60 * 5)
+        df = ak.stock_history_dividend_detail(indicator="配股", stock=symbol, date='')
+
     df = df[df['查看详细'] == '查看']
     df.index = pd.to_datetime(df['公告日期'])
     df = df.astype({
