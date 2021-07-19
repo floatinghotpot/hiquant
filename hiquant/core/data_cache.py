@@ -281,18 +281,6 @@ def update_finance_indicator_df(up_to_date = None):
     symbols = list( symbol_name.keys() )
     symbols.sort()
 
-    report_updatetime = {}
-    for symbol in symbols:
-        report_updatetime[ symbol ] = default_date
-
-    if os.path.isfile('cache/finance/cn_stock_indicator.csv'):
-        indicator_df = pd.read_csv('cache/finance/cn_stock_indicator.csv', dtype= str)
-        indicator_df = indicator_df.astype({
-            'last_report': 'datetime64',
-        })
-        indicator_updatetime = dict_from_df(indicator_df, 'symbol', 'last_report' )
-        report_updatetime.update( indicator_updatetime )
-
     table = []
     cols = None
     i = 0
@@ -302,8 +290,9 @@ def update_finance_indicator_df(up_to_date = None):
         name = symbol_name[ symbol ]
         print('\r... {}/{} - {} {} ...'.format(i, n, symbol, name), end='', flush= True)
 
-        need_update = report_updatetime[ symbol ] < up_to_date
-        row = get_finance_indicator(symbol, force_update= need_update)
+        balance_file = 'cache/finance/{}_balance.csv'.format(symbol)
+        force_update = not (os.path.isfile(balance_file) and (get_file_modify_time(balance_file) > up_to_date))
+        row = get_finance_indicator(symbol, force_update= force_update)
 
         if cols is None:
             cols = list( row.keys() )
