@@ -5,7 +5,7 @@ import datetime as dt
 import pandas as pd
 import tabulate as tb
 
-from ..core.data_cache import download_all_finance_reports, get_finance_indicator_df
+from ..core.data_cache import get_finance_indicator_df
 from ..utils import sort_with_options, filter_with_options, date_from_str, datetime_today
 
 def cli_finance(params, options):
@@ -53,11 +53,15 @@ Example:
 
     if action == 'update':
         if len(params) > 0:
-            up_to_date = date_from_str(params[0])
+            check_date = date_from_str(params[0])
         else:
-            up_to_date = dt.datetime(datetime_today().year-1, 12, 31)
-        download_all_finance_reports(up_to_date)
-        df = get_finance_indicator_df(force_update= True)
+            # first day of this quarter
+            today = datetime_today()
+            quarter_first_month = (today.month -1) // 3 * 3 + 1
+            check_date = dt.datetime(today.year, quarter_first_month, 1)
+            print('checking date:', check_date)
+
+        df = get_finance_indicator_df(check_date= check_date)
         print(df)
         return
 

@@ -24,8 +24,6 @@ def test_data_cache():
     df = get_stock_spot(['600036','000002'])
     print(df)
 
-    df = create_finance_abstract_df('600036')
-    print(df)
     df = get_finance_abstract_df('600036')
     print(df)
 
@@ -34,7 +32,6 @@ def test_data_cache():
     df = get_dividend_history('600036')
     print(df)
 
-    row = get_finance_indicator('600036')
     df = get_finance_indicator_df(['600036','000002'])
     print(df)
     #df = get_finance_indicator_all()

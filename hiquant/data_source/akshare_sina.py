@@ -7,7 +7,7 @@ import akshare as ak
 
 from ..utils import earn_to_annual, dict_from_df
 
-_SINA_DOWNLOAD_DELAY = 3
+_SINA_DOWNLOAD_DELAY = 1
 
 def download_cn_stock_list(param= None, verbose= False):
     df = ak.stock_info_a_code_name()

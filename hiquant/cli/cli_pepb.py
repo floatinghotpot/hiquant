@@ -7,7 +7,7 @@ import pandas as pd
 import tabulate as tb
 
 from ..core.data_cache import get_pepb_symmary_all, get_pepb_symmary_df
-from ..utils import filter_with_options, sort_with_options
+from ..utils import filter_with_options, sort_with_options, datetime_today
 
 def cli_pepb(params, options):
     syntax_tips = '''Syntax:
@@ -49,15 +49,16 @@ Example:
         print('\nError: invalid action: ', action)
         return
 
+    check_date = datetime_today() if (action == 'update') else None
     if params[0] == 'all':
-        df = get_pepb_symmary_all(force_update= (action == 'update'))
+        df = get_pepb_symmary_all(check_date= check_date)
     else:
         if params[0].endswith('.csv'):
             stock_df = pd.read_csv(params[0], dtype=str)
             symbols = stock_df['symbol'].tolist()
         else:
             symbols = params
-        df = get_pepb_symmary_df(symbols, force_update= (action == 'update'))
+        df = get_pepb_symmary_df(symbols, check_date= check_date)
 
     total_n = df.shape[0]
 
