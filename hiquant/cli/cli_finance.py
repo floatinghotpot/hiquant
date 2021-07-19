@@ -5,7 +5,7 @@ import datetime as dt
 import pandas as pd
 import tabulate as tb
 
-from ..core.data_cache import get_finance_indicator_df
+from ..core.data_cache import download_all_finance_reports, get_finance_indicator_df
 from ..utils import sort_with_options, filter_with_options, date_from_str, datetime_today
 
 def cli_finance(params, options):
@@ -56,7 +56,8 @@ Example:
             up_to_date = date_from_str(params[0])
         else:
             up_to_date = dt.datetime(datetime_today().year-1, 12, 31)
-        df = get_finance_indicator_df(up_to_date= up_to_date, force_update= True)
+        download_all_finance_reports(up_to_date)
+        df = get_finance_indicator_df(force_update= True)
         print(df)
         return
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
 import os
+#import random
 import datetime as dt
 import pandas as pd
 
@@ -26,7 +27,13 @@ def get_cached_download_df(csv_file, download_func, param = None, check_date = F
         need_update = True
 
     if need_update:
-        df = download_func(param)
+        try:
+            df = download_func(param)
+        except ValueError:
+            _DOWNLOAD_RETRY_DELAY = 300
+            print('downloading failed, try again after {} min'.format(_DOWNLOAD_RETRY_DELAY // 60))
+            time.sleep(_DOWNLOAD_RETRY_DELAY)
+            df = download_func(param)
         df.to_csv(csv_file, index= bool(df.index.name))
     else:
         df = pd.read_csv(csv_file, dtype=str)
@@ -245,18 +252,28 @@ def get_finance_income_report(symbol, force_update= False):
 def get_finance_cashflow_report(symbol, force_update= False):
     return get_cached_download_df('cache/finance/{param}_cashflow.csv', download_finance_cashflow_report, symbol, check_date= force_update)
 
-def create_finance_abstract_df(symbol, force_update= False):
-    balance_df = get_finance_balance_report(symbol, force_update= force_update)
-    income_df = get_finance_income_report(symbol, force_update= force_update)
-    cashflow_df = get_finance_cashflow_report(symbol, force_update= force_update)
+def create_finance_abstract_df(symbol):
+    balance_df = get_finance_balance_report(symbol)
+    income_df = get_finance_income_report(symbol)
+    cashflow_df = get_finance_cashflow_report(symbol)
     return extract_abstract_from_report(symbol, balance_df, income_df, cashflow_df)
 
 def get_finance_abstract_df(symbol, force_update= False):
-    df = get_cached_download_df('cache/finance/{param}_abstract.csv', create_finance_abstract_df, symbol, check_date= force_update)
-    if 'date' in df.columns:
-        df['date'] = pd.to_datetime(df['date'])
-        df.set_index('date', inplace= True, drop= True)
-        df = df.astype(float)
+    abstract_file = 'cache/finance/{}_abstract.csv'.format(symbol)
+
+    if force_update:
+        balance_df = get_finance_balance_report(symbol, force_update= True)
+        income_df = get_finance_income_report(symbol, force_update= True)
+        cashflow_df = get_finance_cashflow_report(symbol, force_update= True)
+        df = extract_abstract_from_report(symbol, balance_df, income_df, cashflow_df)
+        df.to_csv(abstract_file, index=False)
+    else:
+        df = pd.read_csv(abstract_file, dtype= str)
+        if 'date' in df.columns:
+            df['date'] = pd.to_datetime(df['date'])
+            df.set_index('date', inplace= True, drop= True)
+            df = df.astype(float)
+
     return df
 
 def get_ipoinfo_df(symbol, force_update= False):
@@ -265,18 +282,32 @@ def get_ipoinfo_df(symbol, force_update= False):
 def get_dividend_history(symbol, force_update= False):
     return get_cached_download_df('cache/finance/{param}_dividend.csv', download_dividend_history, symbol, check_date= force_update)
 
-def get_finance_indicator(symbol, force_update= False):
-    abstract_df = get_finance_abstract_df(symbol, force_update= force_update)
-    ipoinfo_df = get_ipoinfo_df(symbol, force_update= force_update)
-    dividend_df = get_dividend_history(symbol, force_update= force_update)
-    return extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
-
-def update_finance_indicator_df(up_to_date = None):
-    default_date = dt.datetime(2000, 1, 1)
-
+def download_all_finance_reports(up_to_date = None):
     if up_to_date is None:
-        up_to_date = default_date
+        up_to_date = dt.datetime(2000, 1, 1)
 
+    symbol_name = get_cn_stock_symbol_name()
+    symbols = list( symbol_name.keys() )
+    symbols.sort()
+    #random.shuffle(symbols)
+
+    i = 0
+    n = len(symbols)
+    for symbol in symbols:
+        i += 1
+        name = symbol_name[ symbol ]
+        print('\r... {}/{} - downloading {} {} ...'.format(i, n, symbol, name), end='', flush= True)
+
+        balance_file = 'cache/finance/{}_balance.csv'.format(symbol)
+        force_update = not (os.path.isfile(balance_file) and (get_file_modify_time(balance_file) > up_to_date))
+
+        if force_update:
+            print('')
+            abstract_df = get_finance_abstract_df(symbol, force_update= force_update)
+            ipoinfo_df = get_ipoinfo_df(symbol, force_update= force_update)
+            dividend_df = get_dividend_history(symbol, force_update= force_update)
+
+def create_finance_indicator_df(param = None):
     symbol_name = get_cn_stock_symbol_name()
     symbols = list( symbol_name.keys() )
     symbols.sort()
@@ -288,11 +319,12 @@ def update_finance_indicator_df(up_to_date = None):
     for symbol in symbols:
         i += 1
         name = symbol_name[ symbol ]
-        print('\r... {}/{} - {} {} ...'.format(i, n, symbol, name), end='', flush= True)
+        print('\r... {}/{} - parsing {} {} ...'.format(i, n, symbol, name), end='', flush= True)
 
-        balance_file = 'cache/finance/{}_balance.csv'.format(symbol)
-        force_update = not (os.path.isfile(balance_file) and (get_file_modify_time(balance_file) > up_to_date))
-        row = get_finance_indicator(symbol, force_update= force_update)
+        abstract_df = get_finance_abstract_df(symbol)
+        ipoinfo_df = get_ipoinfo_df(symbol)
+        dividend_df = get_dividend_history(symbol)
+        row = extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
 
         if cols is None:
             cols = list( row.keys() )
@@ -306,9 +338,9 @@ def update_finance_indicator_df(up_to_date = None):
     print('')
     return pd.DataFrame(table, columns= cols)
 
-def get_finance_indicator_df(symbols = None, up_to_date = None, force_update = False):
+def get_finance_indicator_df(symbols = None, force_update = False):
     print('Processing finance indicators for all stocks ...')
-    df = get_cached_download_df('cache/finance/cn_stock_indicator.csv', update_finance_indicator_df, param= up_to_date, check_date = force_update)
+    df = get_cached_download_df('cache/finance/cn_stock_indicator.csv', create_finance_indicator_df, check_date = force_update)
     df = df.astype({
         'ipo_years': 'float64',
         '3yr_grow_rate': 'float64',

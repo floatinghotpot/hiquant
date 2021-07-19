@@ -7,6 +7,8 @@ import akshare as ak
 
 from ..utils import earn_to_annual, dict_from_df
 
+_SINA_DOWNLOAD_DELAY = 3
+
 def download_cn_stock_list(param= None, verbose= False):
     df = ak.stock_info_a_code_name()
     df.columns = ['symbol', 'name']
@@ -38,7 +40,6 @@ def download_hk_index_list(param, verbose = False):
 
 def download_cn_index_daily( symbol ):
     daily_df = ak.stock_zh_index_daily(symbol = symbol)
-    time.sleep(3)
     daily_df['date'] = pd.to_datetime(daily_df.index.date)
     daily_df.set_index('date', inplace=True, drop=True)
     return daily_df
@@ -50,7 +51,7 @@ def _download_cn_stock_daily( symbol, adjust = '' ):
 
     if len(symbol) == 5:
         df = ak.stock_hk_daily(symbol=symbol, adjust = adjust)
-        time.sleep(3)
+        time.sleep( _SINA_DOWNLOAD_DELAY )
         df.index = df.index.set_names('date')
     elif len(symbol) == 6:
         if symbol[0] == '6':
@@ -58,7 +59,7 @@ def _download_cn_stock_daily( symbol, adjust = '' ):
         elif symbol[0] in ['0','3']:
             symbol = 'sz' + symbol
         df = ak.stock_zh_a_daily(symbol=symbol, start_date=start, end_date=end, adjust = adjust)
-        time.sleep(3)
+        time.sleep( _SINA_DOWNLOAD_DELAY )
     else:
         raise ValueError('unknown symbol: ' + symbol)
 
@@ -111,13 +112,8 @@ def download_finance_report(symbol, report_type = 'balance'):
         raise ValueError('Unknown finance report type: ' + report_type)
 
     print('\rfetching ' + report_type + ' report ...')
-    try:
-        df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
-        time.sleep(3)
-    except ValueError:
-        print('sina rejected, try again after 5 min')
-        time.sleep(60 * 5)
-        df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
+    df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
+    time.sleep(_SINA_DOWNLOAD_DELAY)
 
     df.rename(columns={'报表日期':'date'}, inplace= True)
     val = df.iloc[0]['date']
@@ -189,7 +185,7 @@ def extract_abstract_from_report(symbol, balance_df, income_df, cashflow_df):
     x3 = set(df3.index.tolist())
     if len(x1 ^ x2) > 0 or len(x1 ^ x3) > 0:
         xu = x1.union(x2, x3)
-        info = symbol + ': some quarter report missing\n'
+        #info = symbol + ': some quarter report missing\n'
         diff = {
             'balance': (xu-x1),
             'income': (xu-x2),
@@ -200,8 +196,8 @@ def extract_abstract_from_report(symbol, balance_df, income_df, cashflow_df):
             for date in v:
                 dates.append(date.strftime('%Y-%m-%d'))
             dates.sort()
-            info = info + '\t' + k + ': ' + ', '.join(dates) + '\n'
-        print(info)
+            #info = info + '\t' + k + ': ' + ', '.join(dates) + '\n'
+        #print(info)
 
     df = pd.concat([df1, df2, df3], axis=1, join='inner')
 
@@ -224,24 +220,13 @@ def extract_abstract_from_report(symbol, balance_df, income_df, cashflow_df):
     return df
 
 def download_ipo(symbol):
-    try:
-        df = ak.stock_ipo_info(stock= symbol)
-        time.sleep(3)
-    except ValueError:
-        print('sina rejected, try again after 5 min')
-        time.sleep(60 * 5)
-        df = ak.stock_ipo_info(stock= symbol)
-        #time.sleep(3)
+    df = ak.stock_ipo_info(stock= symbol)
+    time.sleep(_SINA_DOWNLOAD_DELAY)
     return df
 
 def download_dividend_history(symbol):
-    try:
-        df = ak.stock_history_dividend_detail(indicator="分红", stock=symbol, date='')
-        time.sleep(3)
-    except ValueError:
-        print('sina rejected, try again after 5 min')
-        time.sleep(60 * 5)
-        df = ak.stock_history_dividend_detail(indicator="分红", stock=symbol, date='')
+    df = ak.stock_history_dividend_detail(indicator="分红", stock=symbol, date='')
+    time.sleep(_SINA_DOWNLOAD_DELAY)
 
     df = df[df['进度'] == '实施']
     df.index = pd.to_datetime(df['公告日期'])
@@ -254,13 +239,8 @@ def download_dividend_history(symbol):
     return df
 
 def download_rightissue_history(symbol):
-    try:
-        df = ak.stock_history_dividend_detail(indicator="配股", stock=symbol, date='')
-        time.sleep(3)
-    except ValueError:
-        print('sina rejected, try again after 5 min')
-        time.sleep(60 * 5)
-        df = ak.stock_history_dividend_detail(indicator="配股", stock=symbol, date='')
+    df = ak.stock_history_dividend_detail(indicator="配股", stock=symbol, date='')
+    time.sleep(_SINA_DOWNLOAD_DELAY)
 
     df = df[df['查看详细'] == '查看']
     df.index = pd.to_datetime(df['公告日期'])
@@ -385,7 +365,7 @@ def download_macro_bank_interest_rate(country):
     if country in funcs:
         func = funcs[ country ]
         data = func()
-        time.sleep(3)
+        time.sleep(_SINA_DOWNLOAD_DELAY)
         return pd.DataFrame({'date':data.index, 'rate':data.values})
     else:
         raise ValueError('Invalid country, not supported yet: ' + country)
