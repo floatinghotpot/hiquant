@@ -111,7 +111,7 @@ def download_finance_report(symbol, report_type = 'balance'):
     else:
         raise ValueError('Unknown finance report type: ' + report_type)
 
-    print('\rfetching ' + report_type + ' report ...')
+    print('fetching ' + report_type + ' report ...')
     df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
     time.sleep(_SINA_DOWNLOAD_DELAY)
 
@@ -220,11 +220,13 @@ def extract_abstract_from_report(symbol, balance_df, income_df, cashflow_df):
     return df
 
 def download_ipo(symbol):
+    print('fetching ipo info ...')
     df = ak.stock_ipo_info(stock= symbol)
     time.sleep(_SINA_DOWNLOAD_DELAY)
     return df
 
 def download_dividend_history(symbol):
+    print('fetching dividend info ...')
     df = ak.stock_history_dividend_detail(indicator="分红", stock=symbol, date='')
     time.sleep(_SINA_DOWNLOAD_DELAY)
 
@@ -239,6 +241,7 @@ def download_dividend_history(symbol):
     return df
 
 def download_rightissue_history(symbol):
+    print('fetching rightissue info ...')
     df = ak.stock_history_dividend_detail(indicator="配股", stock=symbol, date='')
     time.sleep(_SINA_DOWNLOAD_DELAY)
 

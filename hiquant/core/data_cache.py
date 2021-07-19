@@ -29,7 +29,7 @@ def get_cached_download_df(csv_file, download_func, param = None, check_date = F
     if need_update:
         try:
             df = download_func(param)
-        except ValueError:
+        except (ValueError, IndexError) as err:
             _DOWNLOAD_RETRY_DELAY = 300
             print('downloading failed, try again after {} min'.format(_DOWNLOAD_RETRY_DELAY // 60))
             time.sleep(_DOWNLOAD_RETRY_DELAY)
@@ -304,7 +304,7 @@ def download_all_finance_reports(up_to_date = None):
         if force_update:
             print('')
             abstract_df = get_finance_abstract_df(symbol, force_update= force_update)
-            ipoinfo_df = get_ipoinfo_df(symbol, force_update= force_update)
+            ipoinfo_df = get_ipoinfo_df(symbol, force_update= False)
             dividend_df = get_dividend_history(symbol, force_update= force_update)
 
 def create_finance_indicator_df(param = None):
