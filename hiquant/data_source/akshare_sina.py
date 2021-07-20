@@ -229,7 +229,8 @@ def extract_abstract_from_report(symbol, balance_df, income_df, cashflow_df):
         'cash':'float',
     })
 
-    df.sort_index(ascending= True)
+    # sort the date from early to late
+    df = df.sort_index(ascending= True)
 
     return df
 
@@ -295,6 +296,10 @@ def get_share_grow(dividend_df, date_from, date_to):
 
 def extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df):
     df = abstract_df
+
+    # make sure the date order is from early to late
+    if df.index[0] > df.index[-1]:
+        df = df.sort_index(ascending= True)
 
     df = df[df['assets'] > 0]
     df = df[df['equity'] > 0]

@@ -11,8 +11,8 @@ def dict_from_df(df, key_col = 'symbol', value_col = 'name'):
 def sort_with_options(df, options, by_default=''):
     sortby = by_default
     for k in options:
-        if k.startswith('-'):
-            k = k[1:]
+        if k.startswith('-sortby='):
+            k = k.replace('-sortby=','')
             if k in df.columns:
                 sortby = k
                 break

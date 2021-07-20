@@ -277,6 +277,7 @@ def get_dividend_history(symbol, check_date= None):
     return get_cached_download_df('cache/finance/{param}_dividend.csv', download_dividend_history, symbol, check_date= check_date)
 
 def create_finance_indicator_df(check_date = None):
+    print('Processing finance indicators for all stocks ...')
     symbol_name = get_cn_stock_symbol_name()
     symbols = list( symbol_name.keys() )
     symbols.sort()
@@ -308,8 +309,7 @@ def create_finance_indicator_df(check_date = None):
     return pd.DataFrame(table, columns= cols)
 
 def get_finance_indicator_df(symbols = None, check_date = None):
-    print('Processing finance indicators for all stocks ...')
-    df = get_cached_download_df('cache/finance/cn_stock_indicator.csv', create_finance_indicator_df, param= check_date, check_date = check_date)
+    df = get_cached_download_df('cache/cn_stock_indicator.csv', create_finance_indicator_df, param= check_date, check_date = check_date)
     df = df.astype({
         'ipo_years': 'float64',
         '3yr_grow_rate': 'float64',
