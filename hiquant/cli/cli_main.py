@@ -27,21 +27,19 @@ from .cli_pattern import cli_pattern
 from .cli_indicator import cli_indicator
 from .cli_fundflow import cli_fundflow
 
-def cli_main_params_options(params, options):
-    # parse command line arguments
+def cli_main_help():
     syntax_tips = '''Syntax:
-    __argv0__ <command> [options]
+    __argv0__ <command>
+    __argv0__ <module> <action> [options]
 
 Global Commands:
     help ................... Get help for a command
     create ................. Create a hiquant project
 
-Project Commands:
-    list ................... List stock, index, indicator, pattern, strategy
-
+Modules:
     finance ................ Finance analysis on stock pool
     pepb ................... PE/PE analysis on stock pool
-    symbol ................. Create or edit symbol list .csv file
+    stockpool .............. Create or edit stock pool .csv file
     strategy ............... Create or bench a strategy
     fund ................... Back trade or run real-time one or multiple funds
 
@@ -64,20 +62,23 @@ Example:
 
     __argv0__ stockpool create stockpool/mystocks.csv 600036 000002 600276 300357
 
-    __argv0__ stock AAPL -macd
-    __argv0__ stock AAPL -ma -macd -kdj
+    __argv0__ stock plot AAPL -macd
+    __argv0__ stock plot AAPL -ma -macd -kdj
 
     __argv0__ strategy create strategy/mystrategy.py
     ... modify my_strategy.py ...
-    __argv9__ backtest strategy/mystrategy.py
+    __argv0__ backtest strategy/mystrategy.py
 
     __argv0__ fund create etc/myfund.conf
     ... modify my_fund.conf ...
     __argv0__ backtrade etc/myfund.conf
     __argv0__ run etc/myfund.conf
-
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
+    print(syntax_tips)
+
+def cli_main_params_options(params, options):
+    # parse command line arguments
     cli_tools = {
         'create': cli_create,
         'finance': cli_finance,
@@ -97,7 +98,7 @@ Example:
         return
 
     if len(params) == 0:
-        print( syntax_tips )
+        cli_main_help()
         return
 
     config = get_hiquant_conf()
@@ -120,7 +121,7 @@ Example:
         elif (len(params) > 1) and (params[1] in ['backtrade', 'run']):
                 cli_fund(['help'], options)
         else:
-            print( syntax_tips )
+            cli_main_help()
 
     elif command == 'backtest':
         cli_strategy(params, options)
@@ -132,7 +133,7 @@ Example:
         func = cli_tools[ command ]
         func(params[1:], options)
     else:
-        print( syntax_tips )
+        cli_main_help()
 
 def cli_main():
     params, options = parse_params_options(sys.argv)
