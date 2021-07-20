@@ -8,10 +8,9 @@ def test_agent_human():
     market = Market(date_start, date_end)
 
     agent_conf = {
-        'account': 'account_1',
-        'portfolio_load': 'data/{account}_portfolio_load.csv',
-        'portfolio_save': 'data/{account}_portfolio_save.csv',
-        'order': 'data/{account}_order.csv',
+        'portfolio_load': 'data/account_1_portfolio_load.csv',
+        'portfolio_save': 'data/account_1_portfolio_save.csv',
+        'order': 'data/account_1_order.csv',
     }
     agent = HumanAgent(market, agent_conf)
     agent.init_portfolio(start_cash = 1000000.00)

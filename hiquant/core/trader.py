@@ -2,6 +2,7 @@
 
 import datetime as dt
 import time
+import random
 
 from ..utils import datetime_today
 from .fund import Fund
@@ -108,6 +109,10 @@ class Trader:
                 # wait until this day really begin
                 while dt.datetime.now() < date:
                     time.sleep(1)
+
+                # sleep a random time within 10 min, to avoid two process downloading same file at same time
+                n = random.randint(1,60) * 10
+                time.sleep(n)
 
                 # download the daily at idle time
                 market.keep_daily_uptodate()

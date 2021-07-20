@@ -130,7 +130,7 @@ class Fund:
             df = portfolio.to_dataframe()
             df.to_csv(self.stat_file, index=False)
 
-        if self.plot_file is not None:
+        if (self.stat_df.shape[0] > 1) and (self.plot_file is not None):
             self.plot(out_file= self.plot_file)
 
     def before_day(self):
