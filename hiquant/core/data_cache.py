@@ -374,38 +374,44 @@ def get_pepb_summary(symbol, check_date= None, years = 10):
         'pb_ratio': pb_ratio,
     }
 
-def get_pepb_symmary_df(symbols, check_date= None, years = 10):
+def create_pepb_symmary_df(symbols= None, years = 10):
+    print('Processing PE/PB summary for stocks ...')
     symbol_name = get_cn_stock_symbol_name()
+    if symbols is None:
+        symbols = list(symbol_name.keys())
+
     table = []
     cols = None
     for symbol in symbols:
         name = symbol_name[ symbol ]
-        row = get_pepb_summary(symbol, check_date = check_date, years= years)
+        row = get_pepb_summary(symbol, check_date = datetime_today(), years= years)
         if cols is None:
             cols = list(row.keys())
             cols.append('name')
         row = list(row.values())
         row.append(name)
         table.append( row )
+
     return pd.DataFrame(table, columns=cols)
 
-def get_pepb_symmary_all(check_date = None):
-    symbol_name = get_cn_stock_symbol_name()
-    all_symbols = symbol_name.keys()
-    print('Processing PE/PB summary for all stocks ...')
-    df = get_cached_download_df('cache/cn_stock_pepb.csv', get_pepb_symmary_df, symbols= all_symbols, check_date = check_date)
-    df = df.astype({
-        'pe': 'float64',
-        'pb': 'float64',
-        'pe_pos': 'float64',
-        'pb_pos': 'float64',
-        'pe_ratio': 'float64',
-        'pb_ratio': 'float64',
-    })
+def get_pepb_symmary_df(symbols = None):
+    if symbols is None:
+        df = get_cached_download_df('cache/cn_stock_pepb.csv', create_pepb_symmary_df, check_date = datetime_today())
+        df = df.astype({
+            'pe': 'float64',
+            'pb': 'float64',
+            'pe_pos': 'float64',
+            'pb_pos': 'float64',
+            'pe_ratio': 'float64',
+            'pb_ratio': 'float64',
+        })
+    else:
+        df = create_pepb_symmary_df(symbols)
+
     return df
 
-def get_macro_bank_interest_rate(country, check_date = None):
-    df = get_cached_download_df('cache/bank/{paran}_macro_interest_rate.csv', download_macro_bank_interest_rate, param= country, check_date = check_date)
+def get_macro_bank_interest_rate(country):
+    df = get_cached_download_df('cache/bank/{paran}_macro_interest_rate.csv', download_macro_bank_interest_rate, param= country, check_date = datetime_today())
     df['date'] = pd.to_datetime(df.index.date)
     df.set_index('date', inplace=True, drop=True)
     return df

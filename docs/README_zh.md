@@ -27,12 +27,12 @@ pip install -e .
 hiquant create myFund
 cd myFund
 
-hiquant list stock
-hiquant list index
+hiquant index list us
+hiquant stock list us
 
-hiquant stock AAPL -ma -macd -kdj
-hiquant stock AAPL -all
-hiquant stock AAPL -wr -bias -mix
+hiquant stock plot AAPL -ma -macd -kdj
+hiquant stock plot AAPL -all
+hiquant stock plot AAPL -wr -bias -mix
 
 hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
 
@@ -57,8 +57,8 @@ cd MyFund
 
 ```bash
 # 下载所有 A 股上市公司的列表（约4300多家）以及指数
-hiquant stock list update
-hiquant index list update
+hiquant index list cn
+hiquant stock list cn
 ```
 
 需要从财经网站（新浪、乐股等），下载股票相关的基本面数据，包括：上市公司财报（资产负债表、现金流量表、损益表）、市盈率市净率等。

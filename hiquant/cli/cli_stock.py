@@ -5,14 +5,19 @@ import sys
 import tabulate as tb
 
 from ..utils import date_from_str, symbol_normalize
-from ..core import symbol_to_name
-from ..core import list_signal_indicators, get_all_stock_list_df, get_order_cost
+from ..core import symbol_to_name, get_cn_stock_list_df, get_hk_stock_list_df, get_us_stock_list_df
+from ..core import list_signal_indicators, get_order_cost
 from ..core import Market, Stock
 
-def cli_stock(params, options):
+def cli_stock_help():
     syntax_tips = '''Syntax:
-    __argv0__ stock list [update]
-    __argv0__ stock <symbol> [<from_date>] [<to_date>] [<options>]
+    __argv0__ stock list <market>
+    __argv0__ stock plot <symbol> [<from_date>] [<to_date>] [<options>]
+
+<market>
+    cn ......................... China market
+    hk ......................... Hong Kong market
+    us ......................... USA market
 
 <symbol> ....................... stock symbol, like 600036
 <from_date> .................... default from 3 year ago
@@ -25,22 +30,32 @@ def cli_stock(params, options):
     -top5 ...................... show only top 5 indicators according to result
 
 Example:
-    __argv0__ stock 600036 -ma
-    __argv0__ stock 600036 20180101 -ma -macd -kdj
-    __argv0__ stock 600036 20180101 20210101 -ma -macd -kdj
-    __argv0__ stock 600036 -ma -macd -mix
+    __argv0__ stock list cn
+    __argv0__ stock plot 600036 -ma
+    __argv0__ stock plot 600036 20180101 -ma -macd -kdj
+    __argv0__ stock plot 600036 20180101 20210101 -ma -macd -kdj
+    __argv0__ stock plot 600036 -ma -macd -mix
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
-    if (len(params) == 0) or (params[0] == 'help'):
-        print( syntax_tips )
-        return
+    print( syntax_tips )
 
-    if params[0] == 'list':
-        df = get_all_stock_list_df()
-        print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
-        print( 'Totally', df.shape[0], 'rows.\n')
+def cli_stock_list(params, options):
+    list_funcs = {
+        'cn': get_cn_stock_list_df,
+        'us': get_us_stock_list_df,
+        'hk': get_hk_stock_list_df,
+    }
+    if (len(params) == 0) or (not (params[0] in list_funcs)):
+        print('Error: stock list expected param:', ', '.join(list(list_funcs.keys())))
+        cli_stock_help()
         return
+    func = list_funcs[ params[0] ]
+    df = func()
+    df['name'] = df['name'].str.slice(stop=60)
+    print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
+    print( 'Totally', df.shape[0], 'rows.\n')
 
+def cli_stock_plot(params, options):
     symbol = symbol_normalize(params[0])
     name = symbol_to_name(symbol)
 
@@ -85,3 +100,21 @@ Example:
     df.drop(columns = other_indicators, inplace=True)
 
     stock.plot(out_file= out_file)
+
+def cli_stock(params, options):
+    if (len(params) == 0) or (params[0] == 'help'):
+        cli_stock_help()
+        return
+
+    action = params[0]
+    params = params[1:]
+
+    if action == 'list':
+        cli_stock_list(params, options)
+
+    elif action in ['plot', 'view', 'show']:
+        cli_stock_plot(params, options)
+
+    else:
+        print('invalid action:', action)
+        cli_stock_help()

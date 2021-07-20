@@ -10,6 +10,33 @@ from ..utils import datetime_today, dict_from_config_items, seconds_from_str, da
 from ..core import get_order_cost
 from ..core import Market, Trader, Fund, EmailPush, SimulatedAgent, HumanAgent
 
+def cli_fund_help():
+    syntax_tips = '''Syntax:
+    __argv0__ fund <action> <my-fund.conf> [options]
+
+<my-fund.conf> ............ config file for one or multiple funds
+
+<action>
+    create ................ create a config file from template
+    backtrade ............. backtrade test during a past date period
+    run ................... run realtime from today to future
+
+<options>
+    -m .................... use multi-processing to boost backtrade
+    -q .................... run a shorter backtrade
+
+Example:
+    __argv0__ fund create etc/myfund.conf
+    __argv0__ fund backtrade etc/myfund.conf 20180101 20210101
+    __argv0__ fund run etc/myfund.conf
+
+Alias:
+    __argv0__ backtrade etc/myfund.conf 20180101 20210101
+    __argv0__ run etc/myfund.conf
+'''.replace('__argv0__',os.path.basename(sys.argv[0]))
+
+    print(syntax_tips)
+
 def get_fund_conf_template():
     return '''
 [main]
@@ -244,32 +271,8 @@ def cli_fund_run(params, options):
     cli_run_fund(config_file, 'today', 'future', options)
 
 def cli_fund(params, options):
-    syntax_tips = '''Syntax:
-    __argv0__ fund <action> <my-fund.conf> [options]
-
-<my-fund.conf> ............ config file for one or multiple funds
-
-<action>
-    create ................ create a config file from template
-    backtrade ............. backtrade test during a past date period
-    run ................... run realtime from today to future
-
-<options>
-    -m .................... use multi-processing to boost backtrade
-    -q .................... run a shorter backtrade
-
-Example:
-    __argv0__ fund create etc/myfund.conf
-    __argv0__ fund backtrade etc/myfund.conf 20180101 20210101
-    __argv0__ fund run etc/myfund.conf
-
-Alias:
-    __argv0__ backtrade etc/myfund.conf 20180101 20210101
-    __argv0__ run etc/myfund.conf
-'''.replace('__argv0__',os.path.basename(sys.argv[0]))
-
     if (len(params) == 0) or (params[0] == 'help'):
-        print( syntax_tips )
+        cli_fund_help()
         return
 
     action = params[0]
@@ -288,4 +291,4 @@ Alias:
         func(params, options)
     else:
         print('\nError: unknown action:', action)
-        print( syntax_tips )
+        cli_fund_help()

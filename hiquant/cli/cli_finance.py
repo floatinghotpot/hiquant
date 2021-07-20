@@ -8,6 +8,40 @@ import tabulate as tb
 from ..core.data_cache import get_finance_indicator_df
 from ..utils import sort_with_options, filter_with_options, date_from_str, datetime_today
 
+def cli_finance_help():
+    syntax_tips = '''Syntax:
+    __argv0__ finance <action> <symbols | stockpool.csv | all> [options]
+
+Action:
+    update ......................... download finance reports and update finance indicators
+    view ........................... view finance indicators with filters
+
+Symbols:
+    <symbols> ...................... stock symbol list, like 600036 000002
+    <stockpool.csv> ................ stock pool csv file
+    all ............................ all symbols
+
+Options:
+    -sortby=<col> .................. sort by the column
+
+    -ipo_years=<from>-<to> ......... IPO years between <from> to <to>
+    -earn_ttm=<from>-<to> .......... annual earn between <from> to <to>
+    -roe=<from>-<to> ............... ROE between <from> to <to>
+    -grow_rate=<from>-<to> ......... average yearly grow rate between <from> to <to>
+    -3yr_grow_rate=<from>-<to> ..... recent 3 year grow rate between <from> to <to>
+
+    -tab ........................... show data in table format
+
+    -out=<out.csv> ................. export selected stocks into <out.csv> file
+
+Example:
+    __argv0__ finance view 600036 000002 600276
+    __argv0__ finance view my-stocks.csv
+    __argv0__ finance view all -ipo_years=1- -earn_ttm=1.0- -roe=0.15- -3yr_grow_rate=0.15- -sortby=roe -out=good_stock.csv
+'''.replace('__argv0__',os.path.basename(sys.argv[0]))
+
+    print(syntax_tips)
+
 def cli_finance_update(params, options):
     if len(params) > 0:
         check_date = date_from_str(params[0])
@@ -22,15 +56,17 @@ def cli_finance_update(params, options):
     print(df)
 
 def cli_finance_view(params, options):
+    df = get_finance_indicator_df()
+
     if (len(params) == 0) or (params[0] == 'all'):
-        df = get_finance_indicator_df()
+        pass
     else:
         if params[0].endswith('.csv'):
             stock_df = pd.read_csv(params[0], dtype=str)
             symbols = stock_df['symbol'].tolist()
         else:
             symbols = params
-        df = get_finance_indicator_df(symbols)
+        df = df[ df['symbol'].isin(symbols) ]
 
     total_n = df.shape[0]
 
@@ -69,39 +105,8 @@ def cli_finance_view(params, options):
     print('')
 
 def cli_finance(params, options):
-    syntax_tips = '''Syntax:
-    __argv0__ finance <action> <symbols | stockpool.csv | all> [options]
-
-Action:
-    update ......................... download finance reports and update finance indicators
-    view ........................... view finance indicators with filters
-
-Symbols:
-    <symbols> ...................... stock symbol list, like 600036 000002
-    <stockpool.csv> ................ stock pool csv file
-    all ............................ all symbols
-
-Options:
-    -sortby=<col> .................. sort by the column
-
-    -ipo_years=<from>-<to> ......... IPO years between <from> to <to>
-    -earn_ttm=<from>-<to> .......... annual earn between <from> to <to>
-    -roe=<from>-<to> ............... ROE between <from> to <to>
-    -grow_rate=<from>-<to> ......... average yearly grow rate between <from> to <to>
-    -3yr_grow_rate=<from>-<to> ..... recent 3 year grow rate between <from> to <to>
-
-    -tab ........................... show data in table format
-
-    -out=<out.csv> ................. export selected stocks into <out.csv> file
-
-Example:
-    __argv0__ finance view 600036 000002 600276
-    __argv0__ finance view my-stocks.csv
-    __argv0__ finance view all -ipo_years=1- -earn_ttm=1.0- -roe=0.15- -3yr_grow_rate=0.15- -sortby=roe -out=good_stock.csv
-'''.replace('__argv0__',os.path.basename(sys.argv[0]))
-
     if (len(params) == 0) or (params[0] == 'help'):
-        print(syntax_tips)
+        cli_finance_help()
         return
 
     action = params[0]
@@ -118,4 +123,4 @@ Example:
         cli_finance_view(params, options)
     else:
         print('invalid action:', action)
-        print(syntax_tips)
+        cli_finance_help()

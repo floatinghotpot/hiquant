@@ -1,6 +1,5 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from hiquant.core.data_cache import symbol_to_name
 import os
 import sys
 import datetime as dt
@@ -10,8 +9,7 @@ import talib as tl
 from talib import abstract
 from tabulate import tabulate
 
-from ..utils import dict_from_df
-from ..core import get_all_index_list_df, get_all_stock_list_df
+from ..core import symbol_to_name
 from ..indicator import SIGN
 
 _talib_pattern_length = {
@@ -245,7 +243,7 @@ def discern_pattern(daily_df, date):
         if signal_series[-1] != 0:
             yield func.info['display_name']
 
-def cli_pattern_plot(pattern, out_file = None):
+def pattern_plot(pattern, out_file = None):
     all_patterns = tl.get_function_groups()['Pattern Recognition']
     pattern = all_patterns[int(pattern) % len(all_patterns)] if pattern.isdigit() else pattern
     if pattern not in all_patterns:
@@ -271,7 +269,7 @@ def cli_pattern_plot(pattern, out_file = None):
         print('You can try again after download more daily data.\n')
         return False
 
-def cli_pattern(params, options):
+def cli_pattern_help():
     syntax_tips = '''Syntax:
     __argv0__ pattern list
     __argv0__ pattern stat
@@ -291,8 +289,31 @@ Example:
     __argv0__ pattern demo 1
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
+    print( syntax_tips )
+
+def cli_pattern_plot(params, options):
+    out_file = None
+    for option in options:
+        if option.startswith('-out=') and option.endswith('.png'):
+            out_file = option.replace('-out=', '')
+
+    if len(params) > 0:
+        if params[0] == 'all':
+            all_patterns = tl.get_function_groups()['Pattern Recognition']
+            for pattern in all_patterns:
+                out_file = 'output/{}.png'.format(pattern)
+                if pattern_plot(pattern, out_file= out_file):
+                    print('pattern "{}" saved to: {}'.format(pattern, out_file))
+        else:
+            pattern = params[0]
+            if pattern_plot(pattern, out_file= out_file) and (out_file is not None):
+                print('pattern "{}" saved to: {}'.format(pattern, out_file))
+    else:
+        print('\nError: pattern index or name exptected.')
+
+def cli_pattern(params, options):
     if (len(params) == 0) or (params[0] == 'help'):
-        print( syntax_tips )
+        cli_pattern_help()
         return
 
     action = params[0]
@@ -305,22 +326,7 @@ Example:
         cli_pattern_stat()
 
     elif action in ['demo', 'plot']:
-        out_file = None
-        for option in options:
-            if option.startswith('-out=') and option.endswith('.png'):
-                out_file = option.replace('-out=', '')
-
-        if len(params) > 0:
-            if params[0] == 'all':
-                all_patterns = tl.get_function_groups()['Pattern Recognition']
-                for pattern in all_patterns:
-                    out_file = 'output/{}.png'.format(pattern)
-                    if cli_pattern_plot(pattern, out_file= out_file):
-                        print('pattern "{}" saved to: {}'.format(pattern, out_file))
-            else:
-                cli_pattern_plot(params[0], out_file= out_file)
-        else:
-            print('\nError: pattern index or name exptected.')
+        cli_pattern_plot(params, options)
 
     else:
         print('\nError: invalid action:', action)

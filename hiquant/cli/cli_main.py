@@ -59,8 +59,8 @@ Example:
     __argv0__ create myFund
     cd myFund
 
-    __argv0__ list stock
-    __argv0__ list index
+    __argv0__ stock list us
+    __argv0__ index list world
 
     __argv0__ stockpool create stockpool/mystocks.csv 600036 000002 600276 300357
 
@@ -121,16 +121,6 @@ Example:
                 cli_fund(['help'], options)
         else:
             print( syntax_tips )
-
-    elif command == 'list':
-        tools_with_list = ['stock', 'index', 'indicator', 'pattern', 'strategy']
-        if (len(params) > 1) and (params[1] in tools_with_list):
-            func = cli_tools[ params[1] ]
-            func(['list'], options)
-        else:
-            print('''Syntax:
-    __argv0__ list [stock | index | indicator | pattern | strategy]
-'''.replace('__argv0__',os.path.basename(sys.argv[0])))
 
     elif command == 'backtest':
         cli_strategy(params, options)

@@ -8,7 +8,7 @@ import tabulate as tb
 
 from ..core import get_stockpool_df
 
-def cli_stockpool(params, options):
+def cli_stockpool_help():
     syntax_tips = '''Syntax:
     __argv0__ stockpool <action> <file.csv> [<symbols> | <another.csv>] [-out=<out.csv>]
 
@@ -33,8 +33,30 @@ Example:
     __argv0__ stockpool merge mystocks.csv file2.csv -out=mystocks.csv
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
+    print(syntax_tips)
+
+def cli_stockpool_create(params, options):
+    if (len(params) == 0) or ('.csv' not in params[0]):
+        print('\nError: A filename with .csv is expected.\n')
+        cli_stockpool_help()
+        return
+
+    csv_file = params[0]
+    params = params[1:]
+
+    if len(params) > 0:
+        df = get_stockpool_df(params)
+        df.to_csv(csv_file, index=False)
+        print('Stockpool file created:', os.path.abspath(csv_file))
+        print( tb.tabulate(df, headers='keys', tablefmt='psql') )
+        print('')
+    else:
+        print('\nError: Symbol list is expected.\n')
+        cli_stockpool_help()
+
+def cli_stockpool(params, options):
     if (len(params) == 0) or (params[0] == 'help'):
-        print(syntax_tips)
+        cli_stockpool_help()
         return
 
     action = params[0]
@@ -49,17 +71,8 @@ Example:
 
     # create csvfile with symbols
     if action == 'create':
-        if len(params) > 0:
-            df = get_stockpool_df(params)
-            df.to_csv(csv_file, index=False)
-            print('Stockpool file created:', os.path.abspath(csv_file))
-            print( tb.tabulate(df, headers='keys', tablefmt='psql') )
-            print('')
-            return
-        else:
-            print('\nError: Symbol list is expected.\n')
-            print( syntax_tips )
-            return
+        cli_stockpool_create(params, options)
+        return
 
     # load the csv file
     df1 = pd.read_csv(csv_file, dtype=str)
@@ -69,7 +82,7 @@ Example:
 
     if (len(params) == 0):
         print('\nError: Symbols or another csv file is expected.\n')
-        print( syntax_tips )
+        cli_stockpool_help()
         return
 
     # load or create the second csv file
@@ -88,7 +101,7 @@ Example:
         df3 = pd.merge(df1, df2, on=['symbol','name'], how='inner').reset_index(drop=True)
     else:
         print('\nError: Unkown action:', action, '\n')
-        print( syntax_tips )
+        cli_stockpool_help()
         return
 
     print( tb.tabulate(df3, headers='keys', tablefmt='psql') )

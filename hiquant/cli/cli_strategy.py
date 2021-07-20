@@ -67,13 +67,16 @@ if __name__ == '__main__':
 '''
 
 def cli_strategy_create(params, options):
-    template_content = get_strategy_template()
+    if (len(params) == 0) or (not (params[0].endswith('.py'))):
+        print('\nError: A strategy filename ending with .py is expected.\n')
+        return
 
     file_to_create = params[0]
     if os.path.isfile(file_to_create):
         print('\nError: file already exists:', file_to_create)
         return
 
+    template_content = get_strategy_template()
     fp = open(file_to_create, 'w')
     fp.write(template_content)
     fp.close()
@@ -86,6 +89,10 @@ def cli_strategy_create(params, options):
     print( '\nPlease edit file content before running.' )
 
 def cli_strategy_backtest(params, options):
+    if (len(params) == 0) or (not (params[0].endswith('.py'))):
+        print('\nError: A strategy filename ending with .py is expected.\n')
+        return
+
     strategy_file = params[0]
     start = params[1] if len(params) > 1 else '3 years ago'
     end = params[2] if len(params) > 2 else 'yesterday'
@@ -137,7 +144,7 @@ def cli_strategy_backtest(params, options):
 
     print('Done.\n')
 
-def cli_strategy(params, options):
+def cli_strategy_help():
     syntax_tips = '''Syntax:
     __argv0__ strategy <action> <my_strategy.py> [options]
 
@@ -159,25 +166,22 @@ Alias:
     __argv0__ backtest strategy/my_strategy.py 20180101
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
+    print( syntax_tips )
+
+def cli_strategy(params, options):
     if (len(params) == 0) or (params[0] == 'help'):
-        print( syntax_tips )
+        cli_strategy_help()
         return
 
     action = params[0]
     params = params[1:]
 
-    fund_tools = {
-        'create': cli_strategy_create,
-        'backtest': cli_strategy_backtest,
-    }
-    if action in fund_tools.keys():
-        if (len(params) == 0) or (not (params[0].endswith('.py'))):
-            print('\nError: A strategy filename ending with .py is expected.\n')
-            return
-        func = fund_tools[ action ]
-        func(params, options)
+    if action == 'create':
+        cli_strategy_create(params, options)
+
+    elif action == 'backtest':
+        cli_strategy_backtest(params, options)
+
     else:
         print('\nError: unknown action:', action)
-        print( syntax_tips )
-
-
+        cli_strategy_help()

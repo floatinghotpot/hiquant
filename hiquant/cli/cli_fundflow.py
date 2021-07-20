@@ -103,10 +103,14 @@ Options:
     -1d, -3d, -5d, -10d .............. rank by fund flow of the days
 
 Example:
-    __argv0__ fundflow 600036 000002 600276
-    __argv0__ fundflow stockpool/realtime_trade.csv -pct
+    __argv0__ fundflow view 600036 000002 600276
+    __argv0__ fundflow view stockpool/realtime_trade.csv -pct
 
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
+
+    if (len(params) == 0) or (params[0] == 'help'):
+        print(syntax_tips)
+        return
 
     action = params[0]
     params = params[1:]

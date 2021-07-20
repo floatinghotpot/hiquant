@@ -49,12 +49,12 @@ pip install -e .
 hiquant create myFund
 cd myFund
 
-hiquant list stock
-hiquant list index
+hiquant index list cn
+hiquant stock list cn
 
-hiquant stock 600036 -ma -macd -kdj
-hiquant stock 600519 -all
-hiquant stock 600036 -wr -bias -mix
+hiquant stock plot 600036 -ma -macd -kdj
+hiquant stock plot 600519 -all
+hiquant stock plot 600036 -wr -bias -mix
 
 hiquant stockpool create stockpool/mystocks.csv 600036 600519 600276 300357 002258
 hiquant finance view stockpool/mystocks.csv

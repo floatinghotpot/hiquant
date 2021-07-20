@@ -9,7 +9,7 @@ from ..utils import date_from_str
 from ..core import get_all_signal_indicators
 from ..core import Market, Stock
 
-def cli_indicator(params, options):
+def cli_indicator_help():
     syntax_tips = '''Syntax:
     __argv0__ indicator list
     __argv0__ indicator bench <stockpool.csv> [<start>] [<end>] [<options>]
@@ -32,26 +32,17 @@ Example:
     __argv0__ indicator bench mystock.csv -top1 -out=mystock_idx.csv
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
-    if (len(params) == 0) or (params[0] == 'help'):
-        print( syntax_tips )
-        return
+    print(syntax_tips)
 
-    action = params[0]
-    params = params[1:]
+def cli_indicator_list(params, options):
+    indicators = get_all_signal_indicators()
+    table = []
+    for k, values in indicators.items():
+        table.append([k, values['type'], values['label'], ', '.join(values['cols'])])
+    df = pd.DataFrame(table, columns=['indicator', 'type', 'label', 'data'])
+    print( tb.tabulate(df, headers='keys', tablefmt='psql') )
 
-    if action == 'list':
-        indicators = get_all_signal_indicators()
-        table = []
-        for k, values in indicators.items():
-            table.append([k, values['type'], values['label'], ', '.join(values['cols'])])
-        df = pd.DataFrame(table, columns=['indicator', 'type', 'label', 'data'])
-        print( tb.tabulate(df, headers='keys', tablefmt='psql') )
-        return
-
-    if action not in ['bench']:
-        print('\nError: invalid action: ', action)
-        return
-
+def cli_indicator_bench(params, options):
     if (len(params) == 0) or ('.csv' not in params[0]):
         print('\nError: A filename with .csv is expected.\n')
         return
@@ -116,3 +107,22 @@ Example:
         print('Exported to:', out_csv_file)
 
     print('')
+
+def cli_indicator(params, options):
+    if (len(params) == 0) or (params[0] == 'help'):
+        cli_indicator_help()
+        return
+
+    action = params[0]
+    params = params[1:]
+
+    if action == 'list':
+        cli_indicator_list(params, options)
+
+    elif action == 'bench':
+        cli_indicator_bench(params, options)
+
+    else:
+        print('invalid action:', action)
+
+

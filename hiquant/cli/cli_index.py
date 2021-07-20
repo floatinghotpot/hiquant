@@ -6,13 +6,18 @@ import tabulate as tb
 
 from ..utils import symbol_normalize
 from ..core import symbol_to_name
-from ..core import date_from_str, get_all_index_list_df, get_order_cost
+from ..core import date_from_str, get_order_cost
 from ..core import list_signal_indicators
+from ..core import get_cn_index_list_df, get_hk_index_list_df, get_us_index_list_df, get_world_index_list_df
 from ..core import Market, Stock
 
-def cli_index(params, options):
+def cli_index_help():
     syntax_tips = '''Syntax:
-    __argv0__ index <symbol> [<from_date>] [<to_date>] [<options>]
+    __argv0__ index <action> <symbol> [<from_date>] [<to_date>] [<options>]
+
+<action>
+    list ....................... list index, following param: world, cn, us, hk, etc.
+    plot ....................... plot the index
 
 <symbol> ....................... stock symbol, like 600036
 <from_date> .................... default from 3 year ago
@@ -25,22 +30,33 @@ def cli_index(params, options):
     -top5 ...................... show only top 5 indicators according to result
 
 Example:
-    __argv0__ index sh000300 -ma
-    __argv0__ index sh000300 20180101 -ma -macd -kdj
-    __argv0__ index sh000300 20180101 20210101 -ma -macd -kdj
-    __argv0__ index sh000300 -ma -macd -mix
+    __argv0__ index list world
+    __argv0__ index list cn
+    __argv0__ index list us
+    __argv0__ index plot sh000300 -ma
+    __argv0__ index plot sh000300 20180101 -ma -macd -kdj
+    __argv0__ index plot sh000300 20180101 20210101 -ma -macd -kdj
+    __argv0__ index plot sh000300 -ma -macd -mix
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
+    print(syntax_tips)
 
-    if (len(params) == 0) or (params[0] == 'help'):
-        print( syntax_tips )
+def cli_index_list(params, options):
+    list_funcs = {
+        'world': get_world_index_list_df,
+        'cn': get_cn_index_list_df,
+        'us': get_us_index_list_df,
+        'hk': get_hk_index_list_df,
+    }
+    if (len(params) == 0) or (not (params[0] in list_funcs)):
+        print('Error: index list expected param:', ', '.join(list(list_funcs.keys())))
+        cli_index_help()
         return
+    func = list_funcs[ params[0] ]
+    df = func()
+    print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
+    print( 'Totally', df.shape[0], 'records.\n')
 
-    if params[0] == 'list':
-        df = get_all_index_list_df()
-        print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
-        print( 'Totally', df.shape[0], 'records.\n')
-        return
-
+def cli_index_plot(params, options):
     symbol = symbol_normalize(params[0])
     name = symbol_to_name(symbol)
 
@@ -85,3 +101,22 @@ Example:
     df.drop(columns = other_indicators, inplace=True)
 
     stock.plot(out_file= out_file)
+
+def cli_index(params, options):
+
+    if (len(params) == 0) or (params[0] == 'help'):
+        cli_index_help()
+        return
+
+    action = params[0]
+    params = params[1:]
+
+    if action == 'list':
+        cli_index_list(params, options)
+
+    elif action in ['plot', 'view', 'show']:
+        cli_index_plot(params, options)
+
+    else:
+        print('invalid action:', action)
+        cli_index_help()

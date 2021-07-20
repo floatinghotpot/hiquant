@@ -49,7 +49,7 @@ def download_us_stock_list(param = None, verbose = False):
             ex_df = download_us_stock_list(exchange, verbose)
             df = df.append(ex_df, ignore_index=True)
     # removes weird tickers
-    df = df[['symbol','name','country','ipoyear','sector','industry']]
+    df = df[['symbol','name','country','ipoyear']]
     df = df[~df['symbol'].str.contains(r'\.|\^', regex=True)]
     df = df.sort_values(by='symbol').reset_index(drop=True)
     if verbose:
