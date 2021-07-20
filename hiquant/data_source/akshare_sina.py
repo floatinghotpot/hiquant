@@ -17,12 +17,26 @@ def download_cn_stock_list(param= None, verbose= False):
     return df
 
 def download_cn_index_list(param, verbose = False):
-    df = ak.stock_zh_index_spot()
-    df.columns = ['symbol', 'name', 'close', 'amount_diff', 'volume_diff', 'last_close', 'open', 'high', 'low', 'volume', 'amount']
-    df = df[['symbol', 'name']]
+    df = ak.index_stock_info()
+    df.columns = ['symbol','name','publish_date']
+    df['symbol'] = df['symbol'].apply(lambda x: 'sh'+x if (x[0]=='0') else 'sz'+x)
+    #df = df[['symbol', 'name']]
+
     if verbose:
         print(df)
     return df
+
+def download_cn_index_stocks_list(symbol, verbose = False):
+    if symbol.startswith('sh') or symbol.startswith('sz'):
+        symbol = symbol[2:]
+        df = ak.index_stock_cons(index= symbol)
+        df.columns = ['symbol','name','publish_date']
+        df = df[['symbol', 'name']]
+        if verbose:
+            print(df)
+        return df
+    else:
+        raise ValueError('unknown index: ' + symbol)
 
 def download_hk_stock_list(param= None, verbose= False):
     df = ak.stock_hk_spot()

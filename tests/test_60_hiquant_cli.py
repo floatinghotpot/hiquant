@@ -4,8 +4,7 @@ from hiquant.cli import *
 
 def test_hiquant_cli():
     #cli_create(['./test2'])
-    cli_index(['list', 'cn'], [])
-    cli_stock(['list', 'cn'], [])
+    cli_main_params_options(['help'], [])
 
     cli_stockpool(['create', 'output/mytest.csv', '600036', '000002'], [])
     cli_stockpool(['merge', 'output/mytest.csv', '600276', '002258'], [])
@@ -18,14 +17,13 @@ def test_hiquant_cli():
     cli_pepb(['view', '600036', '000002'], [])
     cli_pepb(['view', 'output/mytest.csv'], ['-pb_pos=50-'])
 
+    cli_stock(['list', 'cn'], [])
     cli_stock(['plot', '600036'], ['-ma', '-macd', '-kdj', '-out=output/test_cli_stock.png'])
+
+    cli_index(['list', 'cn'], [])
     cli_index(['plot', 'sh000300'], ['-ma', '-macd', '-kdj', '-out=output/test_cli_index.png'])
 
     cli_indicator(['list'], [])
-
-    cli_main_params_options(['help'], [])
-    cli_main_params_options(['list', 'index'], [])
-    cli_main_params_options(['list', 'stock'], [])
 
     cli_pattern(['list'], [])
     cli_pattern(['demo', '0'], ['-out=output/pattern0.png'])

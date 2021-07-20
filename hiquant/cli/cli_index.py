@@ -5,6 +5,7 @@ import sys
 import tabulate as tb
 
 from ..utils import symbol_normalize
+from ..data_source import download_cn_index_stocks_list
 from ..core import symbol_to_name
 from ..core import date_from_str, get_order_cost
 from ..core import list_signal_indicators
@@ -13,11 +14,14 @@ from ..core import Market, Stock
 
 def cli_index_help():
     syntax_tips = '''Syntax:
-    __argv0__ index <action> <symbol> [<from_date>] [<to_date>] [<options>]
+    __argv0__ index list <region>
+    __argv0__ index plot <symbol> [<from_date>] [<to_date>] [<options>]
+    __argv0__ index stocks <symbol> [-out=<out.csv>]
 
 <action>
     list ....................... list index, following param: world, cn, us, hk, etc.
     plot ....................... plot the index
+    stocks ..................... list stocks of this index
 
 <symbol> ....................... stock symbol, like 600036
 <from_date> .................... default from 3 year ago
@@ -33,10 +37,13 @@ Example:
     __argv0__ index list world
     __argv0__ index list cn
     __argv0__ index list us
+
     __argv0__ index plot sh000300 -ma
     __argv0__ index plot sh000300 20180101 -ma -macd -kdj
     __argv0__ index plot sh000300 20180101 20210101 -ma -macd -kdj
-    __argv0__ index plot sh000300 -ma -macd -mix
+
+    __argv0__ index stocks sh000300 -out=stockpool/sh000300_stocks.csv
+
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
     print(syntax_tips)
 
@@ -53,7 +60,7 @@ def cli_index_list(params, options):
         return
     func = list_funcs[ params[0] ]
     df = func()
-    print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
+    print( tb.tabulate(df, headers='keys', showindex=True, tablefmt='psql') )
     print( 'Totally', df.shape[0], 'records.\n')
 
 def cli_index_plot(params, options):
@@ -102,6 +109,24 @@ def cli_index_plot(params, options):
 
     stock.plot(out_file= out_file)
 
+def cli_index_stocks(params, options):
+    if len(params) > 0:
+        symbol = params[0]
+        if symbol.startswith('sh') or symbol.startswith('sz'):
+            df = download_cn_index_stocks_list(symbol)
+            print( tb.tabulate(df, headers='keys', showindex=True, tablefmt='psql') )
+            print( 'Totally', df.shape[0], 'records.\n')
+
+            for option in options:
+                if ('-out=' in option) and option.endswith('.csv'):
+                    out_csv_file = option.replace('-out=','')
+                    df.to_csv(out_csv_file, index=False)
+                    print('Saved to:', os.path.abspath(out_csv_file))
+                    return
+            return
+
+    print('Expect param: China index symbol, with prefix sh or sz, like sh000300, sz399991, etc.\n')
+
 def cli_index(params, options):
 
     if (len(params) == 0) or (params[0] == 'help'):
@@ -116,6 +141,9 @@ def cli_index(params, options):
 
     elif action in ['plot', 'view', 'show']:
         cli_index_plot(params, options)
+
+    elif action == 'stocks':
+        cli_index_stocks(params, options)
 
     else:
         print('invalid action:', action)
