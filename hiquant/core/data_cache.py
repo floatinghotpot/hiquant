@@ -320,6 +320,7 @@ def get_finance_indicator_df(symbols = None, check_date = None):
         'now_bvps': 'float64',
         'eps': 'float64',
         'roe': 'float64',
+        '3yr_roe': 'float64',
         'debt_ratio': 'float64',
         'cash_ratio': 'float64',
         'earn_ttm': 'float64',

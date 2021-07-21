@@ -103,6 +103,7 @@ Options:
     -1d, -3d, -5d, -10d .............. rank by fund flow of the days
 
 Example:
+    __argv0__ fundflow view
     __argv0__ fundflow view 600036 000002 600276
     __argv0__ fundflow view stockpool/realtime_trade.csv -pct
 
@@ -115,11 +116,11 @@ Example:
     action = params[0]
     params = params[1:]
 
-    if params[0].endswith('.csv'):
+    if (len(params) == 0) or (params[0] == 'all'):
+        symbols = list(get_all_symbol_name().keys())
+    elif params[0].endswith('.csv'):
         stock_df = pd.read_csv(params[0], dtype=str)
         symbols = stock_df['symbol'].tolist()
-    elif params[0] == 'all':
-        symbols = list(get_all_symbol_name().keys())
     else:
         symbols = params
 

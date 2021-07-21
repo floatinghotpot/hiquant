@@ -20,7 +20,7 @@ def download_cn_index_list(param, verbose = False):
     df = ak.index_stock_info()
     df.columns = ['symbol','name','publish_date']
     df['symbol'] = df['symbol'].apply(lambda x: 'sh'+x if (x[0]=='0') else 'sz'+x)
-    #df = df[['symbol', 'name']]
+    df = df[['symbol', 'name']]
 
     if verbose:
         print(df)
@@ -366,6 +366,9 @@ def extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
 
     roes = df['roe']
     data['roe'] = round(sum(roes) / len(roes), 3)
+
+    roes = df['roe'][ago3yr:]
+    data['3yr_roe'] = round(sum(roes) / len(roes), 3)
 
     data['debt_ratio'] = df.iloc[-1]['debt_ratio']
     data['cash_ratio'] = df.iloc[-1]['cash_ratio']
