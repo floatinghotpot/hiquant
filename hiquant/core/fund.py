@@ -100,6 +100,7 @@ class Fund:
 
         columns = ['buy', 'sell', 'value', 'cash', 'position', 'drawdown']
         self.stat_df = pd.DataFrame([], columns = columns, index = pd.to_datetime([]))
+        self.stat_df.index.name = 'date'
         self.update_stat(self.market.current_date - dt.timedelta(days=1))
 
         if 'strategy' in self.conf:
@@ -127,8 +128,8 @@ class Fund:
         self.stat_df.loc[ pd.to_datetime(date) ] = pd.Series(row, self.stat_df.columns)
 
         if self.stat_file is not None:
-            df = portfolio.to_dataframe()
-            df.to_csv(self.stat_file, index=False)
+            df = self.stat_df
+            df.to_csv(self.stat_file, index= True)
 
         if (self.stat_df.shape[0] > 1) and (self.plot_file is not None):
             self.plot(out_file= self.plot_file)
