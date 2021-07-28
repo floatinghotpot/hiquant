@@ -27,17 +27,23 @@ def get_cached_download_df(csv_file, download_func, param = None, check_date = N
         need_update = True
 
     if need_update:
-        try:
-            df = download_func(param)
-        except (ValueError, IndexError) as err:
-            _DOWNLOAD_RETRY_DELAY = 300
-            print('downloading failed, try again after {} min'.format(_DOWNLOAD_RETRY_DELAY // 60))
-            time.sleep(_DOWNLOAD_RETRY_DELAY)
-            df = download_func(param)
-        df.to_csv(csv_file, index= bool(df.index.name))
-    else:
-        df = pd.read_csv(csv_file, dtype=str)
+        for i in range(3):
+            try:
+                df = download_func(param)
+            except (ValueError, IndexError) as err:
+                _DOWNLOAD_RETRY_DELAY = 300
+                print('downloading failed, try again after {} min'.format(_DOWNLOAD_RETRY_DELAY // 60))
+                time.sleep(_DOWNLOAD_RETRY_DELAY)
+                df = None
 
+            if df is not None:
+                df.to_csv(csv_file, index= bool(df.index.name))
+                return df
+
+        if df is None:
+            print('downloading failed after 3 tries, loading cached data')
+
+    df = pd.read_csv(csv_file, dtype=str)
     return df
 
 def get_cn_stock_list_df():
