@@ -22,7 +22,7 @@ yahoo_headers = {
 #
 def download_us_stock_daily( symbol, start= None, end= None, interval= '1d' ):
     if start is None:
-        start = '2000-01-01'
+        start = '2010-01-01'
 
     if isinstance(start, datetime.datetime):
         start = int(time.mktime(start.timetuple()))
@@ -37,6 +37,7 @@ def download_us_stock_daily( symbol, start= None, end= None, interval= '1d' ):
 
     url_template = 'https://query1.finance.yahoo.com/v7/finance/download/{}?period1={}&period2={}&interval={}&events=history&includeAdjustedClose=true'
     url = url_template.format(symbol, start, end, interval)
+    #print(url)
 
     print('\rfetching history data {} ...'.format(symbol), end = '', flush = True)
     r = requests.get(url, headers= yahoo_headers)
@@ -54,11 +55,6 @@ def download_us_stock_daily( symbol, start= None, end= None, interval= '1d' ):
 
 def download_us_index_daily( symbol ):
     return download_us_stock_daily(symbol)
-
-def download_cn_stock_daily( symbol ):
-    symbol = symbol_yahoo_style(symbol)
-    df = download_us_stock_daily( symbol )
-    return df
 
 #
 # Data source:

@@ -66,3 +66,7 @@ class Portfolio:
                 stock.shares = shares
                 stock.cost = cost
                 self.positions[ symbol ] = stock
+
+    def print(self):
+        df = self.to_dataframe()
+        print(df)

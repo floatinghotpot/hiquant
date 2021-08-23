@@ -79,12 +79,6 @@ _market_funcs_get_index_list_df = {
     'us': get_us_index_list_df,
 }
 
-_market_funcs_download_stock_daily_df = {
-    'cn': download_cn_stock_daily,
-    'hk': download_cn_stock_daily,
-    'us': download_us_stock_daily,
-}
-
 _market_funcs_download_index_daily_df = {
     'cn': download_cn_index_daily,
     'hk': download_cn_index_daily,
@@ -192,8 +186,9 @@ def get_index_daily( symbol ):
     return df
 
 def get_daily( symbol ):
-    market = symbol_market( symbol )
-    func = _market_funcs_download_stock_daily_df[ market ]
+    # we get stock daily from yahoo, including us, cn, hk, etc.
+    symbol = symbol_yahoo_style( symbol )
+    func = download_us_stock_daily
     df = get_cached_download_df('cache/market/{param}_1d.csv', download_func= func, param= symbol, check_date= datetime_today())
 
     if 'date' in df.columns:
