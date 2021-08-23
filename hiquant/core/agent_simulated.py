@@ -2,6 +2,8 @@
 
 import os
 
+import pandas as pd
+
 from ..utils import datetime_today, get_file_modify_time, str_now
 from .portfolio import Portfolio
 from .order_cost import OrderCost
@@ -20,6 +22,8 @@ class SimulatedAgent:
     last_order_time = None
     order_file = ''
     portfolio_save_file = ''
+    portfolio_load_file = ''
+    last_load_modified_time = None
 
     portfolio = None
     sell_count = 0
@@ -55,6 +59,46 @@ class SimulatedAgent:
             self.order_file = self.conf['order']
         if 'portfolio_save' in self.conf:
             self.portfolio_save_file = self.conf['portfolio_save']
+        if 'portfolio_load' in self.conf:
+            self.portfolio_load_file = self.conf['portfolio_load']
+
+    def load_portoflio_from_file(self):
+        if os.path.isfile(self.portfolio_load_file):
+            load_modified_time = get_file_modify_time(self.portfolio_load_file)
+            stock_df = pd.read_csv(self.portfolio_load_file, dtype= str)
+            stock_df = stock_df.astype({
+                'shares': 'float64',
+                'cost': 'float64',
+            })
+            self.portfolio.from_dataframe( stock_df )
+            self.last_load_modified_time = load_modified_time
+            print('\n... {} |'.format(str_now()), 'loaded:', self.portfolio_load_file, load_modified_time)
+            if self.verbose:
+                stock_df['price'] = self.market.get_real_price(stock_df['symbol'].tolist())
+                stock_df['value'] = stock_df['price'] * stock_df['shares']
+                print(stock_df)
+
+    def get_portfolio(self):
+        return self.portfolio
+
+    def get_transaction_count(self):
+        return self.buy_count, self.sell_count
+
+    def init_portfolio(self, start_cash):
+        self.portfolio = Portfolio(self.market)
+        self.portfolio.available_cash = start_cash
+        self.last_order_time = self.market.current_time
+        if not (not self.portfolio_load_file):
+            self.load_portoflio_from_file()
+            self.portfolio.print()
+
+    def transfer_cash(self, amount, bank_to_security = True):
+        if bank_to_security:
+            self.portfolio.available_cash += amount
+        else:
+            self.portfolio.available_cash -= amount
+        if self.portfolio.available_cash < 0:
+            self.portfolio.available_cash = 0.0
 
     def before_day(self):
         self.buy_count = 0
@@ -74,36 +118,26 @@ class SimulatedAgent:
         else:
             self.push_service.flush()
 
-        if self.portfolio_save_file:
-            if os.path.isfile(self.portfolio_save_file):
-                save_modified_time = get_file_modify_time(self.portfolio_save_file)
-                need_save = (self.last_order_time > save_modified_time)
-            else:
-                need_save = True
+            if self.portfolio_save_file:
+                if os.path.isfile(self.portfolio_save_file):
+                    save_modified_time = get_file_modify_time(self.portfolio_save_file)
+                    need_save = (self.last_order_time > save_modified_time)
+                else:
+                    need_save = True
 
-            if need_save:
-                stock_df = self.portfolio.to_dataframe()
-                stock_df.to_csv( self.portfolio_save_file, index= False)
-                print('\n... {} |'.format(str_now()), 'updated:', self.portfolio_save_file)
+                if need_save:
+                    stock_df = self.portfolio.to_dataframe()
+                    stock_df.to_csv( self.portfolio_save_file, index= False)
+                    print('\n... {} |'.format(str_now()), 'updated:', self.portfolio_save_file)
 
-    def get_portfolio(self):
-        return self.portfolio
+                    if self.portfolio_save_file == self.portfolio_load_file:
+                        self.last_load_modified_time = get_file_modify_time(self.portfolio_load_file)
 
-    def get_transaction_count(self):
-        return self.buy_count, self.sell_count
-
-    def init_portfolio(self, start_cash):
-        self.portfolio = Portfolio(self.market)
-        self.portfolio.available_cash = start_cash
-        self.last_order_time = self.market.current_time
-
-    def transfer_cash(self, amount, bank_to_security = True):
-        if bank_to_security:
-            self.portfolio.available_cash += amount
-        else:
-            self.portfolio.available_cash -= amount
-        if self.portfolio.available_cash < 0:
-            self.portfolio.available_cash = 0.0
+            if os.path.isfile(self.portfolio_load_file):
+                load_modified_time = get_file_modify_time(self.portfolio_load_file)
+                need_load = (load_modified_time > self.last_load_modified_time)
+                if need_load:
+                    self.load_portoflio_from_file()
 
     def exec_order(self, symbol, real_count, real_price, earn_str = '', comment = ''):
         market = self.market
