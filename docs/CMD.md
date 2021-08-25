@@ -9,7 +9,7 @@ hiquant -v --version
 
 ### create folder and initilize data
 ```bash
-hiquant create <folder>
+hiquant init <folder>
 cd <folder>
 ```
 

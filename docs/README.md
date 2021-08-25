@@ -25,7 +25,7 @@ pip install -e .
 ## Quick Start
 
 ```bash
-hiquant create myFund
+hiquant init myFund
 cd myFund
 
 hiquant index list us
@@ -47,10 +47,10 @@ hiquant run etc/myfund.conf
 
 ## Usage
 
-### Step 1, Create working folder for Hiquant
+### Step 1, Create and initialize working folder for Hiquant
 
 ```bash
-hiquant create MyFund
+hiquant init MyFund
 cd MyFund
 ```
 

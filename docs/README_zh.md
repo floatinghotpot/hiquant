@@ -24,7 +24,7 @@ pip install -e .
 ## 快速体验
 
 ```bash
-hiquant create myFund
+hiquant init myFund
 cd myFund
 
 hiquant index list us
@@ -46,10 +46,10 @@ hiquant run etc/myfund.conf
 
 ## 如何使用
 
-### 第 1 步，创建 hiquant 工作目录
+### 第 1 步，创建并初始化 hiquant 工作目录
 
 ```bash
-hiquant create MyFund
+hiquant init MyFund
 cd MyFund
 ```
 

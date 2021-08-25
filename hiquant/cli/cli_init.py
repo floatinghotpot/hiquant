@@ -5,23 +5,23 @@ import sys
 
 from ..core import init_hiquant_conf
 
-def cli_create_help():
+def cli_init_help():
     syntax_tips = '''Syntax:
-    __argv0__ create <folder>
+    __argv0__ init <folder>
 
 Example:
-    __argv0__ create myProj
+    __argv0__ init myProj
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
     print(syntax_tips)
 
-def cli_create_folder(params, options):
+def cli_init_folder(params, options):
     folder = params[0]
     if os.path.exists(folder):
         print('Folder', folder, 'already exists.\n')
         return
 
-    # create following folder structure
+    # init following folder structure
     '''
 hiquant.conf
 cache/
@@ -39,12 +39,12 @@ output/
 log/
 '''
 
-    # create working folder first
+    # init working folder first
     print('Initializing hiquant project folder ...')
     print('  Creating', folder)
     os.mkdir(folder)
 
-    # create sub folders
+    # init sub folders
     for sub in [
         'cache',
         'cache/finance',
@@ -69,10 +69,10 @@ log/
 
     print('Done.\n')
 
-def cli_create(params, options):
+def cli_init(params, options):
 
     if (len(params) == 0) or (params[0] == 'help'):
-        cli_create_help()
+        cli_init_help()
         return
 
-    cli_create_folder(params, options)
+    cli_init_folder(params, options)

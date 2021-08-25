@@ -1,6 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
-from .cli_create import cli_create
+from .cli_init import cli_init
 from .cli_stockpool import cli_stockpool
 from .cli_finance import cli_finance
 from .cli_pepb import cli_pepb

@@ -14,7 +14,7 @@ from ..version import __version__
 from ..utils import parse_params_options, dict_from_config_items
 from ..core import set_lang, get_hiquant_conf
 
-from .cli_create import cli_create
+from .cli_init import cli_init
 from .cli_finance import cli_finance
 from .cli_pepb import cli_pepb
 from .cli_stockpool import cli_stockpool
@@ -34,7 +34,7 @@ def cli_main_help():
 
 Global Commands:
     help ................... Get help for a command
-    create ................. Create a hiquant project
+    init ................. init a hiquant project
 
 Modules:
     finance ................ Finance analysis on stock pool
@@ -54,7 +54,7 @@ Options:
     -d, --verbose .......... debug mode produces verbose log output
 
 Example:
-    __argv0__ create myFund
+    __argv0__ init myFund
     cd myFund
 
     __argv0__ stock list us
@@ -80,7 +80,7 @@ Example:
 def cli_main_params_options(params, options):
     # parse command line arguments
     cli_tools = {
-        'create': cli_create,
+        'init': cli_init,
         'finance': cli_finance,
         'pepb': cli_pepb,
         'stockpool': cli_stockpool,
