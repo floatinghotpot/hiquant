@@ -315,6 +315,8 @@ def extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
     # convert earning to earn_ttm according to report month
     df['earn_ttm'] = df['earning'] / df.index.month * 12.0
 
+    df['earn_speed'] = df['earn_ttm'].pct_change(1)
+
     # rate of return on owner equity
     df['roe'] = round(df['earn_ttm'] / df['equity'], 3)
 
@@ -365,10 +367,12 @@ def extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
     data['eps'] = df.iloc[-1]['eps']
 
     roes = df['roe']
-    data['roe'] = round(sum(roes) / len(roes), 3)
+    roes_3yr = df['roe'][ago3yr:]
+    data['roe'] = roes.iloc[-1]
+    data['3yr_roe'] = round(sum(roes_3yr) / len(roes_3yr), 3)
+    data['avg_roe'] = round(sum(roes) / len(roes), 3)
 
-    roes = df['roe'][ago3yr:]
-    data['3yr_roe'] = round(sum(roes) / len(roes), 3)
+    data['earn_speed'] = df['earn_speed'].iloc[-1]
 
     data['debt_ratio'] = df.iloc[-1]['debt_ratio']
     data['cash_ratio'] = df.iloc[-1]['cash_ratio']

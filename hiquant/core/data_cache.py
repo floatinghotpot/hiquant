@@ -322,6 +322,8 @@ def get_finance_indicator_df(symbols = None, check_date = None):
         'eps': 'float64',
         'roe': 'float64',
         '3yr_roe': 'float64',
+        'avg_roe': 'float64',
+        'earn_speed': 'float64',
         'debt_ratio': 'float64',
         'cash_ratio': 'float64',
         'earn_ttm': 'float64',
@@ -332,6 +334,17 @@ def get_finance_indicator_df(symbols = None, check_date = None):
     if symbols is not None:
         df = df[ df['symbol'].isin(symbols) ].reset_index(drop= True)
     return df
+
+def update_finance_indicator_df(symbols):
+    indicator_df_file = 'cache/cn_stock_indicator.csv'
+    if symbols is None:
+        return
+    else:
+        for symbol in symbols:
+            df = get_finance_abstract_df(symbol= symbol, check_date= datetime_today())
+        if os.path.isfile(indicator_df_file):
+            os.unlink(indicator_df_file)
+        return get_finance_indicator_df(symbols)
 
 def get_stock_pepb_history(symbol, check_date = None):
     df = get_cached_download_df('cache/pepb/{param}_pepb.csv', download_stock_pepb_history, param= symbol, check_date = check_date)

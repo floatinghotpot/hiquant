@@ -5,8 +5,8 @@ import datetime as dt
 import pandas as pd
 import tabulate as tb
 
-from ..core.data_cache import get_finance_indicator_df
-from ..utils import sort_with_options, filter_with_options, date_from_str, datetime_today
+from ..core.data_cache import get_cn_index_list_df, get_finance_indicator_df, update_finance_indicator_df
+from ..utils import sort_with_options, filter_with_options
 
 def cli_finance_help():
     syntax_tips = '''Syntax:
@@ -35,6 +35,10 @@ Options:
     -out=<out.csv> ................. export selected stocks into <out.csv> file
 
 Example:
+    __argv0__ finance update 600036 000002 600276
+    __argv0__ finance update my-stocks.csv
+    __argv0__ finance update all
+
     __argv0__ finance view 600036 000002 600276
     __argv0__ finance view my-stocks.csv
     __argv0__ finance view all -ipo_years=1- -earn_ttm=1.0- -roe=0.15- -3yr_grow_rate=0.15- -sortby=roe -out=good_stock.csv
@@ -43,16 +47,20 @@ Example:
     print(syntax_tips)
 
 def cli_finance_update(params, options):
-    if len(params) > 0:
-        check_date = date_from_str(params[0])
+    if len(params) == 0:
+        cli_finance_help()
+        return
+    elif params[0] == 'all':
+        symbols = get_cn_index_list_df()['symbol'].tolist()
     else:
-        # first day of this quarter
-        today = datetime_today()
-        quarter_first_month = (today.month -1) // 3 * 3 + 1
-        check_date = dt.datetime(today.year, quarter_first_month, 1)
-        print('checking date:', check_date)
+        if params[0].endswith('.csv'):
+            stock_df = pd.read_csv(params[0], dtype=str)
+            symbols = stock_df['symbol'].tolist()
+        else:
+            symbols = params
+    print(symbols)
 
-    df = get_finance_indicator_df(check_date= check_date)
+    df = update_finance_indicator_df(symbols)
     print(df)
 
 def cli_finance_view(params, options):
