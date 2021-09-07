@@ -25,8 +25,8 @@ pip install -e .
 ## Quick Start
 
 ```bash
-hiquant init myFund
-cd myFund
+hiquant init myProj
+cd myProj
 
 hiquant index list us
 hiquant stock list us
@@ -40,7 +40,7 @@ hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
 hiquant strategy create strategy/mystrategy.py
 hiquant backtest strategy/mystrategy.py
 
-hiquant fund create etc/myfund.conf
+hiquant trade create etc/myfund.conf
 hiquant backtrade etc/myfund.conf
 hiquant run etc/myfund.conf
 ```
@@ -50,8 +50,8 @@ hiquant run etc/myfund.conf
 ### Step 1, Create and initialize working folder for Hiquant
 
 ```bash
-hiquant init MyFund
-cd MyFund
+hiquant init myProj
+cd myProj
 ```
 
 ### Step 2, Pull basic data
@@ -278,7 +278,7 @@ hiquant backtest strategy/mystrategy.py
 ### Step 7, Create a configration file for portoflios
 
 ```bash
-hiquant fund create etc/myfund.conf
+hiquant trade create etc/myfund.conf
 ```
 
 This is a configuration file that describes some parameters required for simulation backtesting and actual operation.
@@ -389,7 +389,7 @@ stop_earn = 0.20
 ```
 
 ```bash
-hiquant fund backtrade etc/2-two-funds.conf
+hiquant backtrade etc/2-two-funds.conf
 ```
 
 The backtest result will be:

@@ -27,6 +27,7 @@ hiquant.conf
 cache/
 cache/finance/
 cache/market/
+cache/fund/
 cache/pepb/
 cache/bank/
 cache/A_index_all.csv
@@ -49,6 +50,7 @@ log/
         'cache',
         'cache/finance',
         'cache/market',
+        'cache/fund',
         'cache/pepb',
         'cache/bank',
         'etc',

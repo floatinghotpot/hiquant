@@ -46,8 +46,8 @@ pip install -e .
 ## Command quick start
 
 ```bash
-hiquant create myFund
-cd myFund
+hiquant create myProj
+cd myProj
 
 hiquant index list us
 hiquant stock list us
@@ -61,7 +61,7 @@ hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
 hiquant strategy create strategy/mystrategy.py
 hiquant backtest strategy/mystrategy.py
 
-hiquant fund create etc/myfund.conf
+hiquant trade create etc/myfund.conf
 hiquant backtrade etc/myfund.conf
 hiquant run etc/myfund.conf
 ```

@@ -31,7 +31,7 @@ def test_hiquant_cli():
 
     cli_strategy(['help'], [])
 
-    cli_fund(['backtrade', 'etc/myfund.conf'], ['-q', '-out=output/test_cli_fund.png'])
+    cli_trade(['backtrade', 'etc/myfund.conf'], ['-q', '-out=output/test_cli_fund.png'])
 
 if __name__ == "__main__":
     test_hiquant_cli()

@@ -7,14 +7,14 @@ class StrategyMultiIndicator( hq.BasicStrategy ):
 
     def __init__(self, fund):
         super().__init__(fund, __file__)
-        self.indicators = ['macd']
+        self.indicators = ['boll']
 
     def schedule_task(self, trader):
         trader.run_daily(self.trade, None, time='09:30')
         trader.run_on_bar_update(self.trade, None)
 
     def select_stock(self):
-        stock_df = pd.read_csv('stockpool/t0_white_horse_20.csv', dtype=str)
+        stock_df = pd.read_csv('stockpool/realtime_trade.csv', dtype=str)
         if self.fund.verbose:
             print(stock_df)
         return stock_df['symbol'].tolist()

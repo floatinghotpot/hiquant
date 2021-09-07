@@ -52,7 +52,7 @@ hiquant backtest strategy/mystrategy.py
 
 ### Create fund configuration from template, and backtrading
 ```bash
-hiquant fund create etc/myfund.conf
+hiquant trade create etc/myfund.conf
 
 ... edit my-fund.conf ...
 

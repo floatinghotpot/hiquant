@@ -24,8 +24,8 @@ pip install -e .
 ## 快速体验
 
 ```bash
-hiquant init myFund
-cd myFund
+hiquant init myProj
+cd myProj
 
 hiquant index list us
 hiquant stock list us
@@ -39,7 +39,7 @@ hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
 hiquant strategy create strategy/mystrategy.py
 hiquant backtest strategy/mystrategy.py
 
-hiquant fund create etc/myfund.conf
+hiquant trade create etc/myfund.conf
 hiquant backtrade etc/myfund.conf
 hiquant run etc/myfund.conf
 ```
@@ -49,8 +49,8 @@ hiquant run etc/myfund.conf
 ### 第 1 步，创建并初始化 hiquant 工作目录
 
 ```bash
-hiquant init MyFund
-cd MyFund
+hiquant init myProj
+cd myProj
 ```
 
 ### 第 2 步，获取 基本数据
@@ -276,7 +276,7 @@ hiquant backtest strategy/mystrategy.py
 ### 第 7 步，创建一个投资组合配置文件
 
 ```bash
-hiquant fund create etc/myfund.conf
+hiquant trade create etc/myfund.conf
 ```
 
 这是一个配置文件，描述了 模拟回测 和 实盘运行 需要的一些参数。
@@ -387,7 +387,7 @@ stop_earn = 0.20
 ```
 
 ```bash
-hiquant fund backtrade etc/2-two-funds.conf
+hiquant backtrade etc/2-two-funds.conf
 ```
 
 测试结果显示为：

@@ -9,7 +9,7 @@ def test_download_szse():
     print(df)
 
 def test_download_sina():
-    df = download_cn_stock_daily('600036')
+    #df = download_cn_stock_daily('600036')
     df = download_cn_index_daily('sh000300')
 
     df = download_finance_balance_report('600036')
