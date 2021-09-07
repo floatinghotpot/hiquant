@@ -430,3 +430,15 @@ def get_macro_bank_interest_rate(country):
     df['date'] = pd.to_datetime(df.index.date)
     df.set_index('date', inplace=True, drop=True)
     return df
+
+def get_cn_fund_list():
+    return get_cached_download_df('cache/cn_fund_list.csv', download_cn_fund_list, check_date= datetime_today())
+
+def get_cn_etf_list():
+    return get_cached_download_df('cache/cn_etf_list.csv', download_cn_etf_fund_list, check_date= datetime_today())
+
+def get_cn_fund_daily(symbol):
+    return get_cached_download_df('cache/fund/{param}_1d.csv', download_func= download_cn_fund_info, param= symbol, check_date= datetime_today())
+
+def get_cn_etf_daily(symbol):
+    return get_cached_download_df('cache/fund/{param}_1d.csv', download_func= download_cn_etf_fund_info, param= symbol, check_date= datetime_today())

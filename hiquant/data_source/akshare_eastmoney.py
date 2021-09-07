@@ -162,3 +162,19 @@ def download_cn_stock_fund_flow(symbol) -> pd.DataFrame:
 
             df[col] = df[col] / 100000000.00
     return df
+
+def download_cn_fund_list(param= None, verbose= False):
+    df = ak.fund_em_open_fund_daily()
+    return df
+
+def download_cn_fund_info(symbol):
+    df = ak.fund_em_open_fund_info(symbol, indicator='单位净值走势')
+    return df
+
+def download_cn_etf_fund_list(param= None, verbose= False):
+    df = ak.fund_em_etf_fund_daily()
+    return df
+
+def download_cn_etf_fund_info(symbol):
+    df = ak.fund_em_etf_fund_info(symbol)
+    return df

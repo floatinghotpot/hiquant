@@ -19,8 +19,8 @@ from .cli_finance import cli_finance
 from .cli_pepb import cli_pepb
 from .cli_stockpool import cli_stockpool
 from .cli_strategy import cli_strategy
+from .cli_trade import cli_trade
 from .cli_fund import cli_fund
-
 from .cli_stock import cli_stock
 from .cli_index import cli_index
 from .cli_pattern import cli_pattern
@@ -85,6 +85,7 @@ def cli_main_params_options(params, options):
         'pepb': cli_pepb,
         'stockpool': cli_stockpool,
         'strategy': cli_strategy,
+        'trade': cli_trade,
         'fund': cli_fund,
         'stock': cli_stock,
         'index': cli_index,
@@ -119,7 +120,7 @@ def cli_main_params_options(params, options):
         elif (len(params) > 1) and (params[1] in ['backtest']):
                 cli_strategy(['help'], options)
         elif (len(params) > 1) and (params[1] in ['backtrade', 'run']):
-                cli_fund(['help'], options)
+                cli_trade(['help'], options)
         else:
             cli_main_help()
 
@@ -127,7 +128,7 @@ def cli_main_params_options(params, options):
         cli_strategy(params, options)
 
     elif command in ['backtrade', 'run']:
-        cli_fund(params, options)
+        cli_trade(params, options)
 
     elif command in cli_tools:
         func = cli_tools[ command ]
