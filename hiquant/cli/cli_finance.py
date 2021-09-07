@@ -86,12 +86,7 @@ def cli_finance_view(params, options):
     df = sort_with_options(df, options, by_default='roe')
 
     if '-tab' in options:
-        if filtered_n > 30:
-            print( tb.tabulate(df.head(15), headers='keys', tablefmt='psql') )
-            print( ' ...... too many data to show ......')
-            print( tb.tabulate(df.tail(15), headers='keys', tablefmt='psql') )
-        else:
-            print( tb.tabulate(df, headers='keys', tablefmt='psql') )
+        print( tb.tabulate(df, headers='keys') )
     else:
         print('-' * 80)
         print(df)

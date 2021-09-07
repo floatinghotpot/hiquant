@@ -125,7 +125,7 @@ def download_finance_report(symbol, report_type = 'balance'):
     else:
         raise ValueError('Unknown finance report type: ' + report_type)
 
-    print('fetching ' + report_type + ' report ...')
+    print('fetching ' + report_type + ' report ...', symbol)
     df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
     time.sleep(_SINA_DOWNLOAD_DELAY)
 
