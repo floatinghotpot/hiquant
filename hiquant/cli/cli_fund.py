@@ -134,9 +134,10 @@ def eval_fund_list(df_fund_list, days):
         volatility = np.std(logreturns)
         annualVolatility = volatility * (252 ** 0.5)
         annualVolatility = round(annualVolatility * 100, 2)
-        eval_table.append([param, name, fund_start, fund_days, days, pct_cum, sharpe_ratio, max_drawdown, annualVolatility, buy_state, sell_state, fee])
+        eval_table.append([param, name, days, pct_cum, sharpe_ratio, max_drawdown, annualVolatility, buy_state, sell_state, fee, fund_start, fund_days])
 
-    df = pd.DataFrame(eval_table, columns=['symbol', 'name', 'fund_start', 'fund_days', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'volatility', 'buy_state', 'sell_state', 'fee'])
+    en_cols = ['symbol', 'name', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'volatility', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_days']
+    df = pd.DataFrame(eval_table, columns=en_cols)
     df['fund_start'] = df['fund_start'].dt.date
     return df
 
