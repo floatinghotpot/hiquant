@@ -3,6 +3,7 @@
 import os
 import sys
 import tabulate as tb
+import numpy as np
 import pandas as pd
 import mplfinance as mpf
 import matplotlib.pyplot as plt
@@ -46,6 +47,59 @@ def cli_fund_read_fund_symbols(csv_file):
         return df['symbol'].tolist()
     else:
         return []
+
+# hiquant fund sharpe 002943
+# hiquant fund sharpe 002943 005669
+# hiquant fund sharpe 002943 005669 -days=365
+def cli_fund_sharpe(params, options):
+    if len(params) == 0:
+        cli_fund_help()
+        return
+
+    if params[0].endswith('.csv'):
+        params = cli_fund_read_fund_symbols(params[0])
+
+    df_fund_list = get_cn_fund_list()
+    fund_symbol_names = dict_from_df(df_fund_list, '基金代码', '基金简称')
+
+    date_from = date_from_str('10 years ago')
+    days = 365 * 10
+    for option in options:
+        if option.startswith('-days='):
+            days = int(option.replace('-days=',''))
+            date_from = date_from_str('{} days ago'.format(days))
+
+    for param in params:
+        if param in fund_symbol_names:
+            name = param + ' - ' + fund_symbol_names[ param ]
+        else:
+            name = param
+        print( '\n-----', name, '-----' )
+        df = get_cn_fund_daily(symbol= param)
+        df.columns = ['date', 'value', 'pct_change']
+        df = df.astype({
+            'date': 'datetime64',
+            'value': 'float64',
+            'pct_change': 'float64',
+        })
+        df = df.set_index('date', drop= True)
+        df = df[ df.index >= date_from ]
+
+        risk_free_rate = 0.03
+        daily_sharpe_ratio = (df['pct_change'].mean() - risk_free_rate) / df['pct_change'].std()
+        sharpe_ratio = round(daily_sharpe_ratio * (252 ** 0.5), 2)
+
+        max_drawdown = (1 - df['value'] / df['value'].cummax()).max()
+        max_drawdown = round(100 * max_drawdown, 2)
+
+        logreturns = np.diff( np.log(df['value']) )
+        volatility = np.std(logreturns)
+        annualVolatility = volatility * (252 ** 0.5)
+        annualVolatility = round(annualVolatility * 100, 2)
+
+        print('sharpe:', sharpe_ratio, ', max drawdown:', max_drawdown, '%', ', annual volatility:', annualVolatility, '%')
+
+    pass
 
 # hiquant fund view 002943
 # hiquant fund view 002943 005669
@@ -151,6 +205,9 @@ def cli_fund(params, options):
 
     if action == 'list':
         cli_fund_list(params, options)
+
+    elif action in ['sharpe']:
+        cli_fund_sharpe(params, options)
 
     elif action in ['view']:
         cli_fund_view(params, options)
