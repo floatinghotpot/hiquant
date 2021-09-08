@@ -3,11 +3,13 @@
 import os
 import sys
 import tabulate as tb
+import pandas as pd
 import mplfinance as mpf
 import matplotlib.pyplot as plt
 from cycler import cycler
 
 from ..core import get_cn_fund_list, get_cn_fund_daily
+from ..utils import date_from_str, dict_from_df
 
 def cli_fund_help():
     syntax_tips = '''Syntax:
@@ -27,6 +29,8 @@ Example:
 
     print( syntax_tips )
 
+# hiquant fund list
+# hiquant fund list 多因子
 def cli_fund_list(params, options):
     df = get_cn_fund_list()
     selected = total = df.shape[0]
@@ -36,13 +40,105 @@ def cli_fund_list(params, options):
     print( tb.tabulate(df, headers='keys') )
     print( selected, 'of', total, 'funds selected.')
 
+def cli_fund_read_fund_symbols(csv_file):
+    df = pd.read_csv(csv_file, dtype=str)
+    if 'symbol' in df:
+        return df['symbol'].tolist()
+    else:
+        return []
+
+# hiquant fund view 002943
+# hiquant fund view 002943 005669
+# hiquant fund view 002943 005669 -days=365
+def cli_fund_view(params, options):
+    if len(params) == 0:
+        cli_fund_help()
+        return
+
+    if params[0].endswith('.csv'):
+        params = cli_fund_read_fund_symbols(params[0])
+
+    df_fund_list = get_cn_fund_list()
+    fund_symbol_names = dict_from_df(df_fund_list, '基金代码', '基金简称')
+
+    date_from = date_from_str('10 years ago')
+    for option in options:
+        if option.startswith('-days='):
+            days = int(option.replace('-days=',''))
+            date_from = date_from_str('{} days ago'.format(days))
+
+    for param in params:
+        if param in fund_symbol_names:
+            name = param + ' - ' + fund_symbol_names[ param ]
+        else:
+            name = param
+        print( '\n-----', name, '-----' )
+        df = get_cn_fund_daily(symbol= param)
+        df.columns = ['date', 'value', 'pct_change']
+        df = df.astype({
+            'date': 'datetime64',
+            'value': 'float64',
+            'pct_change': 'float64',
+        })
+        df = df.set_index('date', drop= True)
+        df = df[ df.index >= date_from ]
+        df['value_trend'] = round(df['value'] / df['value'].iloc[0], 4)
+        df['pct_return'] = round((df['value_trend'] - 1.0) * 100.0, 1)
+        print(df)
+
+    pass
+
+# hiquant fund plot 002943
+# hiquant fund plot 002943 005669
+# hiquant fund plot 002943 005669 -days=365
 def cli_fund_plot(params, options):
     if len(params) == 0:
         cli_fund_help()
         return
 
-    df = get_cn_fund_daily(symbol= params[0])
-    print(df)
+    if params[0].endswith('.csv'):
+        params = cli_fund_read_fund_symbols(params[0])
+
+    df_fund_list = get_cn_fund_list()
+    fund_symbol_names = dict_from_df(df_fund_list, '基金代码', '基金简称')
+
+    date_from = date_from_str('10 years ago')
+    for option in options:
+        if option.startswith('-days='):
+            days = int(option.replace('-days=',''))
+            date_from = date_from_str('{} days ago'.format(days))
+
+    df_funds = None
+    for param in params:
+        if param in fund_symbol_names:
+            name = param + ' - ' + fund_symbol_names[ param ]
+        else:
+            name = param
+        print( name )
+        df = get_cn_fund_daily(symbol= param)
+        df.columns = ['date', 'value', 'pct_change']
+        df = df.astype({
+            'date': 'datetime64',
+            'value': 'float64',
+            'pct_change': 'float64',
+        })
+        df = df.set_index('date', drop= True)
+        df = df[ df.index >= date_from ]
+        df['value_trend'] = round(df['value'] / df['value'].iloc[0], 4)
+        df['pct_return'] = round((df['value_trend'] - 1.0) * 100.0, 1)
+        if df_funds is None:
+            df_funds = df[['pct_return']]
+            df_funds.columns = [ name ]
+        else:
+            df_funds[ name ] = df['pct_return']
+        #print(df)
+
+    print(df_funds)
+
+    df_funds.index = df_funds.index.strftime('%Y-%m-%d')
+    df_funds.plot(kind='line', ylabel='return (%)')
+    plt.show()
+
     pass
 
 def cli_fund(params, options):
@@ -56,7 +152,10 @@ def cli_fund(params, options):
     if action == 'list':
         cli_fund_list(params, options)
 
-    elif action in ['plot', 'view', 'show']:
+    elif action in ['view']:
+        cli_fund_view(params, options)
+
+    elif action in ['plot', 'show']:
         cli_fund_plot(params, options)
 
     else:
