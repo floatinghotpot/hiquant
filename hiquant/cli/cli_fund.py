@@ -181,6 +181,7 @@ def cli_fund_eval(params, options):
         df_eval = df_eval.head(limit)
 
     print('\r', end= '', flush= True)
+    #df_eval.columns = ['基金代码', '基金简称', '计算天数', '累计收益率', '夏普比率', '最大回撤', '波动率', '申购状态', '赎回状态', '手续费', '起始日期', '基金天数']
     print( tb.tabulate(df_eval, headers='keys') )
 
     out_csv_file = ''
