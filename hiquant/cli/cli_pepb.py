@@ -64,15 +64,36 @@ def cli_pepb_view(params, options, force_update = False):
 
     print('{} out of {} records selected.'.format(filtered_n, total_n))
 
+    out_xlsx_file = ''
     out_csv_file = ''
     for k in options:
-        if k.startswith('-out=') and k.endswith('.csv'):
-            out_csv_file = k.replace('-out=', '')
+        if k.startswith('-out='):
+            if k.endswith('.xlsx'):
+                out_xlsx_file = k.replace('-out=', '')
+            if k.endswith('.csv'):
+                out_csv_file = k.replace('-out=', '')
+
     if out_csv_file:
         df = df[['symbol', 'name']]
         df.to_csv(out_csv_file, index= False)
         print('Exported to:', out_csv_file)
         print(df)
+
+    if out_xlsx_file:
+        name_col = df.pop('name')
+        df.insert(1, 'name', name_col)
+        df = df.rename(columns={
+            'symbol':'代码',
+            'name': '名称',
+            'pe': '市盈率',
+            'pb': '市净率',
+            'pe_pos': '市盈率百分位',
+            'pb_pos': '市净率百分位',
+            'pe_ratio': '市盈率均值比率',
+            'pb_ratio': '市净率均值比率',
+        })
+        df.to_excel(out_xlsx_file)
+        print('Exported to:', out_xlsx_file)
 
     print('')
 

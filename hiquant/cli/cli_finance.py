@@ -5,7 +5,7 @@ import datetime as dt
 import pandas as pd
 import tabulate as tb
 
-from ..core.data_cache import get_cn_index_list_df, get_finance_indicator_df, update_finance_indicator_df
+from ..core.data_cache import get_cn_index_list_df, get_finance_indicator_df, update_finance_indicator_df, get_pepb_symmary_df
 from ..utils import sort_with_options, filter_with_options
 
 def cli_finance_help():
@@ -75,6 +75,20 @@ def cli_finance_view(params, options):
         else:
             symbols = params
         df = df[ df['symbol'].isin(symbols) ]
+        df = df.set_index('symbol', drop= True)
+
+        df['earn_speed'] = df['earn_speed'].round(3)
+        df['earn_yoy'] = df['earn_yoy'].round(3)
+
+        if '-pepb' in options:
+            df_pepb = get_pepb_symmary_df(symbols)[['symbol','pe','pb','pe_pos','pb_pos']]
+            df_pepb = df_pepb.set_index('symbol', drop= True)
+            df = pd.concat([df, df_pepb], axis=1)
+            df['peg'] = (df['pe'] / df['earn_yoy'] * 0.01).round(2)
+            df['pe'] = df['pe'].round(1)
+            df['pb'] = df['pb'].round(1)
+            df.insert(0, 'symbol', df.index)
+            df = df.reset_index(drop= True)
 
     total_n = df.shape[0]
 
@@ -95,15 +109,50 @@ def cli_finance_view(params, options):
 
     print('{} out of {} records selected.'.format(filtered_n, total_n))
 
+    out_xlsx_file = ''
     out_csv_file = ''
     for k in options:
-        if k.startswith('-out=') and k.endswith('.csv'):
-            out_csv_file = k.replace('-out=', '')
+        if k.startswith('-out='):
+            if k.endswith('.xlsx'):
+                out_xlsx_file = k.replace('-out=', '')
+            if k.endswith('.csv'):
+                out_csv_file = k.replace('-out=', '')
+
     if out_csv_file:
-        df = df[['symbol', 'name']]
-        df.to_csv(out_csv_file, index= False)
+        df_stocks = df[['symbol', 'name']]
+        df_stocks.to_csv(out_csv_file, index= False)
         print('Exported to:', out_csv_file)
         print(df)
+
+    if out_xlsx_file:
+        name_col = df.pop('name')
+        df.insert(1, 'name', name_col)
+        df = df.drop(columns=['grow', 'share_grow', 'start_bvps', 'now_bvps', 'eps','assets','equity','shares'])
+        df = df.rename(columns={
+            'symbol':'代码',
+            'name':'名称',
+            'ipo_date':'上市日期',
+            'ipo_years': '上市年数',
+            'last_report': '最新财报',
+            '3yr_grow_rate': '近3年增长率',
+            'grow_rate': '平均增长率',
+            'roe': 'ROE',
+            '3yr_roe': '近3年ROE',
+            'avg_roe': '平均ROE',
+            'earn_speed': '利润环比增速',
+            'earn_yoy': '利润同比增速',
+            'debt_ratio': '资产负债率',
+            'cash_ratio': '现金占比',
+            'earn_ttm': '盈利TTM',
+            'pe': 'PE',
+            'pb': 'PB',
+            'pe_pos': 'PE百分位',
+            'pb_pos': 'PB百分位',
+            'peg': 'PEG',
+        })
+        print( tb.tabulate(df, headers='keys') )
+        df.to_excel(out_xlsx_file)
+        print('Exported to:', out_xlsx_file)
 
     print('')
 

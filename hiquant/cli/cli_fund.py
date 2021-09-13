@@ -181,13 +181,21 @@ def cli_fund_eval(params, options):
         df_eval = df_eval.head(limit)
 
     print('\r', end= '', flush= True)
-    #df_eval.columns = ['基金代码', '基金简称', '计算天数', '累计收益率', '夏普比率', '最大回撤', '波动率', '申购状态', '赎回状态', '手续费', '起始日期', '基金天数']
     print( tb.tabulate(df_eval, headers='keys') )
 
+    out_xls_file = ''
     out_csv_file = ''
     for k in options:
-        if k.startswith('-out=') and k.endswith('.csv'):
-            out_csv_file = k.replace('-out=', '')
+        if k.startswith('-out='):
+            if k.endswith('.csv'):
+                out_csv_file = k.replace('-out=', '')
+            elif k.endswith('.xlsx'):
+                out_xls_file = k.replace('-out=', '')
+
+    if out_xls_file:
+        df_eval.columns = ['基金代码', '基金简称', '计算天数', '累计收益率', '夏普比率', '最大回撤', '波动率', '申购状态', '赎回状态', '手续费', '起始日期', '基金天数']
+        df_eval.to_excel(excel_writer= out_xls_file)
+
     if out_csv_file:
         df = df_eval[['symbol', 'name']]
         df.to_csv(out_csv_file, index= False)
