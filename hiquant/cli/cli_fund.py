@@ -94,8 +94,8 @@ def cli_fund_update(params, options):
 
     print('Done.')
 
-def eval_fund_list(df_fund_list, days):
-    date_from = date_from_str('{} days ago'.format(days))
+def eval_fund_list(df_fund_list, date_from, date_to):
+    days = (date_to - date_from).days
     eval_table = []
     for index, row in df_fund_list.iterrows():
         param = row['symbol']
@@ -113,27 +113,28 @@ def eval_fund_list(df_fund_list, days):
 
         fund_start = min(df.index)
         fund_days = (datetime_today() - fund_start).days
-
-        if fund_days < days:
+        if fund_start > date_from:
             continue
 
         df = df[ df.index >= date_from ]
+        df = df[ df.index <= date_to ]
 
         try:
-            pct_cum = df['value'].iloc[-1] / df['value'].iloc[0] - 1.0
+            df['pct_cum'] = (df['pct_change'] * 0.01 +1).cumprod()
+            pct_cum = df['pct_cum'].iloc[-1] - 1.0
             pct_cum = round(pct_cum * 100, 2)
         except (KeyError, ValueError, IndexError) as err:
             print('error calculating', param, name, ', skip.')
             continue
 
-        risk_free_rate = 0.03
+        risk_free_rate = 0.020
         daily_sharpe_ratio = (df['pct_change'].mean() - risk_free_rate) / df['pct_change'].std()
         sharpe_ratio = round(daily_sharpe_ratio * (252 ** 0.5), 2)
 
-        max_drawdown = (1 - df['value'] / df['value'].cummax()).max()
+        max_drawdown = (1 - df['pct_cum'] / df['pct_cum'].cummax()).max()
         max_drawdown = round(100 * max_drawdown, 2)
 
-        logreturns = np.diff( np.log(df['value']) )
+        logreturns = np.diff( np.log(df['pct_cum']) )
         volatility = np.std(logreturns)
         annualVolatility = volatility * (252 ** 0.5)
         annualVolatility = round(annualVolatility * 100, 2)
@@ -164,18 +165,27 @@ def cli_fund_eval(params, options):
         df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
 
     limit = 0
+    date_from = None
+    date_to = None
     days = None
     for option in options:
         if option.startswith('-days='):
             days = int(option.replace('-days=',''))
-        if option.startswith('-years='):
-            days = int(option.replace('-years=','')) * 365
+            date_from = date_from_str('{} days ago'.format(days))
+            date_to = datetime_today()
+        if option.startswith('-date='):
+            date_range = option.replace('-date=','').split('-')
+            date_from = date_from_str(date_range[0])
+            date_to = date_from_str(date_range[1]) if len(date_range[1])>0 else datetime_today()
         if option.startswith('-limit='):
             limit = int(option.replace('-limit=',''))
-    if days is None:
-        days = 365 * 1
 
-    df_eval = eval_fund_list(df_fund_list, days= days)
+    if date_from is None:
+        days = 365 * 1
+        date_from = date_from_str('{} days ago'.format(days))
+        date_to = datetime_today()
+
+    df_eval = eval_fund_list(df_fund_list, date_from= date_from, date_to= date_to)
 
     df_eval = df_eval[ df_eval['buy_state'].isin(['限大额','开放申购']) ]
     df_eval = filter_with_options(df_eval, options)
@@ -220,17 +230,25 @@ def cli_fund_plot(params, options):
     fund_symbol_names = dict_from_df(df_fund_list, 'symbol', 'name')
 
     limit = 1000
+    date_from = None
+    date_to = None
     days = None
     for option in options:
         if option.startswith('-days='):
             days = int(option.replace('-days=',''))
-        if option.startswith('-years='):
-            days = int(option.replace('-years=','')) * 365
+            date_from = date_from_str('{} days ago'.format(days))
+            date_to = datetime_today()
+        if option.startswith('-date='):
+            date_range = option.replace('-date=','').split('-')
+            date_from = date_from_str(date_range[0])
+            date_to = date_from_str(date_range[1]) if len(date_range[1])>0 else datetime_today()
         if option.startswith('-limit='):
             limit = int(option.replace('-limit=',''))
-    if days is None:
+
+    if date_from is None:
         days = 365 * 1
-    date_from = date_from_str('{} days ago'.format(days))
+        date_from = date_from_str('{} days ago'.format(days))
+        date_to = datetime_today()
 
     df_funds = None
     i = 0
@@ -247,8 +265,8 @@ def cli_fund_plot(params, options):
 
         df = get_cn_fund_daily(symbol= param)
         df = df[ df.index >= date_from ]
-        df['value_trend'] = round(df['value'] / df['value'].iloc[0], 4)
-        df['pct_cum'] = round((df['value_trend'] - 1.0) * 100.0, 1)
+        df = df[ df.index <= date_to ]
+        df['pct_cum'] = round(((df['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0, 1)
         if df_funds is None:
             df_funds = df[['pct_cum']]
             df_funds.columns = [ name ]
