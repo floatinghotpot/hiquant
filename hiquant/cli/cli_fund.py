@@ -134,11 +134,11 @@ def eval_fund_list(df_fund_list, days):
         volatility = np.std(logreturns)
         annualVolatility = volatility * (252 ** 0.5)
         annualVolatility = round(annualVolatility * 100, 2)
-        eval_table.append([param, name, days, pct_cum, sharpe_ratio, max_drawdown, annualVolatility, buy_state, sell_state, fee, fund_start, fund_days])
+        eval_table.append([param, name, days, pct_cum, sharpe_ratio, max_drawdown, annualVolatility, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
 
-    en_cols = ['symbol', 'name', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'volatility', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_days']
+    en_cols = ['symbol', 'name', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'volatility', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
     df = pd.DataFrame(eval_table, columns=en_cols)
-    df['fund_start'] = df['fund_start'].dt.date
+    df['fund_start'] = df['fund_start'].dt.strftime('%Y-%m-%d')
     return df
 
 # hiquant fund eval 002943 005669
@@ -189,11 +189,11 @@ def cli_fund_eval(params, options):
         if k.startswith('-out='):
             if k.endswith('.csv'):
                 out_csv_file = k.replace('-out=', '')
-            elif k.endswith('.xlsx'):
+            if k.endswith('.xlsx'):
                 out_xls_file = k.replace('-out=', '')
 
     if out_xls_file:
-        df_eval.columns = ['基金代码', '基金简称', '计算天数', '累计收益率', '夏普比率', '最大回撤', '波动率', '申购状态', '赎回状态', '手续费', '起始日期', '基金天数']
+        df_eval.columns = ['基金代码', '基金简称', '计算天数', '累计收益率', '夏普比率', '最大回撤', '波动率', '申购状态', '赎回状态', '手续费', '起始日期', '基金年数']
         df_eval.to_excel(excel_writer= out_xls_file)
 
     if out_csv_file:
