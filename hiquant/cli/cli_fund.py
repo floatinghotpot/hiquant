@@ -14,7 +14,6 @@ def cli_fund_help():
     __argv0__ fund list [<keyword>]
     __argv0__ fund update <all | symbols | symbols.csv>
     __argv0__ fund eval <all | symbols | symbols.csv> [-sortby=...] [-desc] [-filter_column=...-...]
-    __argv0__ fund view <symbols | symbols.csv>
     __argv0__ fund plot <symbols | symbols.csv> [<options>]
 
 Options:
@@ -30,7 +29,6 @@ Example:
     __argv0__ fund list 广发 -out=output/guangfa_funds.csv
     __argv0__ fund update data/myfunds.csv
     __argv0__ fund eval data/myfunds.csv -days=365 -sortby=sharpe -desc -limit=20 -out=output/top20_funds.xlsx
-    __argv0__ fund view 002943 005669 -days=365
     __argv0__ fund plot 002943 005669 000209 -days=365
     __argv0__ fund plot data/funds.csv -days=365
     __argv0__ fund plot data/funds.csv -days=1095 -mix
@@ -177,7 +175,7 @@ def cli_fund_eval(params, options):
     if days is None:
         days = 365 * 1
 
-    df_eval = eval_fund_list(df_fund_list, days)
+    df_eval = eval_fund_list(df_fund_list, days= days)
 
     df_eval = df_eval[ df_eval['buy_state'].isin(['限大额','开放申购']) ]
     df_eval = filter_with_options(df_eval, options)
@@ -206,44 +204,6 @@ def cli_fund_eval(params, options):
         df.to_csv(out_csv_file, index= False)
         print('Exported to:', out_csv_file)
         print(df)
-
-# hiquant fund view 002943
-# hiquant fund view 002943 005669
-# hiquant fund view 002943 005669 -days=365
-def cli_fund_view(params, options):
-    if len(params) == 0:
-        cli_fund_help()
-        return
-
-    if params[0].endswith('.csv'):
-        params = cli_fund_read_fund_symbols(params[0])
-
-    df_fund_list = get_cn_fund_list()
-    fund_symbol_names = dict_from_df(df_fund_list, 'symbol', 'name')
-
-    days = None
-    for option in options:
-        if option.startswith('-days='):
-            days = int(option.replace('-days=',''))
-        if option.startswith('-years='):
-            days = int(option.replace('-years=','')) * 365
-    if days is None:
-        days = 365 * 1
-    date_from = date_from_str('{} days ago'.format(days))
-
-    for param in params:
-        if param in fund_symbol_names:
-            name = param + ' - ' + fund_symbol_names[ param ]
-        else:
-            name = param
-        print( '\n-----', name, '-----' )
-        df = get_cn_fund_daily(symbol= param)
-        df = df[ df.index >= date_from ]
-        df['value_trend'] = round(df['value'] / df['value'].iloc[0], 4)
-        df['pct_cum'] = round((df['value_trend'] - 1.0) * 100.0, 1)
-        print(df)
-
-    pass
 
 # hiquant fund plot 002943
 # hiquant fund plot 002943 005669
