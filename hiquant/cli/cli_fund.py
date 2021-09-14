@@ -22,13 +22,18 @@ Options:
     -sharpe=2.5- ................... sharpe value between <from> to <to>
     -max_drawdown=-20 .............. max_drawdown between <from> to <to>
     -volatility=-20 ................ volatility between <from> to <to>
+    -out=file.csv .................. export fund list to .csv file
+    -out=file.xlsx ................. export fund data to .xlsx file
 
 Example:
     __argv0__ fund list 多因子
+    __argv0__ fund list 广发 -out=output/guangfa_funds.csv
     __argv0__ fund update data/myfunds.csv
-    __argv0__ fund eval data/myfunds.csv -sortby=sharpe -desc -limit=20
+    __argv0__ fund eval data/myfunds.csv -days=365 -sortby=sharpe -desc -limit=20 -out=output/top20_funds.xlsx
     __argv0__ fund view 002943 005669 -days=365
     __argv0__ fund plot 002943 005669 000209 -days=365
+    __argv0__ fund plot data/funds.csv -days=365
+    __argv0__ fund plot data/funds.csv -days=1095 -mix
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
     print( syntax_tips )
@@ -254,23 +259,32 @@ def cli_fund_plot(params, options):
     df_fund_list = get_cn_fund_list()
     fund_symbol_names = dict_from_df(df_fund_list, 'symbol', 'name')
 
+    limit = 1000
     days = None
     for option in options:
         if option.startswith('-days='):
             days = int(option.replace('-days=',''))
         if option.startswith('-years='):
             days = int(option.replace('-years=','')) * 365
+        if option.startswith('-limit='):
+            limit = int(option.replace('-limit=',''))
     if days is None:
         days = 365 * 1
     date_from = date_from_str('{} days ago'.format(days))
 
     df_funds = None
+    i = 0
     for param in params:
+        i += 1
+        if i > limit:
+            break
+
         if param in fund_symbol_names:
             name = param + ' - ' + fund_symbol_names[ param ]
         else:
             name = param
         print( name )
+
         df = get_cn_fund_daily(symbol= param)
         df = df[ df.index >= date_from ]
         df['value_trend'] = round(df['value'] / df['value'].iloc[0], 4)
@@ -285,7 +299,16 @@ def cli_fund_plot(params, options):
     print(df_funds)
 
     df_funds.index = df_funds.index.strftime('%Y-%m-%d')
-    df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6))
+    if '-mix' in options:
+        n = df_funds.shape[1]
+        df_funds = df_funds.fillna(0)
+        df = df_funds.copy() / n
+        df['portfolio'] = 0.0
+        for col in df_funds.columns:
+            df['portfolio'] += df[col]
+        df[['portfolio']].plot(kind='line', ylabel='return (%)', figsize=(10,6))
+    else:
+        df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6))
     plt.show()
 
     pass
