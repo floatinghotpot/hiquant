@@ -11,6 +11,7 @@ dist
 cache/finance/*.csv
 cache/market/*.csv
 cache/pepb/*.csv
+cache/fund/*.csv
 cache/bank/*.csv
 cache/*.csv
 data
