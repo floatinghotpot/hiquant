@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from ..core import get_cn_fund_list, get_cn_fund_daily
+from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager
 from ..utils import date_from_str, dict_from_df, datetime_today, sort_with_options, filter_with_options
 
 def cli_fund_help():
@@ -90,6 +90,19 @@ def cli_fund_list(params, options):
         df.to_csv(out_csv_file, index= False)
         print('Exported to:', out_csv_file)
         print(df)
+
+def cli_fund_manager(params, options):
+    df = get_cn_fund_manager(check_date= datetime_today())
+    selected = total = df.shape[0]
+    if len(params) > 0:
+        df = df[ df['name'].str.contains(params[0], na=False) ]
+    for option in options:
+        if option.startswith('-fund='):
+            fund = option.replace('-fund=','')
+            df = df[ df['fund'].str.contains(fund, na=False) ]
+    selected = df.shape[0]
+    print( tb.tabulate(df, headers='keys') )
+    print( selected, 'of', total, 'funds selected.')
 
 def cli_fund_read_fund_symbols(csv_file):
     df = pd.read_csv(csv_file, dtype=str)
@@ -358,6 +371,9 @@ def cli_fund(params, options):
 
     if action == 'list':
         cli_fund_list(params, options)
+
+    if action == 'manager':
+        cli_fund_manager(params, options)
 
     elif action == 'update':
         cli_fund_update(params, options)

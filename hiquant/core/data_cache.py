@@ -463,3 +463,8 @@ def get_cn_etf_daily(symbol, check_date= None):
     })
     df = df.set_index('date', drop= True)
     return df
+
+def get_cn_fund_manager(check_date= None):
+    df = get_cached_download_df('cache/cn_fund_manager.csv', download_cn_fund_manager, check_date= check_date)
+    df.columns = ['index', 'name', 'company', 'fund', 'days', 'size', 'best_return']
+    return df
