@@ -1,6 +1,7 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
 import os, sys
+import datetime as dt
 import tabulate as tb
 import numpy as np
 import pandas as pd
@@ -36,6 +37,41 @@ Example:
 
     print( syntax_tips )
 
+def date_limit_from_options(options):
+    limit = 0
+    date_from = None
+    date_to = None
+    days = None
+    for option in options:
+        if option.startswith('-days='):
+            days = int(option.replace('-days=',''))
+            date_from = date_from_str('{} days ago'.format(days))
+            date_to = datetime_today()
+        if option.startswith('-date='):
+            date_range = option.replace('-date=','').split('-')
+            date_from = date_from_str(date_range[0])
+            date_to = date_from_str(date_range[1]) if len(date_range[1])>0 else datetime_today()
+        if option.startswith('-limit='):
+            limit = int(option.replace('-limit=',''))
+
+    if date_from is None:
+        days = 365 * 1
+        date_from = date_from_str('{} days ago'.format(days))
+        date_to = datetime_today()
+
+    return date_from, date_to, limit
+
+def csv_xlsx_from_options(options):
+    csv = ''
+    xlsx = ''
+    for k in options:
+        if k.startswith('-out='):
+            if k.endswith('.csv'):
+                csv = k.replace('-out=', '')
+            if k.endswith('.xlsx'):
+                xlsx = k.replace('-out=', '')
+    return csv, xlsx
+
 # hiquant fund list
 # hiquant fund list 多因子
 def cli_fund_list(params, options):
@@ -47,10 +83,8 @@ def cli_fund_list(params, options):
     print( tb.tabulate(df, headers='keys') )
     print( selected, 'of', total, 'funds selected.')
 
-    out_csv_file = ''
-    for k in options:
-        if k.startswith('-out=') and k.endswith('.csv'):
-            out_csv_file = k.replace('-out=', '')
+    out_csv_file, out_xls_file = csv_xlsx_from_options(options)
+
     if out_csv_file:
         df = df[['symbol', 'name']]
         df.to_csv(out_csv_file, index= False)
@@ -117,17 +151,17 @@ def eval_fund_list(df_fund_list, date_from, date_to):
             continue
 
         df = df[ df.index >= date_from ]
-        df = df[ df.index <= date_to ]
+        df = df[ df.index < date_to ]
 
         try:
             df['pct_cum'] = (df['pct_change'] * 0.01 +1).cumprod()
             pct_cum = df['pct_cum'].iloc[-1] - 1.0
             pct_cum = round(pct_cum * 100, 2)
         except (KeyError, ValueError, IndexError) as err:
-            print('error calculating', param, name, ', skip.')
+            #print('error calculating', param, name, ', skip.')
             continue
 
-        risk_free_rate = 0.020
+        risk_free_rate = 3.0 / 365
         daily_sharpe_ratio = (df['pct_change'].mean() - risk_free_rate) / df['pct_change'].std()
         sharpe_ratio = round(daily_sharpe_ratio * (252 ** 0.5), 2)
 
@@ -164,26 +198,7 @@ def cli_fund_eval(params, options):
     else:
         df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
 
-    limit = 0
-    date_from = None
-    date_to = None
-    days = None
-    for option in options:
-        if option.startswith('-days='):
-            days = int(option.replace('-days=',''))
-            date_from = date_from_str('{} days ago'.format(days))
-            date_to = datetime_today()
-        if option.startswith('-date='):
-            date_range = option.replace('-date=','').split('-')
-            date_from = date_from_str(date_range[0])
-            date_to = date_from_str(date_range[1]) if len(date_range[1])>0 else datetime_today()
-        if option.startswith('-limit='):
-            limit = int(option.replace('-limit=',''))
-
-    if date_from is None:
-        days = 365 * 1
-        date_from = date_from_str('{} days ago'.format(days))
-        date_to = datetime_today()
+    date_from, date_to, limit = date_limit_from_options(options)
 
     df_eval = eval_fund_list(df_fund_list, date_from= date_from, date_to= date_to)
 
@@ -196,24 +211,18 @@ def cli_fund_eval(params, options):
     print('\r', end= '', flush= True)
     print( tb.tabulate(df_eval, headers='keys') )
 
-    out_xls_file = ''
-    out_csv_file = ''
-    for k in options:
-        if k.startswith('-out='):
-            if k.endswith('.csv'):
-                out_csv_file = k.replace('-out=', '')
-            if k.endswith('.xlsx'):
-                out_xls_file = k.replace('-out=', '')
-
-    if out_xls_file:
-        df_eval.columns = ['基金代码', '基金简称', '计算天数', '累计收益率', '夏普比率', '最大回撤', '波动率', '申购状态', '赎回状态', '手续费', '起始日期', '基金年数']
-        df_eval.to_excel(excel_writer= out_xls_file)
+    out_csv_file, out_xls_file = csv_xlsx_from_options(options)
 
     if out_csv_file:
         df = df_eval[['symbol', 'name']]
         df.to_csv(out_csv_file, index= False)
         print('Exported to:', out_csv_file)
         print(df)
+
+    if out_xls_file:
+        df_eval.columns = ['基金代码', '基金简称', '计算天数', '累计收益率', '夏普比率', '最大回撤', '波动率', '申购状态', '赎回状态', '手续费', '起始日期', '基金年数']
+        df_eval.to_excel(excel_writer= out_xls_file)
+        print('Exported to:', out_xls_file)
 
 # hiquant fund plot 002943
 # hiquant fund plot 002943 005669
@@ -229,26 +238,9 @@ def cli_fund_plot(params, options):
     df_fund_list = get_cn_fund_list()
     fund_symbol_names = dict_from_df(df_fund_list, 'symbol', 'name')
 
-    limit = 1000
-    date_from = None
-    date_to = None
-    days = None
-    for option in options:
-        if option.startswith('-days='):
-            days = int(option.replace('-days=',''))
-            date_from = date_from_str('{} days ago'.format(days))
-            date_to = datetime_today()
-        if option.startswith('-date='):
-            date_range = option.replace('-date=','').split('-')
-            date_from = date_from_str(date_range[0])
-            date_to = date_from_str(date_range[1]) if len(date_range[1])>0 else datetime_today()
-        if option.startswith('-limit='):
-            limit = int(option.replace('-limit=',''))
-
-    if date_from is None:
-        days = 365 * 1
-        date_from = date_from_str('{} days ago'.format(days))
-        date_to = datetime_today()
+    date_from, date_to, limit = date_limit_from_options(options)
+    if limit == 0:
+        limit = 100
 
     df_funds = None
     i = 0
@@ -265,7 +257,7 @@ def cli_fund_plot(params, options):
 
         df = get_cn_fund_daily(symbol= param)
         df = df[ df.index >= date_from ]
-        df = df[ df.index <= date_to ]
+        df = df[ df.index < date_to ]
         df['pct_cum'] = round(((df['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0, 1)
         if df_funds is None:
             df_funds = df[['pct_cum']]
@@ -291,6 +283,71 @@ def cli_fund_plot(params, options):
 
     pass
 
+def cli_fund_backtest(params, options):
+    if len(params) == 0:
+        cli_fund_help()
+        return
+
+    date_from, date_to, limit = date_limit_from_options(options)
+    if limit == 0:
+        limit = 20
+
+    period = 90
+    for option in options:
+        if option.startswith('-period='):
+            period = int(option.replace('-period=', ''))
+
+    df_fund_list = get_cn_fund_list()
+    if params[0] == 'all':
+        pass
+    elif params[0].endswith('.csv'):
+        params = cli_fund_read_fund_symbols(params[0])
+        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
+    else:
+        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
+
+    returns = []
+    d = date_from
+    while d < date_to:
+        print('-'*20, d, '-'*20)
+        df_eval = eval_fund_list(df_fund_list, (d - dt.timedelta(days= period)), d)
+        df_eval = filter_with_options(df_eval, ['-pct_cum=3.0-'])
+        #df_eval = sort_with_options(df_eval, ['-sortby=sharpe','-desc'], by_default='sharpe').head(limit)
+        df_eval = sort_with_options(df_eval, ['-sortby=sharpe','-desc'], by_default='sharpe').head(100)
+        df_eval = sort_with_options(df_eval, ['-sortby=pct_cum','-desc'], by_default='sharpe').head(limit)
+        print('\r', end= '', flush= True)
+        print( tb.tabulate(df_eval, headers='keys') )
+
+        d2 = min(d + dt.timedelta(days= period), date_to)
+        n = df_eval.shape[0]
+        period_pct_change = 0
+        for i, row in df_eval.iterrows():
+            symbol = row['symbol']
+            df = get_cn_fund_daily(symbol)
+            df = df[ df.index >= d ]
+            df = df[ df.index < d2 ]
+            if df.shape[0] < 1:
+                continue
+            df['pct_cum'] = ((df['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0
+            period_pct_change += df['pct_cum'].iloc[-1] / n
+
+        period_pct_change -= 0.15 + 0.5 + 1.75 / 365 * period
+        print(d, d2, 'return =', period_pct_change)
+        returns.append([d, d2, period_pct_change])
+
+        d += dt.timedelta(days= period)
+        pass
+
+    df_returns = pd.DataFrame(returns, columns=['date1', 'date2', 'pct_change'])
+    df_returns.index = df_returns['date2']
+    df_returns['pct_cum'] = ((df_returns['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0
+
+    print(df_returns)
+    df_returns[['pct_cum']].plot(kind='line', ylabel='return (%)', figsize=(10,6))
+    plt.show()
+
+    pass
+
 def cli_fund(params, options):
     if (len(params) == 0) or (params[0] == 'help'):
         cli_fund_help()
@@ -308,8 +365,8 @@ def cli_fund(params, options):
     elif action in ['eval']:
         cli_fund_eval(params, options)
 
-    elif action in ['view']:
-        cli_fund_view(params, options)
+    elif action in ['backtest']:
+        cli_fund_backtest(params, options)
 
     elif action in ['plot', 'show']:
         cli_fund_plot(params, options)
