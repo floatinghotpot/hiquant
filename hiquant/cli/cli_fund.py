@@ -15,6 +15,7 @@ def cli_fund_help():
     __argv0__ fund update <all | symbols | symbols.csv>
     __argv0__ fund list [<keyword>] [-sortby=...] [-desc] [-filter_column=...-...]
     __argv0__ fund manager [<keyword>] [-s | -d] [-sortby=...] [-desc] [-filter_column=...-...]
+    __argv0__ fund company [<keyword>]
     __argv0__ fund eval <all | symbols | symbols.csv> [-sortby=...] [-desc] [-filter_column=...-...]
     __argv0__ fund plot <symbols | symbols.csv> [<options>]
     __argv0__ fund backtest  <all | symbols | symbols.csv> [-period=90] [-days=...] [-date=yyyymmdd-yyyymmdd]
@@ -33,6 +34,7 @@ Options:
 Example:
     __argv0__ fund list 多因子
     __argv0__ fund list 广发 -out=output/myfunds.csv
+    __argv0__ fund company 华安
     __argv0__ fund update data/myfunds.csv
     __argv0__ fund eval all -days=365 -sortby=sharpe -desc -limit=20 -out=output/top20_funds.xlsx
     __argv0__ fund plot 002943 005669 000209 -days=365
@@ -196,7 +198,7 @@ def cli_fund_manager(params, options):
         df['fund'] = [(fund_name_symbol[fund] if fund in fund_name_symbol else '') for fund in df['fund'].tolist()] + (' - ' + df['fund'])
     elif ('-s' in options) and ('name'in df.columns):
         manager_fundsymbol = get_manager_fundsymbol_mapping()
-        df['symbol'] = [' '.join(manager_fundsymbol[manager] if manager in manager_fundsymbol else []) for manager in (df['company'] + ' ' + df['name']).tolist()] 
+        df['symbol'] = [','.join(manager_fundsymbol[manager] if manager in manager_fundsymbol else []) for manager in (df['company'] + ' ' + df['name']).tolist()]
 
     selected = df.shape[0]
     print( tb.tabulate(df, headers='keys') )
@@ -223,6 +225,39 @@ def cli_fund_manager(params, options):
         df.to_excel(excel_writer= out_xls_file)
         print( tb.tabulate(df, headers='keys') )
         print('Exported to:', out_xls_file)
+
+def cli_fund_company(params, options):
+    df = get_cn_fund_manager(check_date= datetime_today())
+
+    if len(params) > 0:
+        keyword = params[0]
+        df = df[ df['company'].str.contains(keyword, na=False) ]
+
+    mapping = {}
+    for i, row in df.iterrows():
+        fund = row['fund']
+        manager = row['name']
+        company = row['company']
+        if company in mapping:
+            funds = mapping[ company ]['funds']
+            managers = mapping[ company ]['managers']
+            if fund not in funds:
+                funds.append( fund )
+            if manager not in managers:
+                managers.append( manager )
+        else:
+            mapping[ company ] = {
+                'funds': [ fund ],
+                'managers': [ manager ],
+            }
+    table = []
+    for company, v in mapping.items():
+        funds = v['funds']
+        managers = v['managers']
+        table.append( [company, len(managers), len(funds)] )
+    df_com = pd.DataFrame(table, columns=['company','managers','funds']).sort_values(by= 'funds', ascending= False).reset_index(drop= True)
+    print( tb.tabulate(df_com, headers='keys') )
+    print( df_com.shape[0], 'fund companies.')
 
 def cli_fund_read_fund_symbols(csv_file):
     df = pd.read_csv(csv_file, dtype=str)
@@ -503,6 +538,9 @@ def cli_fund(params, options):
 
     elif action == 'manager':
         cli_fund_manager(params, options)
+
+    elif action == 'company':
+        cli_fund_company(params, options)
 
     elif action == 'update':
         cli_fund_update(params, options)
