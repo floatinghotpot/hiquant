@@ -94,12 +94,29 @@ def cli_fund_list(params, options):
 def cli_fund_manager(params, options):
     df = get_cn_fund_manager(check_date= datetime_today())
     selected = total = df.shape[0]
+
     if len(params) > 0:
-        df = df[ df['name'].str.contains(params[0], na=False) ]
+        df1 = df[ df['name'].str.contains(params[0], na=False) ]
+        if df1.shape[0] == 0:
+            df1 = df[ df['company'].str.contains(params[0], na=False) ]
+        df = df1
+
     for option in options:
         if option.startswith('-fund='):
             fund = option.replace('-fund=','')
             df = df[ df['fund'].str.contains(fund, na=False) ]
+        if option == '-group':
+            df_tmp = df.drop(columns=['fund','index'])
+            table = []
+            name = ''
+            for i, row in df_tmp.iterrows():
+                if name == row['name']:
+                    continue
+                else:
+                    name = row['name']
+                    table.append(list(row.values))
+            df = pd.DataFrame(table, columns=list(row.keys()))
+
     selected = df.shape[0]
     print( tb.tabulate(df, headers='keys') )
     print( selected, 'of', total, 'funds selected.')
@@ -372,7 +389,7 @@ def cli_fund(params, options):
     if action == 'list':
         cli_fund_list(params, options)
 
-    if action == 'manager':
+    elif action == 'manager':
         cli_fund_manager(params, options)
 
     elif action == 'update':
