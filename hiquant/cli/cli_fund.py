@@ -12,9 +12,9 @@ from ..utils import date_from_str, dict_from_df, datetime_today, sort_with_optio
 
 def cli_fund_help():
     syntax_tips = '''Syntax:
-    __argv0__ fund list [<keyword>] [-sortby=...] [-desc] [-filter_column=...-...]
-    __argv0__ fund manager [<keyword>] [-s | -d]
     __argv0__ fund update <all | symbols | symbols.csv>
+    __argv0__ fund list [<keyword>] [-sortby=...] [-desc] [-filter_column=...-...]
+    __argv0__ fund manager [<keyword>] [-s | -d] [-sortby=...] [-desc] [-filter_column=...-...]
     __argv0__ fund eval <all | symbols | symbols.csv> [-sortby=...] [-desc] [-filter_column=...-...]
     __argv0__ fund plot <symbols | symbols.csv> [<options>]
     __argv0__ fund backtest  <all | symbols | symbols.csv> [-period=90] [-days=...] [-date=yyyymmdd-yyyymmdd]
@@ -184,6 +184,7 @@ def cli_fund_manager(params, options):
                 table.append(list(row.values))
         df = pd.DataFrame(table, columns=list(row.keys()))
         df['annual'] = round((np.power((df['best_return'] * 0.01 + 1), 1.0/(df['days']/365.0)) - 1.0) * 100.0, 1)
+        df['annual'] = df[['best_return', 'annual']].min(axis= 1)
 
     df = filter_with_options(df, options)
     df = sort_with_options(df, options, by_default='best_return')
@@ -208,11 +209,12 @@ def cli_fund_manager(params, options):
         print('Exported to:', out_csv_file)
 
     if out_xls_file:
+        df['days'] = (df['days']/365).round(2)
         df = df.rename(columns= {
             'name': '基金经理',
             'company': '基金公司',
             'fund': '基金',
-            'days': '从业天数',
+            'days': '管理年限',
             'size': '基金规模',
             'best_return': '最佳回报',
             'annual': '年化收益',
