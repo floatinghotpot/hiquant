@@ -12,10 +12,12 @@ from ..utils import date_from_str, dict_from_df, datetime_today, sort_with_optio
 
 def cli_fund_help():
     syntax_tips = '''Syntax:
-    __argv0__ fund list [<keyword>]
+    __argv0__ fund list [<keyword>] [-sortby=...] [-desc] [-filter_column=...-...]
+    __argv0__ fund manager [<keyword>] [-s | -d]
     __argv0__ fund update <all | symbols | symbols.csv>
     __argv0__ fund eval <all | symbols | symbols.csv> [-sortby=...] [-desc] [-filter_column=...-...]
     __argv0__ fund plot <symbols | symbols.csv> [<options>]
+    __argv0__ fund backtest  <all | symbols | symbols.csv> [-period=90] [-days=...] [-date=yyyymmdd-yyyymmdd]
 
 Options:
     -sortby=<col> .................. sort by the column
@@ -25,11 +27,14 @@ Options:
     -out=file.csv .................. export fund list to .csv file
     -out=file.xlsx ................. export fund data to .xlsx file
 
+    -s ............................. display symbol of the funds managed
+    -d ............................. display symbol and name of the funds managed
+
 Example:
     __argv0__ fund list 多因子
-    __argv0__ fund list 广发 -out=output/guangfa_funds.csv
+    __argv0__ fund list 广发 -out=output/myfunds.csv
     __argv0__ fund update data/myfunds.csv
-    __argv0__ fund eval data/myfunds.csv -days=365 -sortby=sharpe -desc -limit=20 -out=output/top20_funds.xlsx
+    __argv0__ fund eval all -days=365 -sortby=sharpe -desc -limit=20 -out=output/top20_funds.xlsx
     __argv0__ fund plot 002943 005669 000209 -days=365
     __argv0__ fund plot data/funds.csv -days=365
     __argv0__ fund plot data/funds.csv -days=1095 -mix
@@ -72,6 +77,53 @@ def csv_xlsx_from_options(options):
                 xlsx = k.replace('-out=', '')
     return csv, xlsx
 
+def get_fund_symbol_name():
+    df = get_cn_fund_list(check_date= datetime_today())
+    return dict_from_df(df, 'symbol', 'name')
+
+def get_fund_name_symbol():
+    df = get_cn_fund_list(check_date= datetime_today())
+    return dict_from_df(df, 'name', 'symbol')
+
+def get_fund_manager_mapping():
+    df = get_cn_fund_manager(check_date= datetime_today())
+    fund_manager = {}
+    for i, row in df.iterrows():
+        name = row['name']
+        fund = row['fund']
+        if fund in fund_manager:
+            fund_manager[ fund ].append( name )
+            pass
+        else:
+            fund_manager[ fund ] = [ name ]
+    return fund_manager
+
+def get_manager_fundname_mapping():
+    df = get_cn_fund_manager(check_date= datetime_today())
+    manager_fund = {}
+    for i, row in df.iterrows():
+        name = row['company'] + ' ' + row['name']
+        fund = row['fund']
+        if name in manager_fund:
+            manager_fund[ name ].append( fund )
+        else:
+            manager_fund[ name ] = [ fund ]
+    return manager_fund
+
+def get_manager_fundsymbol_mapping():
+    fund_symbol = dict_from_df(get_cn_fund_list(check_date= datetime_today()), 'name', 'symbol')
+    df = get_cn_fund_manager(check_date= datetime_today())
+    manager_fund = {}
+    for i, row in df.iterrows():
+        name = row['company'] + ' ' + row['name']
+        fund = row['fund']
+        symbol = fund_symbol[fund] if (fund in fund_symbol) else ''
+        if name in manager_fund:
+            manager_fund[ name ].append( symbol )
+        else:
+            manager_fund[ name ] = [ symbol ]
+    return manager_fund
+
 # hiquant fund list
 # hiquant fund list 多因子
 def cli_fund_list(params, options):
@@ -96,37 +148,83 @@ def cli_fund_manager(params, options):
     selected = total = df.shape[0]
 
     if len(params) > 0:
-        df1 = df[ df['name'].str.contains(params[0], na=False) ]
-        if df1.shape[0] == 0:
-            df1 = df[ df['company'].str.contains(params[0], na=False) ]
-        df = df1
+        keyword = params[0]
+        if keyword.endswith('.csv'):
+            df1 = df.copy()
+            df1['manager'] = df['company'] + ' ' + df['name']
+            df_manager = pd.read_csv(keyword, dtype= str)
+            df_manager['manager'] = df_manager['company'] + ' ' + df_manager['name']
+            df = df1[ df1['manager'].isin(df_manager['manager'].tolist()) ].drop(columns=['manager'])
+        else:
+            df1 = df[ df['name'].str.contains(keyword, na=False) ]
+            if df1.shape[0] == 0:
+                df1 = df[ df['company'].str.contains(keyword, na=False) ]
+            if df1.shape[0] == 0:
+                df1 = df[ df['fund'].str.contains(keyword, na=False) ]
+            df = df1
 
+    limit = 0
     for option in options:
+        if option.startswith('-limit='):
+            limit = int(option.replace('-limit=',''))
         if option.startswith('-fund='):
             fund = option.replace('-fund=','')
             df = df[ df['fund'].str.contains(fund, na=False) ]
-        if option == '-group':
-            df_tmp = df.drop(columns=['fund','index'])
-            table = []
-            name = ''
-            for i, row in df_tmp.iterrows():
-                if name == row['name']:
-                    continue
-                else:
-                    name = row['name']
-                    table.append(list(row.values))
-            df = pd.DataFrame(table, columns=list(row.keys()))
+
+    group = '-d' not in options
+    if group and (df.shape[0] > 0):
+        df_tmp = df.drop(columns=['fund'])
+        table = []
+        name = ''
+        for i, row in df_tmp.iterrows():
+            if name == row['name']:
+                continue
+            else:
+                name = row['name']
+                table.append(list(row.values))
+        df = pd.DataFrame(table, columns=list(row.keys()))
+        df['annual'] = round((np.power((df['best_return'] * 0.01 + 1), 1.0/(df['days']/365.0)) - 1.0) * 100.0, 1)
+
+    df = filter_with_options(df, options)
+    df = sort_with_options(df, options, by_default='best_return')
+    if limit > 0:
+        df = df.head(limit)
+
+    if 'fund' in df.columns:
+        fund_name_symbol = get_fund_name_symbol()
+        df['fund'] = [(fund_name_symbol[fund] if fund in fund_name_symbol else '') for fund in df['fund'].tolist()] + (' - ' + df['fund'])
+    elif ('-s' in options) and ('name'in df.columns):
+        manager_fundsymbol = get_manager_fundsymbol_mapping()
+        df['symbol'] = [' '.join(manager_fundsymbol[manager] if manager in manager_fundsymbol else []) for manager in (df['company'] + ' ' + df['name']).tolist()] 
 
     selected = df.shape[0]
     print( tb.tabulate(df, headers='keys') )
     print( selected, 'of', total, 'funds selected.')
 
+    out_csv_file, out_xls_file = csv_xlsx_from_options(options)
+
+    if out_csv_file:
+        df.to_csv(out_csv_file, index= False)
+        print('Exported to:', out_csv_file)
+
+    if out_xls_file:
+        df = df.rename(columns= {
+            'name': '基金经理',
+            'company': '基金公司',
+            'fund': '基金',
+            'days': '从业天数',
+            'size': '基金规模',
+            'best_return': '最佳回报',
+            'annual': '年化收益',
+            'symbol': '基金代码',
+        })
+        df.to_excel(excel_writer= out_xls_file)
+        print( tb.tabulate(df, headers='keys') )
+        print('Exported to:', out_xls_file)
+
 def cli_fund_read_fund_symbols(csv_file):
     df = pd.read_csv(csv_file, dtype=str)
-    if 'symbol' in df:
-        return df['symbol'].tolist()
-    else:
-        return []
+    return df['symbol'].tolist() if ('symbol' in df) else []
 
 # hiquant fund update <symbols>
 # hiquant fund update <symbols.csv>
@@ -159,6 +257,7 @@ def cli_fund_update(params, options):
     print('Done.')
 
 def eval_fund_list(df_fund_list, date_from, date_to):
+    fund_manager = get_fund_manager_mapping()
     days = (date_to - date_from).days
     eval_table = []
     for index, row in df_fund_list.iterrows():
@@ -202,9 +301,10 @@ def eval_fund_list(df_fund_list, date_from, date_to):
         volatility = np.std(logreturns)
         annualVolatility = volatility * (252 ** 0.5)
         annualVolatility = round(annualVolatility * 100, 2)
-        eval_table.append([param, name, days, pct_cum, sharpe_ratio, max_drawdown, annualVolatility, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
+        manager = ','.join(fund_manager[name]) if (name in fund_manager) else ''
+        eval_table.append([param, name, manager, days, pct_cum, sharpe_ratio, max_drawdown, annualVolatility, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
 
-    en_cols = ['symbol', 'name', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'volatility', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
+    en_cols = ['symbol', 'name', 'manager', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'volatility', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
     df = pd.DataFrame(eval_table, columns=en_cols)
     df['fund_start'] = df['fund_start'].dt.strftime('%Y-%m-%d')
     return df
@@ -250,8 +350,24 @@ def cli_fund_eval(params, options):
         print(df)
 
     if out_xls_file:
-        df_eval.columns = ['基金代码', '基金简称', '计算天数', '累计收益率', '夏普比率', '最大回撤', '波动率', '申购状态', '赎回状态', '手续费', '起始日期', '基金年数']
+        years = round((date_to - date_from).days / 365.0, 1)
+        df_eval = df_eval.drop(columns=['calc_days'])
+        df_eval = df_eval.rename(columns= {
+            'symbol': '基金代码',
+            'name': '基金简称',
+            'manager': '基金经理',
+            'pct_cum': str(years) + '年收益率',
+            'sharpe': '夏普比率',
+            'max_drawdown': '最大回撤',
+            'volatility': '波动率',
+            'buy_state': '申购状态',
+            'sell_state': '赎回状态',
+            'fee': '手续费',
+            'fund_start': '起始日期',
+            'fund_years': '基金年数',
+        })
         df_eval.to_excel(excel_writer= out_xls_file)
+        print( tb.tabulate(df_eval, headers='keys') )
         print('Exported to:', out_xls_file)
 
 # hiquant fund plot 002943
@@ -300,13 +416,7 @@ def cli_fund_plot(params, options):
 
     df_funds.index = df_funds.index.strftime('%Y-%m-%d')
     if '-mix' in options:
-        n = df_funds.shape[1]
-        df_funds = df_funds.fillna(0)
-        df = df_funds.copy() / n
-        df['portfolio'] = 0.0
-        for col in df_funds.columns:
-            df['portfolio'] += df[col]
-        df[['portfolio']].plot(kind='line', ylabel='return (%)', figsize=(10,6))
+        df_funds.mean(axis=1).plot(kind='line', ylabel='return (%)', figsize=(10,6))
     else:
         df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6))
     plt.show()
@@ -341,7 +451,7 @@ def cli_fund_backtest(params, options):
     while d < date_to:
         print('-'*20, d, '-'*20)
         df_eval = eval_fund_list(df_fund_list, (d - dt.timedelta(days= period)), d)
-        df_eval = filter_with_options(df_eval, ['-pct_cum=3.0-'])
+        df_eval = filter_with_options(df_eval, ['-pct_cum=5.0-'])
         #df_eval = sort_with_options(df_eval, ['-sortby=sharpe','-desc'], by_default='sharpe').head(limit)
         df_eval = sort_with_options(df_eval, ['-sortby=sharpe','-desc'], by_default='sharpe').head(100)
         df_eval = sort_with_options(df_eval, ['-sortby=pct_cum','-desc'], by_default='sharpe').head(limit)
