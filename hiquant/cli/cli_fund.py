@@ -120,10 +120,28 @@ def get_manager_fundsymbol_mapping():
         name = row['company'] + ' ' + row['name']
         fund = row['fund']
         symbol = fund_symbol[fund] if (fund in fund_symbol) else ''
+        if symbol == '':
+            continue
         if name in manager_fund:
             manager_fund[ name ].append( symbol )
         else:
             manager_fund[ name ] = [ symbol ]
+    return manager_fund
+
+def get_manager_fund_mapping():
+    fund_symbol = dict_from_df(get_cn_fund_list(check_date= datetime_today()), 'name', 'symbol')
+    df = get_cn_fund_manager(check_date= datetime_today())
+    manager_fund = {}
+    for i, row in df.iterrows():
+        name = row['company'] + ' ' + row['name']
+        fund = row['fund']
+        symbol = fund_symbol[fund] if (fund in fund_symbol) else ''
+        if symbol == '':
+            continue
+        if name in manager_fund:
+            manager_fund[ name ].append( symbol + ' - ' + fund )
+        else:
+            manager_fund[ name ] = [ symbol + ' - ' + fund ]
     return manager_fund
 
 # hiquant fund list
@@ -185,6 +203,7 @@ def cli_fund_manager(params, options):
                 name = row['name']
                 table.append(list(row.values))
         df = pd.DataFrame(table, columns=list(row.keys()))
+
         df['annual'] = round((np.power((df['best_return'] * 0.01 + 1), 1.0/(df['days']/365.0)) - 1.0) * 100.0, 1)
         df['annual'] = df[['best_return', 'annual']].min(axis= 1)
 
@@ -199,6 +218,9 @@ def cli_fund_manager(params, options):
     elif ('-s' in options) and ('name'in df.columns):
         manager_fundsymbol = get_manager_fundsymbol_mapping()
         df['symbol'] = [','.join(manager_fundsymbol[manager] if manager in manager_fundsymbol else []) for manager in (df['company'] + ' ' + df['name']).tolist()]
+    elif ('-sd' in options) and ('name'in df.columns):
+        manager_fund = get_manager_fund_mapping()
+        df['funds'] = ['\n'.join(manager_fund[manager] if manager in manager_fund else []) for manager in (df['company'] + ' ' + df['name']).tolist()]
 
     selected = df.shape[0]
     print( tb.tabulate(df, headers='keys') )
@@ -220,7 +242,7 @@ def cli_fund_manager(params, options):
             'size': '基金规模',
             'best_return': '最佳回报',
             'annual': '年化收益',
-            'symbol': '基金代码',
+            'funds': '基金',
         })
         df.to_excel(excel_writer= out_xls_file)
         print( tb.tabulate(df, headers='keys') )
@@ -256,6 +278,15 @@ def cli_fund_company(params, options):
         managers = v['managers']
         table.append( [company, len(managers), len(funds)] )
     df_com = pd.DataFrame(table, columns=['company','managers','funds']).sort_values(by= 'funds', ascending= False).reset_index(drop= True)
+
+    selected = total = df_com.shape[0]
+    limit = 0
+    for option in options:
+        if option.startswith('-limit='):
+            limit = int(option.replace('-limit=',''))
+    if limit > 0:
+        df_com = df_com.head(limit)
+
     print( tb.tabulate(df_com, headers='keys') )
     print( df_com.shape[0], 'fund companies.')
 
@@ -370,10 +401,18 @@ def cli_fund_eval(params, options):
     df_eval = eval_fund_list(df_fund_list, date_from= date_from, date_to= date_to)
 
     df_eval = df_eval[ df_eval['buy_state'].isin(['限大额','开放申购']) ]
-    df_eval = filter_with_options(df_eval, options)
-    df_eval = sort_with_options(df_eval, options, by_default='sharpe')
-    if limit > 0:
-        df_eval = df_eval.head(limit)
+
+    if '-smart' in options:
+        df_eval = filter_with_options(df_eval, options)
+        df_eval = sort_with_options(df_eval, ['-sortby=pct_cum', '-desc'], by_default='pct_cum')
+        if limit > 0:
+            df_eval = df_eval.head(limit)
+        df_eval = sort_with_options(df_eval, ['-sortby=sharpe', '-desc'], by_default='sharpe')
+    else:
+        df_eval = filter_with_options(df_eval, options)
+        df_eval = sort_with_options(df_eval, options, by_default='sharpe')
+        if limit > 0:
+            df_eval = df_eval.head(limit)
 
     print('\r', end= '', flush= True)
     print( tb.tabulate(df_eval, headers='keys') )
