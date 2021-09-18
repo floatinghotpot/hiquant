@@ -13,10 +13,6 @@ def MACD(close, fast = 12, slow = 26, signal = 9):
     return dif, dea, macd
 
 def signal_macd(df, inplace=False, fast=12, slow=26, signal=9):
-    #dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
-    #if inplace:
-    #    df['macd_dif'], df['macd_dea'], df['macd_hist'] = dif, dea, macd_hist
-    #return pd.Series( CROSS(dif, dea), index=df.index )
     dif, dea, macd_hist = MACD(df.close, fast=fast, slow=slow, signal=signal)
     if inplace:
         df['macd_dif'], df['macd_dea'], df['macd_hist'] = dif, dea, macd_hist

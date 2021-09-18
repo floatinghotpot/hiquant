@@ -124,7 +124,6 @@ setuptools.setup(
       'pandas',
       'akshare',
       'tabulate',
-      'TA-Lib',
       'matplotlib',
       'mplfinance',
     ],
