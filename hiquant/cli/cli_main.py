@@ -23,7 +23,6 @@ from .cli_trade import cli_trade
 from .cli_fund import cli_fund
 from .cli_stock import cli_stock
 from .cli_index import cli_index
-from .cli_pattern import cli_pattern
 from .cli_indicator import cli_indicator
 from .cli_fundflow import cli_fundflow
 
@@ -90,7 +89,6 @@ def cli_main_params_options(params, options):
         'stock': cli_stock,
         'index': cli_index,
         'indicator': cli_indicator,
-        'pattern': cli_pattern,
         'fundflow': cli_fundflow,
     }
 
