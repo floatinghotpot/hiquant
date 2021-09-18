@@ -117,6 +117,17 @@ def cli_fund_list(params, options):
     if len(params) > 0:
         df = df[ df['name'].str.contains(params[0], na=False) ]
         selected = df.shape[0]
+
+    df = filter_with_options(df, options)
+    df = sort_with_options(df, options, by_default='symbol')
+
+    limit = 0
+    for option in options:
+        if option.startswith('-limit='):
+            limit = int(option.replace('-limit=',''))
+    if limit > 0:
+        df = df.head(limit)
+
     print( tb.tabulate(df, headers='keys') )
     print( selected, 'of', total, 'funds selected.')
 
