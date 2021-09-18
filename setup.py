@@ -28,7 +28,12 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-from hiquant.version import __version__
+#from hiquant.version import __version__
+lines = open(here + '/hiquant/version.py', mode='r').readlines()
+for line in lines:
+    if line.startswith('__version__ = '):
+        __version__ = line.replace('__version__ = ','').split('\'')[1]
+        break
 
 # Package name
 pname = 'hiquant'
