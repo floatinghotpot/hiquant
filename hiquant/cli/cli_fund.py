@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager
-from ..utils import date_from_str, dict_from_df, datetime_today, sort_with_options, filter_with_options
+from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_index_list_df, get_index_daily
+from ..utils import dict_from_df, datetime_today, sort_with_options, filter_with_options, date_limit_from_options, csv_xlsx_from_options
 
 def cli_fund_help():
     syntax_tips = '''Syntax:
@@ -43,41 +43,6 @@ Example:
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
     print( syntax_tips )
-
-def date_limit_from_options(options):
-    limit = 0
-    date_from = None
-    date_to = None
-    days = None
-    for option in options:
-        if option.startswith('-days='):
-            days = int(option.replace('-days=',''))
-            date_from = date_from_str('{} days ago'.format(days))
-            date_to = datetime_today()
-        if option.startswith('-date='):
-            date_range = option.replace('-date=','').split('-')
-            date_from = date_from_str(date_range[0])
-            date_to = date_from_str(date_range[1]) if len(date_range[1])>0 else datetime_today()
-        if option.startswith('-limit='):
-            limit = int(option.replace('-limit=',''))
-
-    if date_from is None:
-        days = 365 * 1
-        date_from = date_from_str('{} days ago'.format(days))
-        date_to = datetime_today()
-
-    return date_from, date_to, limit
-
-def csv_xlsx_from_options(options):
-    csv = ''
-    xlsx = ''
-    for k in options:
-        if k.startswith('-out='):
-            if k.endswith('.csv'):
-                csv = k.replace('-out=', '')
-            if k.endswith('.xlsx'):
-                xlsx = k.replace('-out=', '')
-    return csv, xlsx
 
 def get_fund_symbol_name():
     df = get_cn_fund_list(check_date= datetime_today())
@@ -324,7 +289,7 @@ def cli_fund_update(params, options):
 
     print('Done.')
 
-def eval_fund_list(df_fund_list, date_from, date_to):
+def eval_fund_list(df_fund_list, date_from, date_to, alpha_base = None):
     fund_manager = get_fund_manager_mapping()
     days = (date_to - date_from).days
     eval_table = []
@@ -358,7 +323,15 @@ def eval_fund_list(df_fund_list, date_from, date_to):
             #print('error calculating', param, name, ', skip.')
             continue
 
-        risk_free_rate = 3.0 / 365
+        if alpha_base is None:
+            risk_free_rate = 3.0 / 365
+        else:
+            df_base = get_index_daily( alpha_base )
+            df_base = df_base[ df_base.index >= date_from ]
+            df_base = df_base[ df_base.index < date_to ]
+            df_base['pct_cum'] = df_base['close'] / df_base['close'].iloc[0]
+            df['pct_cum'] -= df_base['pct_cum']
+
         daily_sharpe_ratio = (df['pct_change'].mean() - risk_free_rate) / df['pct_change'].std()
         sharpe_ratio = round(daily_sharpe_ratio * (252 ** 0.5), 2)
 
@@ -398,7 +371,12 @@ def cli_fund_eval(params, options):
 
     date_from, date_to, limit = date_limit_from_options(options)
 
-    df_eval = eval_fund_list(df_fund_list, date_from= date_from, date_to= date_to)
+    alpha_base = None
+    for k in options:
+        if k.startswith('-alpha='):
+            alpha_base = k.replace('-alpha=', '')
+    
+    df_eval = eval_fund_list(df_fund_list, date_from= date_from, date_to= date_to, alpha_base= alpha_base)
 
     df_eval = df_eval[ df_eval['buy_state'].isin(['限大额','开放申购']) ]
 
@@ -467,15 +445,17 @@ def cli_fund_plot(params, options):
     df_funds = None
     i = 0
     for param in params:
-        i += 1
-        if i > limit:
-            break
-
         if param in fund_symbol_names:
             name = param + ' - ' + fund_symbol_names[ param ]
+            if name.endswith('C'):
+                continue
         else:
             name = param
         print( name )
+        
+        i += 1
+        if i > limit:
+            break
 
         df = get_cn_fund_daily(symbol= param)
         df = df[ df.index >= date_from ]
@@ -489,6 +469,31 @@ def cli_fund_plot(params, options):
         #print(df)
 
     print(df_funds)
+
+    base = 'sh000300'
+    for k in options:
+        if k.startswith('-base='):
+            base = k.replace('-base=', '')
+    df_base = get_index_daily( base )
+    df_base = df_base[ df_base.index >= date_from ]
+    df_base = df_base[ df_base.index < date_to ]
+    df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
+
+    if '-alpha' in options:
+        table = []
+        for k in df_funds.columns:
+            df_funds[ k ] -= df_base['pct_cum']
+            pct_change = df_funds[k].pct_change(1)
+            daily_sharpe_ratio = pct_change.mean() / pct_change.std()
+            sharpe_ratio = round(daily_sharpe_ratio * (252 ** 0.5), 2)
+            table.append([k, sharpe_ratio])
+        df = pd.DataFrame(table, columns=['fund', 'sharpe'])
+        df = df.sort_values(by= 'sharpe', ascending= False)
+        df_funds = df_funds[ df['fund'].tolist() ]
+    else:
+        index_symbol_names = dict_from_df( get_cn_index_list_df() )
+        base_name = index_symbol_names[ base ] if base in index_symbol_names else base
+        df_funds[ base_name ] = df_base['pct_cum']
 
     df_funds.index = df_funds.index.strftime('%Y-%m-%d')
     if '-mix' in options:

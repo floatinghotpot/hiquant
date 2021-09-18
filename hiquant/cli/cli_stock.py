@@ -4,7 +4,7 @@ import os
 import sys
 import tabulate as tb
 
-from ..utils import date_from_str, symbol_normalize
+from ..utils import symbol_normalize, date_limit_from_options
 from ..core import symbol_to_name, get_cn_stock_list_df, get_hk_stock_list_df, get_us_stock_list_df
 from ..core import list_signal_indicators, get_order_cost
 from ..core import Market, Stock
@@ -59,8 +59,7 @@ def cli_stock_plot(params, options):
     symbol = symbol_normalize(params[0])
     name = symbol_to_name(symbol)
 
-    date_start = date_from_str(params[1] if len(params) > 1 else '3 years ago')
-    date_end = date_from_str(params[2] if len(params) > 2 else 'yesterday')
+    date_start, date_end, limit = date_limit_from_options(options)
 
     market = Market(date_start, date_end)
     df = market.get_daily(symbol, start = date_start, end = date_end)
