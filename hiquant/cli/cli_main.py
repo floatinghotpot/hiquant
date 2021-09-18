@@ -40,11 +40,10 @@ Modules:
     pepb ................... PE/PE analysis on stock pool
     stockpool .............. Create or edit stock pool .csv file
     strategy ............... Create or bench a strategy
-    fund ................... Back trade or run real-time one or multiple funds
 
     stock .................. Plot a stock with indicators
     index .................. Plot index with indicators
-    pattern ................ Draw K-line patterns
+    fund ................... List or plot open funds
     indicator .............. List indicators
     fundflow ............... View main fundflow of stocks
 
