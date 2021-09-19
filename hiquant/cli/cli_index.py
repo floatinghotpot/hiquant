@@ -9,8 +9,8 @@ from ..data_source import download_cn_index_stocks_list
 from ..core import symbol_to_name
 from ..core import get_order_cost
 from ..core import list_signal_indicators
-from ..core import get_cn_index_list_df, get_hk_index_list_df, get_us_index_list_df, get_world_index_list_df
-from ..core import Market, Stock
+from ..core import get_cn_index_list_df, get_hk_index_list_df, get_us_index_list_df, get_world_index_list_df, get_index_daily
+from ..core import Stock
 
 def cli_index_help():
     syntax_tips = '''Syntax:
@@ -69,8 +69,10 @@ def cli_index_plot(params, options):
 
     date_start, date_end, limit = date_limit_from_options(options)
 
-    market = Market(date_start, date_end)
-    df = market.get_daily(symbol, start = date_start, end = date_end)
+    df = get_index_daily(symbol)
+    df = df[ df.index >= date_start ]
+    df = df[ df.index < date_end ]
+
     stock = Stock(symbol, name, df)
 
     all_indicators = list_signal_indicators()
