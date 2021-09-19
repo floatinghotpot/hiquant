@@ -25,9 +25,9 @@ def test_hiquant_cli():
 
     cli_indicator(['list'], [])
 
-    cli_pattern(['list'], [])
-    cli_pattern(['demo', '0'], ['-out=output/pattern0.png'])
-    cli_pattern(['demo', 'CDL3BLACKCROWS'], ['-out=output/pattern1.png'])
+    #cli_pattern(['list'], [])
+    #cli_pattern(['demo', '0'], ['-out=output/pattern0.png'])
+    #cli_pattern(['demo', 'CDL3BLACKCROWS'], ['-out=output/pattern1.png'])
 
     cli_strategy(['help'], [])
 

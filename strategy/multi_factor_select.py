@@ -1,6 +1,5 @@
 
 import pandas as pd
-import talib
 import hiquant as hq
 
 class StrategyMultiFactor( hq.BasicStrategy ):
@@ -52,7 +51,7 @@ class StrategyMultiFactor( hq.BasicStrategy ):
         else:
             df = market.get_daily(symbol, end = market.current_date, count = 26+9)
 
-        dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
+        dif, dea, macd_hist = hq.MACD(df.close, fast=12, slow=26, signal=9)
         signal = pd.Series( hq.CROSS(dif, dea), index=df.index )
 
         # Notice!!! Important !!!
