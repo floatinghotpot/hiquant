@@ -52,12 +52,13 @@ def download_hk_index_list(param, verbose = False):
     # TODO:
     return df
 
+'''
 def download_cn_index_daily( symbol ):
     daily_df = ak.stock_zh_index_daily(symbol = symbol)
     daily_df['date'] = pd.to_datetime(daily_df.index.date)
     daily_df.set_index('date', inplace=True, drop=True)
     return daily_df
-
+'''
 '''
 def _download_cn_stock_daily( symbol, adjust = '' ):
     start = '20000101'

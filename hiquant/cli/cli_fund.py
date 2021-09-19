@@ -507,8 +507,11 @@ def cli_fund_plot(params, options):
         df_funds[ base_name ] = df_base['pct_cum']
 
     df_funds.index = df_funds.index.strftime('%Y-%m-%d')
-    if '-mix' in options:
-        df_funds.mean(axis=1).plot(kind='line', ylabel='return (%)', figsize=(10,6))
+    if '-average' in options:
+        df = df_funds[ [ base_name ] ]
+        df_funds = df_funds.drop(columns=[ base_name ])
+        df['average'] = df_funds.mean(axis=1)
+        df.plot(kind='line', ylabel='return (%)', figsize=(10,6))
     else:
         df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6))
     plt.show()

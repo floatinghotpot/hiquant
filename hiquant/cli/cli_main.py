@@ -58,13 +58,13 @@ Example:
     __argv0__ stock list us
     __argv0__ index list world
 
-    __argv0__ stockpool create stockpool/mystocks.csv 600036 000002 600276 300357
-
     __argv0__ stock plot AAPL -macd
     __argv0__ stock plot AAPL -ma -macd -kdj
 
     __argv0__ fund list
     __argv0__ fund plot 005669 000209
+
+    __argv0__ stockpool create stockpool/mystocks.csv 600036 000002 600276 300357
 
     __argv0__ strategy create strategy/mystrategy.py
     ... modify my_strategy.py ...
