@@ -63,11 +63,14 @@ Example:
     __argv0__ stock plot AAPL -macd
     __argv0__ stock plot AAPL -ma -macd -kdj
 
+    __argv0__ fund list
+    __argv0__ fund plot 005669 000209
+
     __argv0__ strategy create strategy/mystrategy.py
     ... modify my_strategy.py ...
     __argv0__ backtest strategy/mystrategy.py
 
-    __argv0__ fund create etc/myfund.conf
+    __argv0__ trade create etc/myfund.conf
     ... modify my_fund.conf ...
     __argv0__ backtrade etc/myfund.conf
     __argv0__ run etc/myfund.conf
