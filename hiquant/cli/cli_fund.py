@@ -377,7 +377,7 @@ def eval_fund_list(df_fund_list, date_from, date_to, alpha_base = None):
         annualVolatility = volatility * (252 ** 0.5)
         annualVolatility = round(annualVolatility * 100, 2)
         manager = ','.join(fund_manager[name]) if (name in fund_manager) else ''
-        eval_table.append([param, name, manager, days, pct_cum, sharpe_ratio, max_drawdown, annualVolatility, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
+        eval_table.append([param, name, manager, min(days, fund_days), pct_cum, sharpe_ratio, max_drawdown, annualVolatility, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
 
     en_cols = ['symbol', 'name', 'manager', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'volatility', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
     df = pd.DataFrame(eval_table, columns=en_cols)
@@ -438,10 +438,12 @@ def cli_fund_eval(params, options):
         df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(set(symbols)) ]
 
     df_eval = eval_fund_list(df_fund_list, date_from= date_from, date_to= date_to, alpha_base= alpha_base)
+    df_eval['annual'] = round((np.power((df_eval['pct_cum'] * 0.01 + 1), 1.0/(df_eval['calc_days']/365.0)) - 1.0) * 100.0, 1)
+    df_eval['annual'] = df_eval[['pct_cum', 'annual']].min(axis= 1)
 
     if '-smart' in options:
         df_eval = filter_with_options(df_eval, options)
-        df_eval['score'] = df_eval['pct_cum'] * df_eval['sharpe']
+        df_eval['score'] = round(df_eval['pct_cum'] * df_eval['sharpe'] / df_eval['max_drawdown'], 2)
         df_eval = sort_with_options(df_eval, ['-sortby=score', '-desc'], by_default='score')
         if limit > 0:
             df_eval = df_eval.head(limit)
@@ -464,8 +466,7 @@ def cli_fund_eval(params, options):
 
     if out_xls_file:
         years = round((date_to - date_from).days / 365.0, 1)
-        df_eval = df_eval.drop(columns=['calc_days'])
-        df_eval = df_eval.drop(columns=['sell_state','fund_start','volatility'])
+        df_eval = df_eval.drop(columns=['calc_days','sell_state','fund_start','volatility'])
         df_eval = df_eval.rename(columns= {
             'symbol': '基金代码',
             'name': '基金简称',
@@ -479,6 +480,8 @@ def cli_fund_eval(params, options):
             'fee': '手续费',
             'fund_start': '起始日期',
             'fund_years': '基金年数',
+            'annual': '年化收益',
+            'score': '综合评分',
         })
         df_eval.to_excel(excel_writer= out_xls_file)
         print( tb.tabulate(df_eval, headers='keys') )
