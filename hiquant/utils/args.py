@@ -49,7 +49,7 @@ def date_limit_from_options(options):
         if option.startswith('-date='):
             date_range = option.replace('-date=','').split('-')
             date_from = date_from_str(date_range[0])
-            date_to = date_from_str(date_range[1]) if len(date_range[1])>0 else datetime_today()
+            date_to = date_from_str(date_range[1]) if (len(date_range)>1 and len(date_range[1])>0) else datetime_today()
         if option.startswith('-limit='):
             limit = int(option.replace('-limit=',''))
 

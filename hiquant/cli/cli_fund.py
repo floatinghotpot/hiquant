@@ -200,12 +200,15 @@ def cli_fund_manager(params, options):
             df1['keywords'] = df1['company'] + df1['name'] + ' ' + df1['fund']
             df = df1[ df1['keywords'].str.contains(keyword, na=False) ].drop(columns=['keywords'])
 
+    yeartop = 0
     limit = 0
-    for option in options:
-        if option.startswith('-limit='):
-            limit = int(option.replace('-limit=',''))
-        if option.startswith('-fund='):
-            fund = option.replace('-fund=','')
+    for k in options:
+        if k.startswith('-limit='):
+            limit = int(k.replace('-limit=',''))
+        if k.startswith('-yeartop='):
+            yeartop = int(k.replace('-yeartop=', ''))
+        if k.startswith('-fund='):
+            fund = k.replace('-fund=','')
             df = df[ df['fund'].str.contains(fund, na=False) ]
 
     df_company = get_cn_fund_company()
@@ -238,11 +241,22 @@ def cli_fund_manager(params, options):
         cols.insert(3, 'funds')
         df = pd.DataFrame(table, columns=cols)
 
-        df['annual'] = round((np.power((df['best_return'] * 0.01 + 1), 1.0/(df['days']/365.0)) - 1.0) * 100.0, 1)
-        df['annual'] = df[['best_return', 'annual']].min(axis= 1)
+    df['annual'] = round((np.power((df['best_return'] * 0.01 + 1), 1.0/(df['days']/365.0)) - 1.0) * 100.0, 1)
+    df['annual'] = df[['best_return', 'annual']].min(axis= 1)
+
+    if yeartop > 0:
+        df1 = df[ df['days'] >= 3650 ].sort_values(by='best_return', ascending=False).head(yeartop)
+        for i in range(9,-1,-1):
+            df2 = df[ (df['days'] >= (i*365)) & (df['days'] < ((i+1))*365) ].sort_values(by='best_return', ascending=False).head(yeartop)
+            df1 = pd.concat([df1, df2], ignore_index=True)
+        df1.insert(6, 'years', round(df1['days'] / 365.0, 1))
+        df = df1.drop(columns= ['days'])
 
     df = filter_with_options(df, options)
-    df = sort_with_options(df, options, by_default='best_return')
+    for k in options:
+        if k.startswith('-sortby='):
+            df = sort_with_options(df, options, by_default='best_return')
+            break
     if limit > 0:
         df = df.head(limit)
 
@@ -269,18 +283,19 @@ def cli_fund_manager(params, options):
         print('Exported to:', out_csv_file)
 
     if out_xls_file:
-        df['days'] = (df['days']/365).round(2)
+        if 'days' in df.columns:
+            df['days'] = (df['days']/365).round(2)
         df = df.rename(columns= {
             'name': '基金经理',
             'company': '基金公司',
             'managers': '基金经理人数',
             'funds': '基金总数',
             'fund': '基金',
-            'days': '管理年限',
+            'days': '管理时长',
+            'years': '管理年限',
             'size': '基金规模',
             'best_return': '最佳回报',
             'annual': '年化收益',
-            'funds': '基金',
         })
         df.to_excel(excel_writer= out_xls_file)
         print( tb.tabulate(df, headers='keys') )
@@ -410,19 +425,20 @@ def cli_fund_eval(params, options):
 
     alpha_base = None
     yeartop = 0
-    no_c_fund = False
     for k in options:
         if k.startswith('-alpha='):
             alpha_base = k.replace('-alpha=', '')
         if k.startswith('-yeartop='):
             yeartop = int(k.replace('-yeartop=', ''))
-        if k == '-nc':
-            no_c_fund = True
     
     df_fund_list = df_fund_list[ df_fund_list['buy_state'].isin(['限大额','开放申购']) ]
 
-    if no_c_fund:
+    if '-nc' in options:
         df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains('C') ]
+    if '-nlof' in options:
+        df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains('LOF') ]
+    if '-netf' in options:
+        df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains('ETF') ]
 
     if yeartop > 0:
         symbols = []
@@ -520,7 +536,11 @@ def cli_fund_plot(params, options, title= None):
         if i > limit:
             break
 
-        df = get_cn_fund_daily(symbol= param)
+        try:
+            df = get_cn_fund_daily(symbol= param)
+        except (KeyError, ValueError) as e:
+            continue
+
         df = df[ df.index >= date_from ]
         df = df[ df.index < date_to ]
         df['pct_cum'] = round(((df['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0, 1)
@@ -564,6 +584,7 @@ def cli_fund_plot(params, options, title= None):
         df.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
     else:
         df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
+    plt.xticks(rotation=15)
     plt.show()
 
     pass
