@@ -87,8 +87,9 @@ def cli_finance_view(params, options):
             df['peg'] = (df['pe'] / df['earn_yoy'] * 0.01).round(2)
             df['pe'] = df['pe'].round(1)
             df['pb'] = df['pb'].round(1)
-            df.insert(0, 'symbol', df.index)
-            df = df.reset_index(drop= True)
+
+        df.insert(0, 'symbol', df.index)
+        df = df.reset_index(drop= True)
 
     total_n = df.shape[0]
 
@@ -127,7 +128,7 @@ def cli_finance_view(params, options):
     if out_xlsx_file:
         name_col = df.pop('name')
         df.insert(1, 'name', name_col)
-        df = df.drop(columns=['grow', 'share_grow', 'start_bvps', 'now_bvps', 'eps','assets','equity','shares'])
+        df = df.drop(columns=['share_grow', 'start_bvps', 'now_bvps', 'eps','assets','equity','shares'])
         df = df.rename(columns={
             'symbol':'代码',
             'name':'名称',
@@ -144,6 +145,7 @@ def cli_finance_view(params, options):
             'debt_ratio': '资产负债率',
             'cash_ratio': '现金占比',
             'earn_ttm': '盈利TTM',
+            'grow': '成长倍数',
             'pe': 'PE',
             'pb': 'PB',
             'pe_pos': 'PE百分位',
@@ -151,7 +153,7 @@ def cli_finance_view(params, options):
             'peg': 'PEG',
         })
         print( tb.tabulate(df, headers='keys') )
-        df.to_excel(out_xlsx_file)
+        df.to_excel(out_xlsx_file, index= True)
         print('Exported to:', out_xlsx_file)
 
     print('')
