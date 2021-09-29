@@ -584,7 +584,7 @@ def cli_fund_plot(params, options, title= None):
         if k.startswith('-base='):
             base = k.replace('-base=', '')
     df_base = get_index_daily( base )
-    df_base = df_base[ df_base.index >= date_from ]
+    df_base = df_base[ df_base.index >= min(df_funds.index) ]
     df_base = df_base[ df_base.index < date_to ]
     df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
 
