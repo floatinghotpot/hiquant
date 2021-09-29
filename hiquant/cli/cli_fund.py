@@ -300,14 +300,13 @@ def cli_fund_manager(params, options):
 
     if out_xls_file:
         if 'days' in df.columns:
-            df['days'] = (df['days']/365).round(2)
+            df = df.drop(columns=['days'])
         df = df.rename(columns= {
             'name': '基金经理',
             'company': '基金公司',
             'managers': '基金经理人数',
             'funds': '基金总数',
             'fund': '基金',
-            'days': '管理时长',
             'years': '管理年限',
             'size': '基金规模',
             'best_return': '最佳回报',
