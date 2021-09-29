@@ -263,9 +263,11 @@ def cli_fund_manager(params, options):
         for i in range(9,-1,-1):
             df2 = df[ (df['days'] >= (i*365)) & (df['days'] < ((i+1))*365) ].sort_values(by='best_return', ascending=False).head(yeartop)
             df1 = pd.concat([df1, df2], ignore_index=True)
-        df1.insert(6, 'years', round(df1['days'] / 365.0, 1))
-        df = df1.drop(columns= ['days'])
+        df = df1
 
+    df.insert(5, 'years', round(df['days'] / 365.0, 1))
+
+    selected = total = df.shape[0]
     df = filter_with_options(df, options)
     for k in options:
         if k.startswith('-sortby='):
@@ -410,7 +412,6 @@ def eval_fund_list(df_fund_list, date_from, date_to, alpha_base = None):
 
     en_cols = ['symbol', 'name', 'manager', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
     df = pd.DataFrame(eval_table, columns=en_cols)
-    df['fund_start'] = df['fund_start'].dt.strftime('%Y-%m-%d')
 
     df['annual'] = round((np.power((df['pct_cum'] * 0.01 + 1), 1.0/(df['calc_days']/365.0)) - 1.0) * 100.0, 1)
     df['annual'] = df[['pct_cum', 'annual']].min(axis= 1)
@@ -486,6 +487,8 @@ def cli_fund_eval(params, options):
         if limit > 0:
             df_eval = df_eval.head(limit)
 
+    df_eval['fund_start'] = df_eval['fund_start'].dt.strftime('%Y-%m-%d')
+
     print('\r', end= '', flush= True)
     print( tb.tabulate(df_eval, headers='keys') )
 
@@ -529,12 +532,21 @@ def cli_fund_plot(params, options, title= None):
         cli_fund_help()
         return
 
-    if params[0].endswith('.csv'):
-        params = cli_fund_read_fund_symbols(params[0])
-    elif ',' in params[0]:
-        params = params[0].split(',')
-
     df_fund_list = get_cn_fund_list()
+
+    if params[0] == 'all':
+        pass
+    else:
+        if params[0].endswith('.csv'):
+            params = cli_fund_read_fund_symbols(params[0])
+        elif ',' in params[0]:
+            params = params[0].split(',')
+        else:
+            pass
+        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
+
+    params = df_fund_list['symbol'].tolist()
+
     fund_symbol_names = dict_from_df(df_fund_list, 'symbol', 'name')
 
     date_from, date_to, limit = date_limit_from_options(options)
@@ -556,7 +568,7 @@ def cli_fund_plot(params, options, title= None):
 
         try:
             df = get_cn_fund_daily(symbol= param)
-        except (KeyError, ValueError) as e:
+        except:
             continue
 
         df = df[ df.index >= date_from ]
@@ -566,8 +578,7 @@ def cli_fund_plot(params, options, title= None):
             df_funds = df[['pct_cum']]
             df_funds.columns = [ name ]
         else:
-            df_funds[ name ] = df['pct_cum']
-        #print(df)
+            df_funds = pd.concat([df_funds, df['pct_cum'].copy().rename(name).to_frame()], axis=1)
 
     base = 'sh000300'
     for k in options:
@@ -629,16 +640,13 @@ def cli_fund_backtest(params, options):
     if limit == 0:
         limit = 20
 
-    base = 'sh000300'
-    period = 365
     eval_period = 365 * 3
+    keyword = ''
     for k in options:
-        if k.startswith('-base='):
-            base = k.replace('-base=', '')
         if k.startswith('-period='):
-            period = int(k.replace('-period=', ''))
-        if k.startswith('-eval='):
-            eval_period = int(k.replace('-eval=', ''))
+            eval_period = int(k.replace('-period=', ''))
+        if k.startswith('-keyword='):
+            keyword = k.replace('-keyword=', '')
 
     df_fund_list = get_cn_fund_list()
     if params[0] == 'all':
@@ -649,52 +657,22 @@ def cli_fund_backtest(params, options):
     else:
         df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
 
-    returns = []
-    d = date_from
-    while d < date_to:
-        print('-'*20, d, '-'*20)
-        df_eval = eval_fund_list(df_fund_list, (d - dt.timedelta(days= eval_period)), d)
-        df_eval = sort_with_options(df_eval, ['-sortby=pct_cum','-desc'], by_default='sharpe').head(limit)
-        print('\r', end= '', flush= True)
-        print( tb.tabulate(df_eval, headers='keys') )
+    df_eval = eval_fund_list(df_fund_list, (date_from - dt.timedelta(days= eval_period)), date_from)
+    years = (datetime_today() - date_from).days / 365.0
+    df_eval = df_eval[ df_eval['fund_years'] > (years + eval_period/365.0) ]
+    df_eval = df_eval[ df_eval['annual'] > 10 ]
 
-        d2 = min(d + dt.timedelta(days= period), date_to)
-        n = df_eval.shape[0]
-        period_pct_change = 0
-        for i, row in df_eval.iterrows():
-            symbol = row['symbol']
-            df = get_cn_fund_daily(symbol)
-            df = df[ df.index >= d ]
-            df = df[ df.index < d2 ]
-            if df.shape[0] < 1:
-                continue
-            df['pct_cum'] = ((df['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0
-            period_pct_change += df['pct_cum'].iloc[-1] / n
+    if keyword:
+        df_eval = df_eval[ df_eval['name'].str.contains(keyword) ]
 
-        period_pct_change -= 0.15 + 0.5 + 1.75 / 365 * period
-        print(d, d2, 'return =', period_pct_change)
-        returns.append([d, d2, period_pct_change])
+    #for k in ['债','油','美元','商品','指数','美国','标普','纳斯达克','全球','ETF','通胀','互联网','行业','量化','C']:
+    #    df_eval = df_eval[ ~ df_eval['name'].str.contains(k) ]
 
-        d += dt.timedelta(days= period)
-        pass
+    df_eval = sort_with_options(df_eval, options, by_default='symbol').head(limit) #head(limit*2).tail(limit)
+    print('\n')
+    print( tb.tabulate(df_eval, headers='keys') )
 
-    df_returns = pd.DataFrame(returns, columns=['date1', 'date2', 'pct_change'])
-    df_returns.index = df_returns['date2']
-    df_returns['pct_cum'] = ((df_returns['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0
-
-    df_base = get_index_daily( base )
-    df_base = df_base[ df_base.index >= date_from ]
-    df_base = df_base[ df_base.index < date_to ]
-    df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
-    index_symbol_names = dict_from_df( get_cn_index_list_df() )
-    base_name = index_symbol_names[ base ] if base in index_symbol_names else base
-    df_returns[ base_name ] = df_base['pct_cum']
-
-    print(df_returns)
-    df_returns[['pct_cum', base_name]].plot(kind='line', ylabel='return (%)', figsize=(10,6))
-    plt.show()
-
-    pass
+    cli_fund_plot(df_eval['symbol'].tolist(), options)
 
 def cli_fund(params, options):
     if (len(params) == 0) or (params[0] == 'help'):
