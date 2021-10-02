@@ -1,4 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
+
+import datetime as dt
 from .datetime import date_from_str, datetime_today
 
 def parse_params_options(argv):
@@ -46,10 +48,18 @@ def date_limit_from_options(options):
             days = int(option.replace('-days=',''))
             date_from = date_from_str('{} days ago'.format(days))
             date_to = datetime_today()
+        if option.startswith('-years='):
+            days = int(option.replace('-years=','')) * 365
+            date_from = date_from_str('{} days ago'.format(days))
+            date_to = datetime_today()
         if option.startswith('-date='):
             date_range = option.replace('-date=','').split('-')
             date_from = date_from_str(date_range[0])
             date_to = date_from_str(date_range[1]) if (len(date_range)>1 and len(date_range[1])>0) else datetime_today()
+        if option.startswith('-year='):
+            date_range = option.replace('-year=','').split('-')
+            date_from = dt.datetime(int(date_range[0]), 1, 1)
+            date_to = dt.datetime(int(date_range[1]), 12, 31) if (len(date_range)>1 and len(date_range[1])>0) else datetime_today()
         if option.startswith('-limit='):
             limit = int(option.replace('-limit=',''))
 

@@ -16,7 +16,11 @@ def sort_with_options(df, options, by_default=''):
             if k in df.columns:
                 sortby = k
                 break
-    asc = '-desc' not in options
+    asc = False
+    if '-desc' in options:
+        asc = False
+    if '-asc' in options:
+        asc = True
     return df.sort_values(by= sortby, ascending= asc).reset_index(drop= True) if sortby else df
 
 # -<col>=<from>-<to>

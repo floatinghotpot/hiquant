@@ -18,7 +18,7 @@ def cli_fund_help():
     __argv0__ fund company [<keyword>]
     __argv0__ fund eval <all | symbols | symbols.csv> [-sortby=...] [-desc] [-filter_column=...-...]
     __argv0__ fund plot <symbols | symbols.csv> [<options>]
-    __argv0__ fund backtest  <all | symbols | symbols.csv> [-period=90] [-days=...] [-date=yyyymmdd-yyyymmdd]
+    __argv0__ fund backtest  <all | symbols | symbols.csv> [-ref=...] [-days=...] [-date=yyyymmdd-yyyymmdd]
 
 Options:
     -sortby=<col> .................. sort by the column
@@ -39,7 +39,9 @@ Example:
     __argv0__ fund eval all -days=365 -sortby=sharpe -desc -limit=20 -out=output/top20_funds.xlsx
     __argv0__ fund plot 002943 005669 000209 -days=365
     __argv0__ fund plot data/funds.csv -days=365
-    __argv0__ fund plot data/funds.csv -days=1095 -mix
+    __argv0__ fund plot data/funds.csv -years=3 -mix
+    __argv0__ fund backtest all -year=2018 -mix
+    __argv0__ fund backtest all -year=2010-2020 -mix
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
 
     print( syntax_tips )
@@ -51,6 +53,10 @@ def get_fund_symbol_name():
 def get_fund_name_symbol():
     df = get_cn_fund_list(check_date= datetime_today())
     return dict_from_df(df, 'name', 'symbol')
+
+def get_fund_company_mapping():
+    df = get_cn_fund_manager(check_date= datetime_today())
+    return dict_from_df(df, 'fund', 'company')
 
 def get_fund_manager_mapping():
     df = get_cn_fund_manager(check_date= datetime_today())
@@ -113,9 +119,26 @@ def get_manager_fund_mapping():
 # hiquant fund list 多因子
 def cli_fund_list(params, options):
     df = get_cn_fund_list(check_date= datetime_today())
+
     selected = total = df.shape[0]
     if len(params) > 0:
-        df = df[ df['name'].str.contains(params[0], na=False) ]
+        keyword = params[0]
+        if keyword.endswith('.csv'):
+            df_manager = get_cn_fund_manager(check_date= datetime_today())
+            df_manager['manager'] = df_manager['company'] + ' ' + df_manager['name']
+
+            df_filter = pd.read_csv(keyword, dtype= str)
+            if 'name' in df_filter.columns:
+                managers = (df_filter['company'] + ' ' + df_filter['name']).tolist()
+                df_manager = df_manager[ df_manager['manager'].isin(managers) ]
+            else:
+                companies = df_filter['company'].tolist()
+                df_manager = df_manager[ df_manager['company'].isin(companies) ]
+            funds = list(set(df_manager['fund'].tolist()))
+
+            df = df[ df['name'].isin(funds) ]
+        else:
+            df = df[ df['name'].str.contains(keyword, na=False) ]
         selected = df.shape[0]
 
     df = filter_with_options(df, options)
@@ -141,6 +164,8 @@ def cli_fund_list(params, options):
 
 def get_cn_fund_company(keyword = None):
     df = get_cn_fund_manager(check_date= datetime_today())
+    df = df.fillna(0)
+
     if keyword is not None:
         df = df[ df['company'].str.contains(keyword, na=False) ]
 
@@ -149,6 +174,7 @@ def get_cn_fund_company(keyword = None):
         fund = row['fund']
         manager = row['name']
         company = row['company']
+        size = row['size']
         if company in mapping:
             funds = mapping[ company ]['funds']
             managers = mapping[ company ]['managers']
@@ -156,30 +182,43 @@ def get_cn_fund_company(keyword = None):
                 funds.append( fund )
             if manager not in managers:
                 managers.append( manager )
+                mapping[ company ]['size'] += size
         else:
             mapping[ company ] = {
-                'funds': [ fund ],
                 'managers': [ manager ],
+                'funds': [ fund ],
+                'size': size,
             }
     table = []
     for company, v in mapping.items():
-        funds = v['funds']
-        managers = v['managers']
-        table.append( [company, len(managers), len(funds)] )
-    return pd.DataFrame(table, columns=['company','managers','funds']).sort_values(by= 'funds', ascending= False).reset_index(drop= True)
+        table.append( [company, len(v['managers']), len(v['funds']), v['size']] )
+    return pd.DataFrame(table, columns=['company','managers','funds','size']).sort_values(by= 'managers', ascending= False).reset_index(drop= True)
 
 def cli_fund_company(params, options):
     keyword = params[0] if len(params) > 0 else None
     df = get_cn_fund_company(keyword)
 
-    selected = total = df.shape[0]
-    df = filter_with_options(df, options)
     limit = 0
+    yeartop = 0
     for k in options:
         if k.startswith('-limit='):
             limit = int(k.replace('-limit=',''))
+        if k.startswith('-yeartop='):
+            yeartop = int(k.replace('-yeartop=',''))
+
+    if yeartop > 0:
+        df_yeartop = cli_fund_manager([], ['-yeartop='+str(yeartop)])
+        df_yeartop = df_yeartop[['company']].groupby(['company']).size().reset_index(name='yeartop')
+        company_yeartop = dict_from_df(df_yeartop, 'company', 'yeartop')
+        df['yeartop'] = [company_yeartop[c] if (c in company_yeartop) else 0 for c in df['company'].tolist()]
+
+    selected = total = df.shape[0]
+    df = filter_with_options(df, options)
+
+    for k in options:
         if k.startswith('-sortby='):
             df = sort_with_options(df, options, by_default='managers')
+
     if limit > 0:
         df = df.head(limit)
 
@@ -188,14 +227,47 @@ def cli_fund_company(params, options):
     print( selected, 'of', total, 'fund companies.')
 
     out_csv_file, out_xls_file = csv_xlsx_from_options(options)
+
+    if out_csv_file:
+        df_com = df[['company']]
+        df_com.to_csv(out_csv_file, index=False)
+        print( tb.tabulate(df_com, headers='keys') )
+        print('Exported to:', out_csv_file)
+
     if out_xls_file:
         df = df.rename(columns= {
             'company': '基金公司',
             'managers': '基金经理人数',
             'funds': '基金总数',
+            'size': '管理规模',
+            'yeartop': '业绩最佳',
         })
         df.to_excel(excel_writer= out_xls_file)
         print('Exported to:', out_xls_file)
+
+def get_fund_area(name):
+    fund_areas = {
+        'ETF': ['ETF','指数','联接'],
+        'QDII': ['QDII','美国','全球','现钞','现汇','人民币'],
+        '债券': ['债'],
+        '量化': ['量化'],
+        '新能源': ['能源','双碳','低碳','碳中和','新经济','环保','环境','气候','智能汽车'],
+        '高端制造': ['制造','智造','战略','新兴产业'],
+        '信息技术': ['信息','互联网','芯片','半导体','集成电路','云计算'],
+        '医疗': ['医疗','养老','医药','健康'],
+        '军工': ['军工','国防','安全'],
+        '消费': ['消费','品质','白酒'],
+        '周期': ['周期','资源','钢铁','有色','金融','地产'],
+        '中小盘': ['中小盘','成长','创新'],
+        '价值': ['蓝筹','价值','龙头','优势','核心'],
+        '灵活配置': ['灵活配置','均衡'],
+    }
+    for k in fund_areas:
+        keywords = fund_areas[k]
+        for kk in keywords:
+            if kk in name:
+                return k
+    return ''
 
 def cli_fund_manager(params, options):
     df = get_cn_fund_manager(check_date= datetime_today())
@@ -204,11 +276,14 @@ def cli_fund_manager(params, options):
     if len(params) > 0:
         keyword = params[0]
         if keyword.endswith('.csv'):
-            df1 = df.copy()
-            df1['manager'] = df['company'] + ' ' + df['name']
-            df_manager = pd.read_csv(keyword, dtype= str)
-            df_manager['manager'] = df_manager['company'] + ' ' + df_manager['name']
-            df = df1[ df1['manager'].isin(df_manager['manager'].tolist()) ].drop(columns=['manager'])
+            df_filter = pd.read_csv(keyword, dtype= str)
+            if 'name' in df_filter.columns:
+                df_filter['manager'] = df_filter['company'] + ' ' + df_filter['name']
+                df1 = df.copy()
+                df1['manager'] = df['company'] + ' ' + df['name']
+                df = df1[ df1['manager'].isin(df_filter['manager'].tolist()) ].drop(columns=['manager'])
+            else:
+                df = df[ df['company'].isin(df_filter['company'].tolist()) ]
         else:
             df1 = df.copy()
             df1['keywords'] = df1['company'] + df1['name'] + ' ' + df1['fund']
@@ -229,7 +304,7 @@ def cli_fund_manager(params, options):
     company_managers = dict_from_df(df_company, 'company', 'managers')
     company_funds = dict_from_df(df_company, 'company', 'funds')
 
-    group = '-d' not in options
+    group = '-f' not in options
     if group and (df.shape[0] > 0):
         df_tmp = df.drop(columns=['fund'])
         table = []
@@ -255,8 +330,7 @@ def cli_fund_manager(params, options):
         cols.insert(3, 'funds')
         df = pd.DataFrame(table, columns=cols)
 
-    df['annual'] = round((np.power((df['best_return'] * 0.01 + 1), 1.0/(df['days']/365.0)) - 1.0) * 100.0, 1)
-    df['annual'] = df[['best_return', 'annual']].min(axis= 1)
+    df['annual'] = round((np.power((df['best_return'] * 0.01 + 1), 1.0/(np.maximum(365.0,df['days'])/365.0)) - 1.0) * 100.0, 1)
 
     if yeartop > 0:
         df1 = df[ df['days'] >= 3650 ].sort_values(by='best_return', ascending=False).head(yeartop)
@@ -278,7 +352,8 @@ def cli_fund_manager(params, options):
 
     if 'fund' in df.columns:
         fund_name_symbol = get_fund_name_symbol()
-        df['fund'] = [(fund_name_symbol[fund] if fund in fund_name_symbol else '') for fund in df['fund'].tolist()] + (' - ' + df['fund'])
+        df.insert(2, 'symbol', [(fund_name_symbol[fund] if fund in fund_name_symbol else '') for fund in df['fund'].tolist()])
+        df = df[ df['symbol'] != '' ]
     elif ('-s' in options) and ('name'in df.columns):
         manager_fundsymbol = get_manager_fundsymbol_mapping()
         managers = (df['company'] + ' ' + df['name']).tolist()
@@ -286,7 +361,8 @@ def cli_fund_manager(params, options):
     elif ('-sd' in options) and ('name'in df.columns):
         manager_fund = get_manager_fund_mapping()
         managers = (df['company'] + ' ' + df['name']).tolist()
-        df['funds'] = [('\n'.join(manager_fund[manager]) if manager in manager_fund else '') for manager in managers]
+        df['fund'] = [('\n'.join(manager_fund[manager]) if manager in manager_fund else '') for manager in managers]
+        df['area'] = df['fund'].apply(get_fund_area)
 
     selected = df.shape[0]
     print( tb.tabulate(df, headers='keys') )
@@ -295,7 +371,9 @@ def cli_fund_manager(params, options):
     out_csv_file, out_xls_file = csv_xlsx_from_options(options)
 
     if out_csv_file:
-        df.to_csv(out_csv_file, index= False)
+        df_csv = df[['name','company']]
+        df_csv.to_csv(out_csv_file, index= False)
+        print( tb.tabulate(df_csv, headers='keys') )
         print('Exported to:', out_csv_file)
 
     if out_xls_file:
@@ -307,6 +385,7 @@ def cli_fund_manager(params, options):
             'managers': '基金经理人数',
             'funds': '基金总数',
             'fund': '基金',
+            'area': '投资方向',
             'years': '管理年限',
             'size': '基金规模',
             'best_return': '最佳回报',
@@ -356,6 +435,8 @@ def cli_fund_update(params, options):
 
 def eval_fund_list(df_fund_list, date_from, date_to, alpha_base = None):
     fund_manager = get_fund_manager_mapping()
+    fund_company = get_fund_company_mapping()
+
     days = (date_to - date_from).days
     eval_table = []
     for index, row in df_fund_list.iterrows():
@@ -374,11 +455,13 @@ def eval_fund_list(df_fund_list, date_from, date_to, alpha_base = None):
 
         fund_start = min(df.index)
         fund_days = (datetime_today() - fund_start).days
-        #if fund_start > date_from:
-        #    continue
 
         df = df[ df.index >= date_from ]
         df = df[ df.index < date_to ]
+
+        # skip the fund if data not reasonable, pct_change > 10.0%
+        if df['pct_change'].max() > 10.0:
+            continue
 
         try:
             df['pct_cum'] = (df['pct_change'] * 0.01 +1).cumprod()
@@ -407,9 +490,10 @@ def eval_fund_list(df_fund_list, date_from, date_to, alpha_base = None):
         annualVolatility = volatility * (252 ** 0.5)
         annualVolatility = round(annualVolatility * 100, 2)
         manager = ','.join(fund_manager[name]) if (name in fund_manager) else ''
-        eval_table.append([param, name, manager, min(days, fund_days), pct_cum, sharpe_ratio, max_drawdown, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
+        company = fund_company[name] if (name in fund_company) else ''
+        eval_table.append([param, name, company, manager, min(days, fund_days), pct_cum, sharpe_ratio, max_drawdown, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
 
-    en_cols = ['symbol', 'name', 'manager', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
+    en_cols = ['symbol', 'name', 'company', 'manager', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
     df = pd.DataFrame(eval_table, columns=en_cols)
 
     df['annual'] = round((np.power((df['pct_cum'] * 0.01 + 1), 1.0/(df['calc_days']/365.0)) - 1.0) * 100.0, 1)
@@ -445,29 +529,41 @@ def cli_fund_eval(params, options):
 
     alpha_base = None
     yeartop = 0
+    manager_out_csv = ''
     for k in options:
         if k.startswith('-alpha='):
             alpha_base = k.replace('-alpha=', '')
         if k.startswith('-yeartop='):
             yeartop = int(k.replace('-yeartop=', ''))
+        if k.startswith('-manager_out=') and k.endswith('.csv'):
+            manager_out_csv = k.replace('-manager_out=', '')
     
     df_fund_list = df_fund_list[ df_fund_list['buy_state'].isin(['限大额','开放申购']) ]
 
     if '-nc' in options:
-        df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains('C') ]
+        for k in ['C','持有']:
+            df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
+
+        for k in ['债','金','油','商品','通胀','全球','美元','美国','香港','恒生','海外','亚太','四国','QDII']:
+            df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
+
     if '-nlof' in options:
-        df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains('LOF') ]
+        for k in ['LOF']:
+            df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
+
     if '-netf' in options:
-        df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains('ETF') ]
+        for k in ['ETF','指数','联接']:
+            df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
     if yeartop > 0:
         symbols = []
         days = (date_to - date_from).days
         for i in range(0, days, 365):
             print('\ryear', i // 365)
-            eval_from = date_from + dt.timedelta(days= i)
-            df_eval = eval_fund_list(df_fund_list, date_from= eval_from, date_to= date_to)
-            df_eval = df_eval.sort_values(by='pct_cum', ascending=False)
+            eval_from = date_from + dt.timedelta(days = i)
+            eval_to = min(eval_from + dt.timedelta(days= 365), date_to)
+            df_eval = eval_fund_list(df_fund_list, date_from= eval_from, date_to= eval_to)
+            df_eval = sort_with_options(df_eval, options, by_default='pct_cum')
             if yeartop > 0:
                 df_eval = df_eval.head(yeartop)
             symbols += df_eval['symbol'].tolist()
@@ -486,6 +582,8 @@ def cli_fund_eval(params, options):
         if limit > 0:
             df_eval = df_eval.head(limit)
 
+    df_eval['area'] = df_eval['name'].apply(get_fund_area)
+
     df_eval['fund_start'] = df_eval['fund_start'].dt.strftime('%Y-%m-%d')
 
     print('\r', end= '', flush= True)
@@ -498,6 +596,21 @@ def cli_fund_eval(params, options):
         df.to_csv(out_csv_file, index= False)
         print('Exported to:', out_csv_file)
         print(df)
+
+    if manager_out_csv:
+        managers = {}
+        for i, row in df_eval.iterrows():
+            company = row['company']
+            names = row['manager'].split(',')
+            for name in names:
+                managers[ company + ' ' + name ] = 1
+        table = []
+        for k in managers.keys():
+            items = k.split(' ')
+            table.append([items[0], items[1]])
+        df_manager = pd.DataFrame(table, columns=['company','name'])
+        df_manager.to_csv(manager_out_csv, index= False)
+        print( tb.tabulate(df_manager, headers='keys') )
 
     if out_xls_file:
         years = round((date_to - date_from).days / 365.0, 1)
@@ -518,6 +631,7 @@ def cli_fund_eval(params, options):
             'annual': '年化收益',
             'score': '评分',
             'score2': '保守评分',
+            'area': '投资方向',
         })
         df_eval.to_excel(excel_writer= out_xls_file)
         print( tb.tabulate(df_eval, headers='keys') )
@@ -566,7 +680,7 @@ def cli_fund_plot(params, options, title= None):
             break
 
         try:
-            df = get_cn_fund_daily(symbol= param)
+            df = get_cn_fund_daily(symbol= param, check_date= None)
         except:
             continue
 
@@ -608,8 +722,9 @@ def cli_fund_plot(params, options, title= None):
     if '-mix' in options:
         df = df_funds[ [ base_name ] ]
         df_funds = df_funds.drop(columns=[ base_name ])
-        df['mix'] = df_funds.mean(axis=1)
+        df['平均收益'] = df_funds.mean(axis=1)
         df.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
+        #df_funds.mean(axis=1).plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
     else:
         df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
     plt.xticks(rotation=15)
@@ -639,15 +754,19 @@ def cli_fund_backtest(params, options):
     if limit == 0:
         limit = 20
 
-    eval_period = 365 * 3
+    ref_period = 365 * 2
     keyword = ''
+    company = ''
     for k in options:
-        if k.startswith('-period='):
-            eval_period = int(k.replace('-period=', ''))
+        if k.startswith('-ref='):
+            ref_period = int(float(k.replace('-ref=', '')) * 365)
         if k.startswith('-keyword='):
             keyword = k.replace('-keyword=', '')
+        if k.startswith('-company='):
+            company = k.replace('-company=', '')
 
     df_fund_list = get_cn_fund_list()
+
     if params[0] == 'all':
         pass
     elif params[0].endswith('.csv'):
@@ -656,22 +775,44 @@ def cli_fund_backtest(params, options):
     else:
         df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
 
-    df_eval = eval_fund_list(df_fund_list, (date_from - dt.timedelta(days= eval_period)), date_from)
+    for k in ['C','持有']:
+        df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
+
+    for k in ['债','金','油','商品','通胀','全球','美元','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
+        df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
+
+    for k in ['LOF']:
+        df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
+
+    for k in ['ETF','指数','联接']:
+        df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
+
+    df_eval = eval_fund_list(df_fund_list, (date_from - dt.timedelta(days= ref_period)), date_from)
     years = (datetime_today() - date_from).days / 365.0
-    df_eval = df_eval[ df_eval['fund_years'] > (years + eval_period/365.0) ]
-    df_eval = df_eval[ df_eval['annual'] > 10 ]
+    eval_years = ref_period / 365.0
+    df_eval = df_eval[ df_eval['fund_years'] > years + eval_years ]
+    df_eval = df_eval[ df_eval['pct_cum'] > 10.0 ]
 
     if keyword:
         df_eval = df_eval[ df_eval['name'].str.contains(keyword) ]
 
-    #for k in ['债','油','美元','商品','指数','美国','标普','纳斯达克','全球','ETF','通胀','互联网','行业','量化','C']:
-    #    df_eval = df_eval[ ~ df_eval['name'].str.contains(k) ]
+    if company:
+        if company.endswith('.csv'):
+            company = pd.read_csv(company, dtype= str)['company'].tolist()
+        elif ',' in company:
+            company = company.split(',')
+        else:
+            company = [ company ]
+        df_eval = df_eval[ df_eval['company'].isin(company) ]
 
-    df_eval = sort_with_options(df_eval, options, by_default='symbol').head(limit) #head(limit*2).tail(limit)
+    df_eval = sort_with_options(df_eval, options, by_default='pct_cum')
+    df_eval = df_eval.head(limit)
     print('\n')
     print( tb.tabulate(df_eval, headers='keys') )
+    print( ','.join(df_eval['symbol'].tolist()) )
 
-    cli_fund_plot(df_eval['symbol'].tolist(), options)
+    title = str(date_from.year) + '年初TOP' + str(limit) + '基金（参考' + str(int(eval_years)) +'年）' + str(date_from.year) + '-' + str(date_to.year) + '年表现'
+    cli_fund_plot(df_eval['symbol'].tolist(), options, title= '基金回测 - ' + title)
 
 def cli_fund(params, options):
     if (len(params) == 0) or (params[0] == 'help'):
