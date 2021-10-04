@@ -100,6 +100,13 @@ def cli_finance_view(params, options):
     # now sort
     df = sort_with_options(df, options, by_default='roe')
 
+    limit = 0
+    for option in options:
+        if option.startswith('-limit='):
+            limit = int(option.replace('-limit=',''))
+    if limit > 0:
+        df = df.head(limit)
+
     if '-tab' in options:
         print( tb.tabulate(df, headers='keys') )
     else:
@@ -123,7 +130,7 @@ def cli_finance_view(params, options):
         df_stocks = df[['symbol', 'name']]
         df_stocks.to_csv(out_csv_file, index= False)
         print('Exported to:', out_csv_file)
-        print(df)
+        print(df_stocks)
 
     if out_xlsx_file:
         name_col = df.pop('name')

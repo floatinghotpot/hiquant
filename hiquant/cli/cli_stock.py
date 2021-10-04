@@ -193,6 +193,12 @@ def cli_stock_plot_multi(params, options):
     symbol_names = dict_from_df(df_cmp, 'symbol', 'name')
     df_stocks.columns = [(symbol + ' - ' + symbol_names[symbol]) for symbol in df_stocks.columns]
 
+    if '-mix' in options:
+        df_stocks = df_stocks.mean(axis=1).to_frame()
+        df_stocks.columns = ['平均收益']
+    else:
+        pass
+
     base = 'sh000300'
     for k in options:
         if k.startswith('-base='):

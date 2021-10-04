@@ -697,6 +697,12 @@ def cli_fund_plot(params, options, title= None):
         else:
             df_funds = pd.concat([df_funds, df['pct_cum'].copy().rename(name).to_frame()], axis=1)
 
+    if '-mix' in options:
+        df_funds = df_funds.mean(axis=1).to_frame()
+        df_funds.columns = ['平均收益']
+    else:
+        pass
+
     base = 'sh000300'
     for k in options:
         if k.startswith('-base='):
@@ -706,35 +712,14 @@ def cli_fund_plot(params, options, title= None):
     df_base = df_base[ df_base.index < date_to ]
     df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
 
-    if '-alpha' in options:
-        table = []
-        for k in df_funds.columns:
-            df_funds[ k ] -= df_base['pct_cum']
-            pct_change = df_funds[k].pct_change(1)
-            daily_sharpe_ratio = pct_change.mean() / pct_change.std()
-            sharpe_ratio = round(daily_sharpe_ratio * (252 ** 0.5), 2)
-            table.append([k, sharpe_ratio])
-        df = pd.DataFrame(table, columns=['fund', 'sharpe'])
-        df = df.sort_values(by= 'sharpe', ascending= False)
-        df_funds = df_funds[ df['fund'].tolist() ]
-    else:
-        index_symbol_names = dict_from_df( get_cn_index_list_df() )
-        base_name = index_symbol_names[ base ] if base in index_symbol_names else base
-        df_funds[ base_name ] = df_base['pct_cum']
+    index_symbol_names = dict_from_df( get_cn_index_list_df() )
+    base_name = index_symbol_names[ base ] if base in index_symbol_names else base
+    df_funds[ base_name ] = df_base['pct_cum']
 
     df_funds.index = df_funds.index.strftime('%Y-%m-%d')
-    if '-mix' in options:
-        df = df_funds[ [ base_name ] ]
-        df_funds = df_funds.drop(columns=[ base_name ])
-        df['平均收益'] = df_funds.mean(axis=1)
-        df.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
-        #df_funds.mean(axis=1).plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
-    else:
-        df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
+    df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
     plt.xticks(rotation=15)
     plt.show()
-
-    pass
 
 def cli_fund_plot_man(params, options):
     df = cli_fund_manager(params, ['-s'])

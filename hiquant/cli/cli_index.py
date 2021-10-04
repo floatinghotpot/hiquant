@@ -193,6 +193,12 @@ def cli_index_plot_multi(params, options):
     symbol_names = dict_from_df(df_cmp, 'symbol', 'name')
     df_stocks.columns = [(symbol + ' - ' + symbol_names[symbol]) for symbol in df_stocks.columns]
 
+    if '-mix' in options:
+        df_stocks = df_stocks.mean(axis=1).to_frame()
+        df_stocks.columns = ['平均收益']
+    else:
+        pass
+
     df_stocks.index = df_stocks.index.strftime('%Y-%m-%d')
     title = '持仓收益 (' + df_stocks.index[0] + ' ~ ' + df_stocks.index[-1] + ')'
     df_stocks.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
