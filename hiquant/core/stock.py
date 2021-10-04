@@ -198,7 +198,7 @@ class Stock:
             long_pos = df['long_pos']
             more_plot.append(mpf.make_addplot(long_pos, type='bar', panel=next_panel, color=pos_color, ylabel=LANG('position')))
             next_panel = next_panel +1
-            panel_ratios.append(0.3)
+            panel_ratios.append(0.15)
 
         # find the columns started with "." as performance data
         ret_cols = []

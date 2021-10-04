@@ -433,7 +433,7 @@ def cli_fund_update(params, options):
 
     print('Done.')
 
-def eval_fund_list(df_fund_list, date_from, date_to, alpha_base = None):
+def eval_fund_list(df_fund_list, date_from, date_to, alpha_base = None, ignore_new = False):
     fund_manager = get_fund_manager_mapping()
     fund_company = get_fund_company_mapping()
 
@@ -455,6 +455,9 @@ def eval_fund_list(df_fund_list, date_from, date_to, alpha_base = None):
 
         fund_start = min(df.index)
         fund_days = (datetime_today() - fund_start).days
+
+        if ignore_new and (fund_start > date_from):
+            continue
 
         df = df[ df.index >= date_from ]
         df = df[ df.index < date_to ]
@@ -680,7 +683,8 @@ def cli_fund_plot(params, options, title= None):
             break
 
         try:
-            df = get_cn_fund_daily(symbol= param, check_date= None)
+            df = get_cn_fund_daily(symbol= param, check_date= datetime_today())
+            #df = get_cn_fund_daily(symbol= param, check_date= None)
         except:
             continue
 
@@ -745,6 +749,40 @@ def cli_fund_plot_man(params, options):
         title = row['company'] + ' - ' + row['name']
         cli_fund_plot([symbols], options, title= title)
 
+def filter_fund_list_simple_top(df_fund_list, date_from, ref_period):
+    df_eval = eval_fund_list(df_fund_list, (date_from - dt.timedelta(days= ref_period)), date_from)
+    years = (datetime_today() - date_from).days / 365.0
+    eval_years = ref_period / 365.0
+    df_eval = df_eval[ df_eval['fund_years'] > years + eval_years ]
+    df_eval = df_eval[ df_eval['pct_cum'] > 10.0 ]
+    return df_eval
+
+def filter_fund_list_4433(df_fund_list, date_from, ref_period):
+    conditions = {
+        '5': 0.25,
+        '3': 0.25,
+        '2': 0.25,
+        '1': 0.25,
+        '0.5': 0.33,
+        '0.25': 0.33,
+    }
+    symbols = []
+    for ref_str, top_percent in conditions.items():
+        ref_n = float(ref_str) * 365.0
+        df_eval = eval_fund_list(df_fund_list, (date_from - dt.timedelta(days= ref_n)), date_from, ignore_new = True)
+        years = (datetime_today() - date_from).days / 365.0
+        eval_years = ref_n / 365.0
+        df_eval = df_eval[ df_eval['fund_years'] > years + eval_years ]
+        df_eval = df_eval.sort_values(by= 'pct_cum', ascending= False)
+        top_N = int(df_eval.shape[0] * top_percent)
+        df_eval = df_eval.head( top_N )
+        if len(symbols) == 0:
+            symbols = df_eval['symbol'].tolist()
+        else:
+            symbols = list(set(symbols) & set(df_eval['symbol'].tolist()))
+
+    return eval_fund_list(df_fund_list, (date_from - dt.timedelta(days= ref_period)), date_from)
+
 def cli_fund_backtest(params, options):
     if len(params) == 0:
         cli_fund_help()
@@ -787,11 +825,7 @@ def cli_fund_backtest(params, options):
     for k in ['ETF','指数','联接']:
         df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-    df_eval = eval_fund_list(df_fund_list, (date_from - dt.timedelta(days= ref_period)), date_from)
-    years = (datetime_today() - date_from).days / 365.0
-    eval_years = ref_period / 365.0
-    df_eval = df_eval[ df_eval['fund_years'] > years + eval_years ]
-    df_eval = df_eval[ df_eval['pct_cum'] > 10.0 ]
+    df_eval = filter_fund_list_simple_top(df_fund_list, date_from, ref_period)
 
     if keyword:
         df_eval = df_eval[ df_eval['name'].str.contains(keyword) ]
@@ -811,7 +845,7 @@ def cli_fund_backtest(params, options):
     print( tb.tabulate(df_eval, headers='keys') )
     print( ','.join(df_eval['symbol'].tolist()) )
 
-    title = str(date_from.year) + '年初TOP' + str(limit) + '基金（参考' + str(int(eval_years)) +'年）' + str(date_from.year) + '-' + str(date_to.year) + '年表现'
+    title = str(date_from.year) + '年初TOP' + str(limit) + '基金 ' + str(date_from.year) + '-' + str(date_to.year) + '年表现'
     cli_fund_plot(df_eval['symbol'].tolist(), options, title= '基金回测 - ' + title)
 
 def cli_fund(params, options):

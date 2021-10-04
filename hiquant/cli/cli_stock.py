@@ -189,6 +189,7 @@ def cli_stock_plot_multi(params, options):
     df_stocks, df_cmp = cmp_stock_earn(params, options)
 
     print(df_cmp)
+    df_stocks = df_stocks[ df_cmp['symbol'].tolist() ]
     symbol_names = dict_from_df(df_cmp, 'symbol', 'name')
     df_stocks.columns = [(symbol + ' - ' + symbol_names[symbol]) for symbol in df_stocks.columns]
 
@@ -207,7 +208,7 @@ def cli_stock_plot_multi(params, options):
     df_stocks[ base_name ] = df_base['pct_cum']
 
     df_stocks.index = df_stocks.index.strftime('%Y-%m-%d')
-    title = '持股收益 (' + df_stocks.index[0] + ' ~ ' + df_stocks.index[-1] + ')'
+    title = '持仓收益 (' + df_stocks.index[0] + ' ~ ' + df_stocks.index[-1] + ')'
     df_stocks.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
     plt.xticks(rotation=15)
     plt.show()
