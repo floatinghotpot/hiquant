@@ -22,7 +22,7 @@ yahoo_headers = {
 #
 def download_us_stock_daily( symbol, start= None, end= None, interval= '1d' ):
     if start is None:
-        start = '2010-01-01'
+        start = '2000-01-01'
 
     if isinstance(start, datetime.datetime):
         start = int(time.mktime(start.timetuple()))
