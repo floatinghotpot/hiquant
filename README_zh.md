@@ -25,9 +25,9 @@ Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及
 - **自动化交易（计划中）**：调用量化交易接口，实现 自动化交易（尚未实现）
 
 其他附加的功能：
+- **基金收益分析**：获取基金的每日数据，绘制 单个或者多个基金的 收益曲线 对比
 - **K线走势图**：绘制 股票 / 指数 的 K线图，包括绘制常见的 技术指标，以及 根据指标交易的 获利结果 对比
 - **多指标组合**：绘制 K线图时，也可混合多个指标 的信号 进行交易，并显示 交易动作、持仓时间、以及收益率曲线
-- **K线形态**：以图形展示 TALib 提供的 61个 K线形态，统计在本地日线数据中 每个形态出现的次数，以及 验证这些形态对于走势预测的正确度
 - **指标测试**：使用历史数据和技术指标，测试股票池中的股票，寻找出每只股票 表现最有效的技术指标
 
 ## 如何安装
@@ -71,13 +71,17 @@ hiquant run etc/myfund.conf
 ## 快速开发
 
 ```python
+# -*- coding: utf-8; py-indent-offset:4 -*-
 import pandas as pd
-import talib
 import hiquant as hq
 
 class MyStrategy( hq.BasicStrategy ):
     def __init__(self, fund):
         super().__init__(fund, __file__)
+        self.max_stocks = 10
+        self.max_weight = 1.2
+        self.stop_loss = 1 + (-0.10)
+        self.stop_earn = 1 + (+0.20)
 
     def select_stock(self):
         return ['600519','002714','603882','300122','601888','hk3690','hk9988', 'hk0700']
@@ -89,11 +93,14 @@ class MyStrategy( hq.BasicStrategy ):
         else:
             df = market.get_daily(symbol, end = market.current_date, count = 26+9)
 
-        dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
+        dif, dea, macd_hist = hq.MACD(df.close, fast=12, slow=26, signal=9)
         return pd.Series( hq.CROSS(dif, dea), index=df.index )
 
     def get_signal_comment(self, symbol, signal):
         return 'MACD金叉' if (signal > 0) else 'MACD死叉'
+
+def init(fund):
+    strategy = MyStrategy(fund)
 
 if __name__ == '__main__':
     backtest_args = dict(
@@ -102,7 +109,7 @@ if __name__ == '__main__':
         #date_end= hq.date_from_str('yesterday'),
         #out_file= 'output/demo.png',
         #parallel= True,
-        compare_index= 'sh000300',
+        compare_index= '^GSPC',
     )
     hq.backtest_strategy( MyStrategy, **backtest_args )
 ```

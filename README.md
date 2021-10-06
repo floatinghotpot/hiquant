@@ -27,7 +27,6 @@ This software is developed on Mac, and the examples in this document are written
 Other additional features:
 - **K-line chart**: plot the K-line chart of stocks/indices, including plotting common technical indicators, comparing the profit results of trading based on the indicators
 - **Multi-indicator combination**: When drawing a K-line chart, you can also mix signals from multiple indicators for trading, and display trading actions, holding time, and yield curve
-- **Candle patterns**: graphically display the 61 K-line patterns provided by TALib, count the number of occurrences of each pattern in the local daily data, and verify the correctness of these patterns for trend prediction
 - **Indicator test**: Use historical data and technical indicators to test the stocks in the stock pool and find the most effective technical indicators for each stock
 
 ## Installation
@@ -70,15 +69,18 @@ hiquant run etc/myfund.conf
 
 ```python
 import pandas as pd
-import talib
 import hiquant as hq
 
 class MyStrategy( hq.BasicStrategy ):
     def __init__(self, fund):
         super().__init__(fund, __file__)
+        self.max_stocks = 10
+        self.max_weight = 1.2
+        self.stop_loss = 1 + (-0.10)
+        self.stop_earn = 1 + (+0.20)
 
     def select_stock(self):
-        return ['AAPL','GOOG','AMZN','TSLA','FB','MSFT','NFLX', 'SONY']
+        return ['AAPL', 'MSFT', 'AMZN', 'TSLA', '0700.HK']
 
     def gen_trade_signal(self, symbol, init_data = False):
         market = self.fund.market
@@ -87,11 +89,14 @@ class MyStrategy( hq.BasicStrategy ):
         else:
             df = market.get_daily(symbol, end = market.current_date, count = 26+9)
 
-        dif, dea, macd_hist = talib.MACD(df.close, fastperiod=12, slowperiod=26, signalperiod=9)
+        dif, dea, macd_hist = hq.MACD(df.close, fast=12, slow=26, signal=9)
         return pd.Series( hq.CROSS(dif, dea), index=df.index )
 
     def get_signal_comment(self, symbol, signal):
         return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
+
+def init(fund):
+    strategy = MyStrategy(fund)
 
 if __name__ == '__main__':
     backtest_args = dict(
