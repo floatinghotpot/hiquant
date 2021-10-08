@@ -64,7 +64,7 @@ def date_limit_from_options(options):
             limit = int(option.replace('-limit=',''))
 
     if date_from is None:
-        days = 365 * 1
+        days = 365 * 3
         date_from = date_from_str('{} days ago'.format(days))
         date_to = datetime_today()
 

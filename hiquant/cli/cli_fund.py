@@ -156,6 +156,8 @@ def cli_fund_list(params, options):
     if limit > 0:
         df = df.head(limit)
 
+    selected = df.shape[0]
+
     print( tb.tabulate(df, headers='keys') )
     print( selected, 'of', total, 'funds selected.')
 
@@ -212,10 +214,29 @@ def cli_fund_company(params, options):
             yeartop = int(k.replace('-yeartop=',''))
 
     if yeartop > 0:
-        df_yeartop = cli_fund_manager([], ['-yeartop='+str(yeartop)])
-        df_yeartop = df_yeartop[['company']].groupby(['company']).size().reset_index(name='yeartop')
-        company_yeartop = dict_from_df(df_yeartop, 'company', 'yeartop')
-        df['yeartop'] = [company_yeartop[c] if (c in company_yeartop) else 0 for c in df['company'].tolist()]
+        df_top_managers = cli_fund_manager([], ['-yeartop='+str(yeartop)])
+        df_yeartop = df_top_managers[['company']].groupby(['company']).size().reset_index(name='yeartopn')
+        company_yeartop = dict_from_df(df_yeartop, 'company', 'yeartopn')
+        df['yeartopn'] = [company_yeartop[c] if (c in company_yeartop) else 0 for c in df['company'].tolist()]
+
+        company_managers = {}
+        df_top_managers = df_top_managers.sort_values(by= 'best_return', ascending= False)
+        for i, row in df_top_managers.iterrows():
+            manager = row['name']
+            company = row['company']
+            print(manager, company)
+            if company in company_managers:
+                company_managers[company].append(manager)
+            else:
+                company_managers[company] = [ manager ]
+
+        df['names'] = ''
+        for i, row in df.iterrows():
+            company = row['company']
+            if company in company_managers:
+                names = ', '.join( company_managers[company] )
+                print(names)
+                df['names'].iloc[i] = names
 
     selected = total = df.shape[0]
     df = filter_with_options(df, options)
@@ -242,10 +263,11 @@ def cli_fund_company(params, options):
     if out_xls_file:
         df = df.rename(columns= {
             'company': '基金公司',
-            'managers': '基金经理人数',
-            'funds': '基金总数',
-            'size': '管理规模',
-            'yeartop': '业绩最佳',
+            'managers': '基金经理\n人数',
+            'funds': '基金\n总数',
+            'size': '管理规模\n(亿)',
+            'yeartopn': '业绩前列\n经理人数',
+            'names': '业绩优秀 基金经理 姓名',
         })
         df.to_excel(excel_writer= out_xls_file)
         print('Exported to:', out_xls_file)
@@ -459,15 +481,15 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
     days = (date_to - date_from).days
     eval_table = []
     for index, row in df_fund_list.iterrows():
-        param = row['symbol']
+        symbol = row['symbol']
         name = row['name']
         buy_state = row['buy_state']
         sell_state = row['sell_state']
         fee = row['fee']
-        print('\r', index, '-', param, '-', name, '...', end='', flush= True)
+        print('\r', index, '-', symbol, '-', name, '...', end='', flush= True)
 
         try:
-            df = get_cn_fund_daily(symbol= param)
+            df = get_cn_fund_daily(symbol= symbol)
         except (KeyError, ValueError, IndexError) as err:
             print('\nerror downloading', name, ', skip.')
             continue
@@ -505,17 +527,21 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
         annualVolatility = volatility * (252 ** 0.5)
         annualVolatility = round(annualVolatility * 100, 2)
 
-        manager = ','.join(fund_manager[name]) if (name in fund_manager) else ''
+        managers = fund_manager[name] if (name in fund_manager) else []
+        manager = managers[0] if len(managers) > 0 else ''
+        manager2 = managers[1] if len(managers) > 1 else ''
+        manager3 = managers[2] if len(managers) > 2 else ''
+
         company = fund_company[name] if (name in fund_company) else ''
 
         if name not in fund_manager:
             continue
-        key_manager = company + fund_manager[name][0]
+        key_manager = company + manager
         size = manager_size[key_manager] if (key_manager in manager_size) else 0
 
-        eval_table.append([param, name, company, manager, size, min(days, fund_days), pct_cum, sharpe_ratio, max_drawdown, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
+        eval_table.append([symbol, name, company, manager, manager2, manager3, size, min(days, fund_days), pct_cum, sharpe_ratio, max_drawdown, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
 
-    en_cols = ['symbol', 'name', 'company', 'manager', 'size', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
+    en_cols = ['symbol', 'name', 'company', 'manager', 'manager2', 'manager3', 'size', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
     df = pd.DataFrame(eval_table, columns=en_cols)
 
     df['annual'] = round((np.power((df['pct_cum'] * 0.01 + 1), 1.0/(df['calc_days']/365.0)) - 1.0) * 100.0, 1)
@@ -551,11 +577,17 @@ def cli_fund_eval(params, options):
 
     yeartop = 0
     manager_out_csv = ''
+    company = ''
+    manager = ''
     for k in options:
         if k.startswith('-yeartop='):
             yeartop = int(k.replace('-yeartop=', ''))
         if k.startswith('-manager_out=') and k.endswith('.csv'):
             manager_out_csv = k.replace('-manager_out=', '')
+        if k.startswith('-company='):
+            company = k.replace('-company=', '')
+        if k.startswith('-manager='):
+            manager = k.replace('-manager=', '')
     
     df_fund_list = df_fund_list[ df_fund_list['buy_state'].isin(['限大额','开放申购']) ]
 
@@ -563,14 +595,12 @@ def cli_fund_eval(params, options):
         for k in ['C','持有']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-        for k in ['债','金','油','商品','通胀','全球','美元','美国','香港','恒生','海外','亚太','四国','QDII']:
+        for k in ['债','金','油','商品','通胀','全球','美元','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-    if '-nlof' in options:
         for k in ['LOF']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-    if '-netf' in options:
         for k in ['ETF','指数','联接']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
@@ -589,6 +619,24 @@ def cli_fund_eval(params, options):
         df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(set(symbols)) ]
 
     df_eval = eval_fund_list(df_fund_list, date_from= date_from, date_to= date_to)
+
+    if company:
+        if company.endswith('.csv'):
+            company = pd.read_csv(company, dtype= str)['company'].tolist()
+        elif ',' in company:
+            company = company.split(',')
+        else:
+            company = [ company ]
+        df_eval = df_eval[ df_eval['company'].isin(company) ]
+
+    if manager:
+        if manager.endswith('.csv'):
+            manager = pd.read_csv(manager, dtype= str)['name'].tolist()
+        elif ',' in manager:
+            manager = manager.split(',')
+        else:
+            manager = [ manager ]
+        df_eval = df_eval[ df_eval['manager'].isin(manager) | df_eval['manager2'].isin(manager) | df_eval['manager3'].isin(manager)  ]
 
     if '-smart' in options:
         df_eval = filter_with_options(df_eval, options)
@@ -620,9 +668,10 @@ def cli_fund_eval(params, options):
         managers = {}
         for i, row in df_eval.iterrows():
             company = row['company']
-            names = row['manager'].split(',')
-            for name in names:
-                managers[ company + ' ' + name ] = 1
+            for k in ['manager', 'mananger2', 'manager3']:
+                name = row[k]
+                if name:
+                    managers[ company + ' ' + name ] = 1
         table = []
         for k in managers.keys():
             items = k.split(' ')
@@ -858,7 +907,7 @@ def cli_fund_backtest(params, options):
             manager = manager.split(',')
         else:
             manager = [ manager ]
-        df_eval = df_eval[ df_eval['manager'].isin(manager) ]
+        df_eval = df_eval[ df_eval['manager'].isin(manager) | df_eval['manager2'].isin(manager) | df_eval['manager3'].isin(manager)  ]
 
     df_eval = sort_with_options(df_eval, options, by_default='pct_cum')
     symbols = []
