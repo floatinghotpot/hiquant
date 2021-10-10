@@ -207,11 +207,14 @@ def cli_fund_company(params, options):
 
     limit = 0
     yeartop = 0
+    manager_out_csv = ''
     for k in options:
         if k.startswith('-limit='):
             limit = int(k.replace('-limit=',''))
         if k.startswith('-yeartop='):
             yeartop = int(k.replace('-yeartop=',''))
+        if k.startswith('-manager_out=') and k.endswith('.csv'):
+            manager_out_csv = k.replace('-manager_out=','')
 
     if yeartop > 0:
         df_top_managers = cli_fund_manager([], ['-yeartop='+str(yeartop)])
@@ -224,7 +227,6 @@ def cli_fund_company(params, options):
         for i, row in df_top_managers.iterrows():
             manager = row['name']
             company = row['company']
-            print(manager, company)
             if company in company_managers:
                 company_managers[company].append(manager)
             else:
@@ -235,7 +237,6 @@ def cli_fund_company(params, options):
             company = row['company']
             if company in company_managers:
                 names = ', '.join( company_managers[company] )
-                print(names)
                 df['names'].iloc[i] = names
 
     selected = total = df.shape[0]
@@ -271,6 +272,17 @@ def cli_fund_company(params, options):
         })
         df.to_excel(excel_writer= out_xls_file)
         print('Exported to:', out_xls_file)
+
+    if manager_out_csv:
+        table = []
+        for i, row in df.iterrows():
+            company = row['company']
+            names = row['names'].split(', ')
+            for name in names:
+                table.append([company, name])
+        df_manager = pd.DataFrame(table, columns=['company','name'])
+        df_manager.to_csv(manager_out_csv, index=False)
+        print('Managers exported to:', manager_out_csv)
 
 def get_fund_area(name):
     fund_areas = {
@@ -577,17 +589,14 @@ def cli_fund_eval(params, options):
 
     yeartop = 0
     manager_out_csv = ''
-    company = ''
-    manager = ''
+    managedby = ''
     for k in options:
         if k.startswith('-yeartop='):
             yeartop = int(k.replace('-yeartop=', ''))
         if k.startswith('-manager_out=') and k.endswith('.csv'):
             manager_out_csv = k.replace('-manager_out=', '')
-        if k.startswith('-company='):
-            company = k.replace('-company=', '')
-        if k.startswith('-manager='):
-            manager = k.replace('-manager=', '')
+        if k.startswith('-managedby='):
+            managedby = k.replace('-managedby=', '')
     
     df_fund_list = df_fund_list[ df_fund_list['buy_state'].isin(['限大额','开放申购']) ]
 
@@ -620,23 +629,23 @@ def cli_fund_eval(params, options):
 
     df_eval = eval_fund_list(df_fund_list, date_from= date_from, date_to= date_to)
 
-    if company:
-        if company.endswith('.csv'):
-            company = pd.read_csv(company, dtype= str)['company'].tolist()
-        elif ',' in company:
-            company = company.split(',')
+    if managedby:
+        if managedby.endswith('.csv'):
+            df_manager = pd.read_csv(managedby, dtype= str)
+            managedby = (df_manager['company'] + df_manager['name']).tolist()
+            df_tmp = df_eval.copy()
+            df_tmp['manager'] = df_tmp['company'] + df_tmp['manager']
+            df_tmp['manager2'] = df_tmp['company'] + df_tmp['manager2']
+            df_tmp['manager3'] = df_tmp['company'] + df_tmp['manager3']
+            df_tmp = df_tmp[ df_tmp['manager'].isin(managedby) | df_tmp['manager2'].isin(managedby) | df_tmp['manager3'].isin(managedby)  ]
+            symbols = df_tmp['symbol'].tolist()
+            df_eval = df_eval[ df_eval['symbol'].isin(symbols) ]
         else:
-            company = [ company ]
-        df_eval = df_eval[ df_eval['company'].isin(company) ]
-
-    if manager:
-        if manager.endswith('.csv'):
-            manager = pd.read_csv(manager, dtype= str)['name'].tolist()
-        elif ',' in manager:
-            manager = manager.split(',')
-        else:
-            manager = [ manager ]
-        df_eval = df_eval[ df_eval['manager'].isin(manager) | df_eval['manager2'].isin(manager) | df_eval['manager3'].isin(manager)  ]
+            if ',' in managedby:
+                managedby = managedby.split(',')
+            else:
+                managedby = [ managedby ]
+            df_eval = df_eval[ df_eval['manager'].isin(managedby) | df_eval['manager2'].isin(managedby) | df_eval['manager3'].isin(managedby)  ]
 
     if '-smart' in options:
         df_eval = filter_with_options(df_eval, options)
