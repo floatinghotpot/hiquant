@@ -717,7 +717,7 @@ def cli_fund_eval(params, options):
 # hiquant fund plot 002943
 # hiquant fund plot 002943 005669
 # hiquant fund plot 002943 005669 -days=365
-def cli_fund_plot(params, options, title= None):
+def cli_fund_plot(params, options, title= None, mark_date = None):
     if len(params) == 0:
         cli_fund_help()
         return
@@ -798,13 +798,39 @@ def cli_fund_plot(params, options, title= None):
     base_name = index_symbol_names[ base ] if base in index_symbol_names else base
     df_funds[ base_name ] = df_base['pct_cum']
 
-    df_funds.index = df_funds.index.strftime('%Y-%m-%d')
+    #df_funds.index = df_funds.index.strftime('%Y-%m-%d')
     df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
+
+    if mark_date:
+        #mark_x = mark_date.strftime('%Y-%m-%d')
+        mark_x = mark_date
+        df_tmp = df_funds[ df_funds.index >= mark_x ]
+        if df_tmp.shape[0] > 0:
+            mark_x = np.datetime64(mark_x)
+            mark_y = max(list(df_tmp.iloc[0]))
+            if np.isnan(mark_y):
+                mark_y = 0.0
+            max_y = max(list(df_tmp.iloc[-1]))
+            print(mark_x, mark_y, max_y)
+            plt.annotate('更换\n基金经理\n(' + mark_date.strftime('%Y-%m-%d') + ')',
+                xy= (mark_x, mark_y + (max_y - mark_y)/20),
+                xycoords= 'data',
+                xytext= (mark_x, mark_y + (max_y - mark_y)/3),
+                arrowprops= dict(arrowstyle='->', color='red'),
+                ha= 'center',
+                va= 'center',
+                fontsize= 12,
+            )
+
     plt.xticks(rotation=15)
     plt.show()
 
-def cli_fund_plot_man(params, options):
+def cli_fund_show(params, options):
+    if len(params) == 2:
+        params = [ params[0] + params[1] ]
+
     df = cli_fund_manager(params, ['-s'])
+
     n = df.shape[0]
     if n == 0:
         print('Not found')
@@ -813,8 +839,9 @@ def cli_fund_plot_man(params, options):
     else:
         row = df.iloc[0]
         symbols = row['symbol']
+        mark_date = datetime_today() - dt.timedelta(days= int(row['days']))
         title = row['company'] + ' - ' + row['name']
-        cli_fund_plot([symbols], options, title= title)
+        cli_fund_plot([symbols], options, title= title, mark_date = mark_date)
 
 def filter_fund_list_simple_top(df_fund_list, date_from, ref_period):
     df_eval = eval_fund_list(df_fund_list, (date_from - dt.timedelta(days= ref_period)), date_from)
@@ -965,7 +992,7 @@ def cli_fund(params, options):
         cli_fund_plot(params, options)
 
     elif action in ['show']:
-        cli_fund_plot_man(params, options)
+        cli_fund_show(params, options)
 
     else:
         print('invalid action:', action)
