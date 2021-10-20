@@ -610,7 +610,7 @@ def cli_fund_eval(params, options):
         for k in ['C','持有']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-        for k in ['债','金','油','商品','资源','周期','通胀','全球','美元','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
+        for k in ['债','金','油','商品','资源','周期','通胀','全球','美元','美汇','美钞','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
         for k in ['LOF']:
@@ -666,8 +666,31 @@ def cli_fund_eval(params, options):
 
     df_eval = filter_with_options(df_eval, options)
     df_eval = sort_with_options(df_eval, options, by_default='pct_cum')
+
+    if '-one_per_manager' in options:
+        manager_symbol = {}
+        for i, row in df_eval.iterrows():
+            manager = row['company'] + row['manager']
+            if manager in manager_symbol:
+                continue
+            else:
+                manager_symbol[ manager ] = row['symbol']
+        df_eval = df_eval[ df_eval['symbol'].isin(manager_symbol.values()) ]
+
+    if '-one_per_company' in options:
+        company_symbol = {}
+        for i, row in df_eval.iterrows():
+            company = row['company']
+            if company in company_symbol:
+                continue
+            else:
+                company_symbol[ company ] = row['symbol']
+        df_eval = df_eval[ df_eval['symbol'].isin(company_symbol.values()) ]
+
     if limit > 0:
         df_eval = df_eval.head(limit)
+
+    df_eval = df_eval.reset_index(drop= True)
 
     df_eval['area'] = df_eval['name'].apply(get_fund_area)
 
