@@ -664,16 +664,10 @@ def cli_fund_eval(params, options):
                 belongto = [ belongto ]
         df_eval = df_eval[ df_eval['company'].isin(belongto) ]
 
-    if '-smart' in options:
-        df_eval = filter_with_options(df_eval, options)
-        df_eval = sort_with_options(df_eval, ['-sortby=score', '-desc'], by_default='score')
-        if limit > 0:
-            df_eval = df_eval.head(limit)
-    else:
-        df_eval = filter_with_options(df_eval, options)
-        df_eval = sort_with_options(df_eval, options, by_default='pct_cum')
-        if limit > 0:
-            df_eval = df_eval.head(limit)
+    df_eval = filter_with_options(df_eval, options)
+    df_eval = sort_with_options(df_eval, options, by_default='pct_cum')
+    if limit > 0:
+        df_eval = df_eval.head(limit)
 
     df_eval['area'] = df_eval['name'].apply(get_fund_area)
 
@@ -733,11 +727,17 @@ def cli_fund_eval(params, options):
 
     if '-plot' in options:
         cli_fund_plot(df_eval['symbol'].tolist(), options)
+    elif '-plot_company' in options:
+        companies = list(set(df_eval['company'].tolist()))
+        options.append('-limit=5')
+        for company in companies:
+            df_funds = df_eval[ df_eval['company'] == company ]
+            cli_fund_plot(df_funds['symbol'].tolist(), options, png= 'output/' + company + '.png')
 
 # hiquant fund plot 002943
 # hiquant fund plot 002943 005669
 # hiquant fund plot 002943 005669 -days=365
-def cli_fund_plot(params, options, title= None, mark_date = None):
+def cli_fund_plot(params, options, title= None, mark_date = None, png = None):
     if len(params) == 0:
         cli_fund_help()
         return
@@ -809,11 +809,14 @@ def cli_fund_plot(params, options, title= None, mark_date = None):
             df_funds = df_funds[ df_cmp['symbol'].tolist() ]
         pass
 
-    index_symbol_names = dict_from_df( get_cn_index_list_df() )
     base = 'sh000300'
     for k in options:
         if k.startswith('-base='):
             base = k.replace('-base=', '')
+        if k.startswith('-png='):
+            png = k.replace('-png=', '')
+
+    index_symbol_names = dict_from_df( get_cn_index_list_df() )
     bases = base.split(',') if (',' in base) else [ base ]
     for base in bases:
         df_base = get_index_daily( base )
@@ -848,7 +851,10 @@ def cli_fund_plot(params, options, title= None, mark_date = None):
             )
 
     plt.xticks(rotation=15)
-    plt.show()
+    if png is None:
+        plt.show()
+    else:
+        plt.savefig(png)
 
 def cli_fund_show(params, options):
     if len(params) == 2:
