@@ -330,7 +330,7 @@ def cli_fund_manager(params, options):
 
     yeartop = 0
     limit = 0
-    company = ''
+    belongto = ''
     for k in options:
         if k.startswith('-limit='):
             limit = int(k.replace('-limit=',''))
@@ -339,8 +339,8 @@ def cli_fund_manager(params, options):
         if k.startswith('-fund='):
             fund = k.replace('-fund=','')
             df = df[ df['fund'].str.contains(fund, na=False) ]
-        if k.startswith('-company='):
-            company = k.replace('-company=', '')
+        if k.startswith('-belongto='):
+            belongto = k.replace('-belongto=', '')
 
     df_company = get_cn_fund_company()
     company_managers = dict_from_df(df_company, 'company', 'managers')
@@ -386,14 +386,14 @@ def cli_fund_manager(params, options):
     selected = total = df.shape[0]
     df = filter_with_options(df, options)
 
-    if company:
-        if company.endswith('.csv'):
-            company = pd.read_csv(company, dtype= str)['company'].tolist()
-        elif ',' in company:
-            company = company.split(',')
+    if belongto:
+        if belongto.endswith('.csv'):
+            belongto = pd.read_csv(belongto, dtype= str)['company'].tolist()
+        elif ',' in belongto:
+            belongto = belongto.split(',')
         else:
-            company = [ company ]
-        df = df[ df['company'].isin(company) ]
+            belongto = [ belongto ]
+        df = df[ df['company'].isin(belongto) ]
 
     for k in options:
         if k.startswith('-sortby='):
@@ -516,7 +516,9 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
         df = df[ df.index < date_to ]
 
         # skip the fund if data not reasonable, pct_change > 10.0%
-        if df['pct_change'].max() > 10.0:
+        pct_change_max = df['pct_change'].max()
+        if pct_change_max > 20.0:
+            print('pct_change_max', pct_change_max)
             continue
 
         try:
@@ -524,7 +526,7 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
             pct_cum = df['pct_cum'].iloc[-1] - 1.0
             pct_cum = round(pct_cum * 100, 2)
         except (KeyError, ValueError, IndexError) as err:
-            #print('error calculating', param, name, ', skip.')
+            print('error calculating', symbol, name, ', skip.')
             continue
 
         risk_free_rate = 3.0 / 365
@@ -547,6 +549,7 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
         company = fund_company[name] if (name in fund_company) else ''
 
         if name not in fund_manager:
+            print('name not in fund manager')
             continue
         key_manager = company + manager
         size = manager_size[key_manager] if (key_manager in manager_size) else 0
@@ -590,6 +593,7 @@ def cli_fund_eval(params, options):
     yeartop = 0
     manager_out_csv = ''
     managedby = ''
+    belongto = ''
     for k in options:
         if k.startswith('-yeartop='):
             yeartop = int(k.replace('-yeartop=', ''))
@@ -597,20 +601,22 @@ def cli_fund_eval(params, options):
             manager_out_csv = k.replace('-manager_out=', '')
         if k.startswith('-managedby='):
             managedby = k.replace('-managedby=', '')
+        if k.startswith('-belongto='):
+            belongto = k.replace('-belongto=', '')
     
-    df_fund_list = df_fund_list[ df_fund_list['buy_state'].isin(['限大额','开放申购']) ]
-
     if '-nc' in options:
+        df_fund_list = df_fund_list[ df_fund_list['buy_state'].isin(['限大额','开放申购']) ]
+
         for k in ['C','持有']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-        for k in ['债','金','油','商品','通胀','全球','美元','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
+        for k in ['债','金','油','商品','资源','周期','通胀','全球','美元','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
         for k in ['LOF']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-        for k in ['ETF','指数','联接']:
+        for k in ['ETF','指数','联接','中证']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
     if yeartop > 0:
@@ -646,6 +652,17 @@ def cli_fund_eval(params, options):
             else:
                 managedby = [ managedby ]
             df_eval = df_eval[ df_eval['manager'].isin(managedby) | df_eval['manager2'].isin(managedby) | df_eval['manager3'].isin(managedby)  ]
+
+    if belongto:
+        if belongto.endswith('.csv'):
+            df_company = pd.read_csv(belongto, dtype= str)
+            belongto = df_company['company'].tolist()
+        else:
+            if ',' in belongto:
+                belongto = belongto.split(',')
+            else:
+                belongto = [ belongto ]
+        df_eval = df_eval[ df_eval['company'].isin(belongto) ]
 
     if '-smart' in options:
         df_eval = filter_with_options(df_eval, options)
@@ -713,6 +730,9 @@ def cli_fund_eval(params, options):
         df_eval.to_excel(excel_writer= out_xls_file)
         print( tb.tabulate(df_eval, headers='keys') )
         print('Exported to:', out_xls_file)
+
+    if '-plot' in options:
+        cli_fund_plot(df_eval['symbol'].tolist(), options)
 
 # hiquant fund plot 002943
 # hiquant fund plot 002943 005669
@@ -785,21 +805,22 @@ def cli_fund_plot(params, options, title= None, mark_date = None):
             df_funds = df_funds[ df_cmp['symbol'].tolist() ]
         pass
 
+    index_symbol_names = dict_from_df( get_cn_index_list_df() )
     base = 'sh000300'
     for k in options:
         if k.startswith('-base='):
             base = k.replace('-base=', '')
-    df_base = get_index_daily( base )
-    df_base = df_base[ df_base.index >= min(df_funds.index) ]
-    df_base = df_base[ df_base.index < date_to ]
-    df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
-
-    index_symbol_names = dict_from_df( get_cn_index_list_df() )
-    base_name = index_symbol_names[ base ] if base in index_symbol_names else base
-    df_funds[ base_name ] = df_base['pct_cum']
+    bases = base.split(',') if (',' in base) else [ base ]
+    for base in bases:
+        df_base = get_index_daily( base )
+        df_base = df_base[ df_base.index >= min(df_funds.index) ]
+        df_base = df_base[ df_base.index < date_to ]
+        df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
+        base_name = index_symbol_names[ base ] if base in index_symbol_names else base
+        df_funds[ base_name ] = df_base['pct_cum']
 
     #df_funds.index = df_funds.index.strftime('%Y-%m-%d')
-    df_funds.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= title)
+    df_funds.plot(kind='line', ylabel='收益率 (%)', xlabel='日期', figsize=(10,6), title= title)
 
     if mark_date:
         #mark_x = mark_date.strftime('%Y-%m-%d')
