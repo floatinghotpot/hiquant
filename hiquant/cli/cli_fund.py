@@ -758,6 +758,7 @@ def cli_fund_plot(params, options, title= None, mark_date = None):
     params = df_fund_list['symbol'].tolist()
 
     fund_symbol_names = dict_from_df(df_fund_list, 'symbol', 'name')
+    fund_manager_mapping = get_fund_manager_mapping()
 
     date_from, date_to, limit = date_limit_from_options(options)
     if limit == 0:
@@ -765,19 +766,22 @@ def cli_fund_plot(params, options, title= None, mark_date = None):
 
     df_funds = None
     i = 0
-    for param in params:
-        if param in fund_symbol_names:
-            name = param + ' - ' + fund_symbol_names[ param ]
+    for symbol in params:
+        if symbol in fund_symbol_names:
+            name = fund_symbol_names[ symbol ]
+            if '-man' in options:
+                name = name + ' (' + (','.join(fund_manager_mapping[name])) + ')'
+            display_name = symbol + ' - ' + name
         else:
-            name = param
-        print( name )
+            display_name = symbol
+        print( display_name )
         
         i += 1
         if i > limit:
             break
 
         try:
-            df = get_cn_fund_daily(symbol= param, check_date= datetime_today())
+            df = get_cn_fund_daily(symbol= symbol, check_date= datetime_today())
             #df = get_cn_fund_daily(symbol= param, check_date= None)
         except:
             continue
@@ -787,9 +791,9 @@ def cli_fund_plot(params, options, title= None, mark_date = None):
         df['pct_cum'] = round(((df['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0, 1)
         if df_funds is None:
             df_funds = df[['pct_cum']]
-            df_funds.columns = [ name ]
+            df_funds.columns = [ display_name ]
         else:
-            df_funds = pd.concat([df_funds, df['pct_cum'].copy().rename(name).to_frame()], axis=1)
+            df_funds = pd.concat([df_funds, df['pct_cum'].copy().rename(display_name).to_frame()], axis=1)
 
     if '-mix' in options:
         df_funds = df_funds.mean(axis=1).to_frame()
