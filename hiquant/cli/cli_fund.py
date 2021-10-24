@@ -70,7 +70,8 @@ def get_fund_manager_mapping():
         name = row['name']
         fund = row['fund']
         if fund in fund_manager:
-            fund_manager[ fund ].append( name )
+            if name not in fund_manager[ fund ]:
+                fund_manager[ fund ].append( name )
             pass
         else:
             fund_manager[ fund ] = [ name ]
@@ -416,6 +417,7 @@ def cli_fund_manager(params, options):
         df['fund'] = [('\n'.join(manager_fund[manager]) if manager in manager_fund else '') for manager in managers]
         df['area'] = df['fund'].apply(get_fund_area)
 
+    df = df.reset_index(drop= True)
     selected = df.shape[0]
     print( tb.tabulate(df, headers='keys') )
     print( selected, 'of', total, 'selected.')
@@ -514,6 +516,8 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
 
         df = df[ df.index >= date_from ]
         df = df[ df.index < date_to ]
+        if df.shape[0] == 0:
+            continue
 
         # skip the fund if data not reasonable, pct_change > 10.0%
         pct_change_max = df['pct_change'].max()
@@ -608,10 +612,10 @@ def cli_fund_eval(params, options):
     if '-nc' in options:
         df_fund_list = df_fund_list[ df_fund_list['buy_state'].isin(['限大额','开放申购']) ]
 
-        for k in ['C','持有']:
+        for k in ['C','E','持有']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-        for k in ['债','金','油','商品','资源','周期','通胀','全球','美元','美汇','美钞','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
+        for k in ['债','酒','金','油','商品','资源','周期','通胀','全球','美元','美汇','美钞','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
         for k in ['LOF']:
