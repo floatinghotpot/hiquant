@@ -6,7 +6,7 @@ import pandas as pd
 import tabulate as tb
 import matplotlib.pyplot as plt
 
-from ..utils import symbol_normalize, date_limit_from_options, dict_from_df, csv_xlsx_from_options, sort_with_options, filter_with_options
+from ..utils import symbol_normalize, date_range_from_options, range_from_options, dict_from_df, csv_xlsx_from_options, sort_with_options, filter_with_options
 from ..core import symbol_to_name, get_cn_stock_list_df, get_hk_stock_list_df, get_us_stock_list_df, get_all_stock_list_df, get_all_index_list_df
 from ..core import get_index_daily, get_daily
 from ..core import list_signal_indicators, get_order_cost
@@ -62,7 +62,9 @@ def cli_stock_list(params, options):
     print( 'Totally', df.shape[0], 'rows.\n')
 
 def cmp_stock_earn(params, options):
-    date_from, date_to, limit = date_limit_from_options(options)
+    date_from, date_to = date_range_from_options(options)
+    range_from, range_to = range_from_options(options)
+    limit = range_to - range_from
 
     df_stocks = None
     i = 0
@@ -114,7 +116,9 @@ def cli_stock_cmp(params, options):
 
     df_stocks, df = cmp_stock_earn(params, options)
 
-    date_from, date_to, limit = date_limit_from_options(options)
+    date_from, date_to = date_range_from_options(options)
+    range_from, range_to = range_from_options(options)
+    limit = range_to - range_from
     if limit > 0:
         df = df.head(limit)
         df_stocks = df_stocks[ df['stock'].tolist() ]
@@ -135,7 +139,7 @@ def cli_stock_cmp(params, options):
     pass
 
 def cli_stock_plot_one(symbol, options):
-    date_from, date_to, limit = date_limit_from_options(options)
+    date_from, date_to = date_range_from_options(options)
 
     symbol = symbol_normalize(symbol)
     name = symbol_to_name(symbol)
@@ -204,7 +208,8 @@ def cli_stock_plot_multi(params, options):
         if k.startswith('-base='):
             base = k.replace('-base=', '')
     df_base = get_index_daily( base )
-    date_from, date_to, limit = date_limit_from_options(options)
+
+    date_from, date_to = date_range_from_options(options)
     df_base = df_base[ df_base.index >= date_from ]
     df_base = df_base[ df_base.index < date_to ]
     df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0

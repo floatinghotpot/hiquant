@@ -6,7 +6,7 @@ import pandas as pd
 import tabulate as tb
 import matplotlib.pyplot as plt
 
-from ..utils import symbol_normalize, date_limit_from_options, dict_from_df, csv_xlsx_from_options, sort_with_options, filter_with_options
+from ..utils import symbol_normalize, date_range_from_options, range_from_options, dict_from_df, csv_xlsx_from_options, sort_with_options, filter_with_options
 from ..data_source import download_cn_index_stocks_list
 from ..core import symbol_to_name
 from ..core import get_order_cost
@@ -66,7 +66,9 @@ def cli_index_list(params, options):
     print( 'Totally', df.shape[0], 'records.\n')
 
 def cmp_index_earn(params, options):
-    date_from, date_to, limit = date_limit_from_options(options)
+    date_from, date_to = date_range_from_options(options)
+    range_from, range_to = range_from_options(options)
+    limit = range_to - range_from
 
     df_stocks = None
     i = 0
@@ -118,7 +120,8 @@ def cli_index_cmp(params, options):
 
     df_stocks, df = cmp_index_earn(params, options)
 
-    date_from, date_to, limit = date_limit_from_options(options)
+    range_from, range_to = range_from_options(options)
+    limit = range_to - range_from
     if limit > 0:
         df = df.head(limit)
         df_stocks = df_stocks[ df['stock'].tolist() ]
@@ -141,11 +144,10 @@ def cli_index_plot_one(params, options):
     symbol_name = dict_from_df(get_all_index_list_df(), 'symbol', 'name')
     name = (symbol_name[symbol] if (symbol in symbol_name) else '')
 
-    date_start, date_end, limit = date_limit_from_options(options)
-
+    date_from, date_to = date_range_from_options(options)
     df = get_index_daily(symbol)
-    df = df[ df.index >= date_start ]
-    df = df[ df.index < date_end ]
+    df = df[ df.index >= date_from ]
+    df = df[ df.index < date_to ]
 
     stock = Stock(symbol, name, df)
 

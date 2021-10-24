@@ -38,8 +38,7 @@ def dict_from_config_items(items, verbose = False):
             print(k, '=', v)
     return mapping
 
-def date_limit_from_options(options):
-    limit = 0
+def date_range_from_options(options):
     date_from = None
     date_to = None
     days = None
@@ -60,15 +59,30 @@ def date_limit_from_options(options):
             date_range = option.replace('-year=','').split('-')
             date_from = dt.datetime(int(date_range[0]), 1, 1)
             date_to = dt.datetime(int(date_range[1]), 12, 31) if (len(date_range)>1 and len(date_range[1])>0) else datetime_today()
-        if option.startswith('-limit='):
-            limit = int(option.replace('-limit=',''))
 
     if date_from is None:
         days = 365 * 3
         date_from = date_from_str('{} days ago'.format(days))
         date_to = datetime_today()
 
-    return date_from, date_to, limit
+    return date_from, date_to
+
+def range_from_options(options):
+    range_from = 0
+    range_to = 0
+    for k in options:
+        if k.startswith('-limit='):
+            k = k.replace('-limit=','-range=')
+        if k.startswith('-range='):
+            k = k.replace('-range=','')
+            if '-' in k:
+                ranges = k.split('-')
+                range_from = int(ranges[0])
+                range_to = int(ranges[1]) if (len(ranges)>1) else 0
+                return range_from, range_to
+            else:
+                return 0, int(k)
+    return range_from, range_to
 
 def csv_xlsx_from_options(options):
     csv = ''

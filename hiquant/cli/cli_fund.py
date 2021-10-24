@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_index_list_df, get_index_daily
-from ..utils import dict_from_df, datetime_today, sort_with_options, filter_with_options, date_limit_from_options, csv_xlsx_from_options
+from ..utils import dict_from_df, datetime_today, sort_with_options, filter_with_options, date_range_from_options, range_from_options, csv_xlsx_from_options
 
 def cli_fund_help():
     syntax_tips = '''Syntax:
@@ -588,7 +588,8 @@ def cli_fund_eval(params, options):
             pass
         df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
 
-    date_from, date_to, limit = date_limit_from_options(options)
+    date_from, date_to = date_range_from_options(options)
+    range_from, range_to = range_from_options(options)
 
     yeartop = 0
     manager_out_csv = ''
@@ -687,8 +688,10 @@ def cli_fund_eval(params, options):
                 company_symbol[ company ] = row['symbol']
         df_eval = df_eval[ df_eval['symbol'].isin(company_symbol.values()) ]
 
-    if limit > 0:
-        df_eval = df_eval.head(limit)
+    if range_to:
+        df_eval = df_eval.head(range_to)
+    if range_from:
+        df_eval = df_eval.tail(range_to - range_from)
 
     df_eval = df_eval.reset_index(drop= True)
 
@@ -729,8 +732,12 @@ def cli_fund_eval(params, options):
         df_eval = df_eval.rename(columns= {
             'symbol': '基金代码',
             'name': '基金简称',
+            'company': '基金公司',
             'manager': '基金经理',
-            'pct_cum': str(years) + '年收益率',
+            'manager2': '基金经理',
+            'manager3': '基金经理',
+            'size': '管理规模',
+            'pct_cum': str(years) + '年\n收益率',
             'sharpe': '夏普比率',
             'max_drawdown': '最大回撤',
             'volatility': '波动率',
@@ -783,7 +790,9 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None):
     fund_symbol_names = dict_from_df(df_fund_list, 'symbol', 'name')
     fund_manager_mapping = get_fund_manager_mapping()
 
-    date_from, date_to, limit = date_limit_from_options(options)
+    date_from, date_to = date_range_from_options(options)
+    range_from, range_to = range_from_options(options)
+    limit = range_to - range_from
     if limit == 0:
         limit = 100
 
@@ -936,7 +945,9 @@ def cli_fund_backtest(params, options):
         cli_fund_help()
         return
 
-    date_from, date_to, limit = date_limit_from_options(options)
+    date_from, date_to = date_range_from_options(options)
+    range_from, range_to = range_from_options(options)
+    limit = range_to - range_from
     if limit == 0:
         limit = 20
 
