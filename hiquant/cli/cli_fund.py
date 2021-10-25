@@ -170,12 +170,9 @@ def cli_fund_list(params, options):
         print('Exported to:', out_csv_file)
         print(df)
 
-def get_cn_fund_company(keyword = None):
+def get_cn_fund_company():
     df = get_cn_fund_manager(check_date= datetime_today())
     df = df.fillna(0)
-
-    if keyword is not None:
-        df = df[ df['company'].str.contains(keyword, na=False) ]
 
     mapping = {}
     for i, row in df.iterrows():
@@ -203,8 +200,7 @@ def get_cn_fund_company(keyword = None):
     return pd.DataFrame(table, columns=['company','managers','funds','size']).sort_values(by= 'managers', ascending= False).reset_index(drop= True)
 
 def cli_fund_company(params, options):
-    keyword = params[0] if len(params) > 0 else None
-    df = get_cn_fund_company(keyword)
+    df = get_cn_fund_company()
 
     limit = 0
     yeartop = 0
@@ -240,6 +236,14 @@ def cli_fund_company(params, options):
                 names = ', '.join( company_managers[company] )
                 df['names'].iloc[i] = names
 
+    if len(params) > 0:
+        if '.csv' in params[0]:
+            company_names = pd.read_csv(params[0], dtype=str)['company'].tolist()
+            df = df[ df['company'].isin(company_names) ]
+        else:
+            keyword = params[0]
+            df = df[ df['company'].str.contains(keyword, na=False) ]
+
     selected = total = df.shape[0]
     df = filter_with_options(df, options)
 
@@ -255,6 +259,17 @@ def cli_fund_company(params, options):
     print( selected, 'of', total, 'fund companies.')
 
     out_csv_file, out_xls_file = csv_xlsx_from_options(options)
+
+    if manager_out_csv:
+        table = []
+        for i, row in df.iterrows():
+            company = row['company']
+            names = row['names'].split(', ')
+            for name in names:
+                table.append([company, name])
+        df_manager = pd.DataFrame(table, columns=['company','name'])
+        df_manager.to_csv(manager_out_csv, index=False)
+        print('Managers exported to:', manager_out_csv)
 
     if out_csv_file:
         df_com = df[['company']]
@@ -273,17 +288,6 @@ def cli_fund_company(params, options):
         })
         df.to_excel(excel_writer= out_xls_file)
         print('Exported to:', out_xls_file)
-
-    if manager_out_csv:
-        table = []
-        for i, row in df.iterrows():
-            company = row['company']
-            names = row['names'].split(', ')
-            for name in names:
-                table.append([company, name])
-        df_manager = pd.DataFrame(table, columns=['company','name'])
-        df_manager.to_csv(manager_out_csv, index=False)
-        print('Managers exported to:', manager_out_csv)
 
 def get_fund_area(name):
     fund_areas = {
@@ -315,6 +319,8 @@ def cli_fund_manager(params, options):
 
     if len(params) > 0:
         keyword = params[0]
+        if ',' in keyword:
+            keyword = keyword.replace(',', '')
         if keyword.endswith('.csv'):
             df_filter = pd.read_csv(keyword, dtype= str)
             if 'name' in df_filter.columns:
@@ -615,7 +621,7 @@ def cli_fund_eval(params, options):
         for k in ['C','E','持有']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-        for k in ['债','酒','金','油','商品','资源','周期','通胀','全球','美元','美汇','美钞','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
+        for k in ['债','油','黄金','商品','资源','周期','通胀','全球','美元','美汇','美钞','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
         for k in ['LOF']:
@@ -887,6 +893,7 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None):
             )
 
     plt.xticks(rotation=15)
+    plt.legend(loc='upper left')
     if png is None:
         plt.show()
     else:
@@ -894,7 +901,10 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None):
 
 def cli_fund_show(params, options):
     if len(params) == 2:
-        params = [ params[0] + params[1] ]
+        if params[1].endswith('基金'):
+            params = [ params[1] + params[0] ]
+        else:
+            params = [ params[0] + params[1] ]
 
     df = cli_fund_manager(params, ['-s'])
 
