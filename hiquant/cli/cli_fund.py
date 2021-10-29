@@ -250,15 +250,17 @@ def cli_fund_company(params, options):
         print('Exported to:', out_csv_file)
 
     if out_xls_file:
-        df = df.rename(columns= {
+        df_com = df.rename(columns= {
             'company': '基金公司',
-            'managers': '基金经理\n人数',
-            'funds': '基金\n总数',
             'size': '管理规模\n(亿)',
+            'funds': '基金\n总数',
+            'managers': '基金经理\n人数',
             'yeartopn': '业绩前列\n经理人数',
             'names': '业绩优秀 基金经理 姓名',
         })
-        df.to_excel(excel_writer= out_xls_file)
+        del df_com['update_date']
+        df_com.to_excel(excel_writer= out_xls_file)
+        print( tb.tabulate(df_com, headers='keys') )
         print('Exported to:', out_xls_file)
 
 def get_fund_area(name):
