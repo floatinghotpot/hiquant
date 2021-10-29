@@ -479,14 +479,14 @@ def get_cn_fund_manager(check_date= None):
 
 def get_cn_fund_company(check_date= None):
     df = get_cached_download_df('cache/cn_fund_company.csv', download_cn_fund_company, check_date= check_date)
-    df.columns = ['index', 'company', 'copmany_start', 'size', 'funds', 'managers', 'update_date']
+    df.columns = ['index', 'company', 'company_start', 'size', 'funds', 'managers', 'update_date']
     df = df.drop(columns=['index'])
     df = df.astype({
         'size': 'float64',
         'funds': 'int',
         'managers': 'int',
     })
-    df['copmany_start'] = pd.to_datetime(df['copmany_start']).dt.date
+    df['company_start'] = pd.to_datetime(df['company_start']).dt.date
     df['size'] = df['size'].fillna(0)
     for k in ['有限公司','有限责任公司','管理','资产','股份']:
         df['company'] = df['company'].str.replace(k, '')

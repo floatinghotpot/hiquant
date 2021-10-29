@@ -252,6 +252,7 @@ def cli_fund_company(params, options):
     if out_xls_file:
         df_com = df.rename(columns= {
             'company': '基金公司',
+            'company_start': '成立日期',
             'size': '管理规模\n(亿)',
             'funds': '基金\n总数',
             'managers': '基金经理\n人数',
