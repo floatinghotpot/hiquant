@@ -182,3 +182,7 @@ def download_cn_etf_fund_info(symbol):
 def download_cn_fund_manager(param= None, verbose= False):
     df = ak.fund_manager(explode= True)
     return df
+
+def download_cn_fund_company(param= None, verbose= False):
+    df = ak.fund_em_aum()
+    return df

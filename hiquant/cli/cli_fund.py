@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_index_list_df, get_index_daily
+from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_fund_company, get_cn_index_list_df, get_index_daily
 from ..utils import dict_from_df, datetime_today, sort_with_options, filter_with_options, date_range_from_options, range_from_options, csv_xlsx_from_options
 
 def cli_fund_help():
@@ -170,35 +170,6 @@ def cli_fund_list(params, options):
         print('Exported to:', out_csv_file)
         print(df)
 
-def get_cn_fund_company():
-    df = get_cn_fund_manager(check_date= datetime_today())
-    df = df.fillna(0)
-
-    mapping = {}
-    for i, row in df.iterrows():
-        fund = row['fund']
-        manager = row['name']
-        company = row['company']
-        size = row['size']
-        if company in mapping:
-            funds = mapping[ company ]['funds']
-            managers = mapping[ company ]['managers']
-            if fund not in funds:
-                funds.append( fund )
-            if manager not in managers:
-                managers.append( manager )
-                mapping[ company ]['size'] += size
-        else:
-            mapping[ company ] = {
-                'managers': [ manager ],
-                'funds': [ fund ],
-                'size': size,
-            }
-    table = []
-    for company, v in mapping.items():
-        table.append( [company, len(v['managers']), len(v['funds']), v['size']] )
-    return pd.DataFrame(table, columns=['company','managers','funds','size']).sort_values(by= 'managers', ascending= False).reset_index(drop= True)
-
 def cli_fund_company(params, options):
     df = get_cn_fund_company()
 
@@ -255,6 +226,7 @@ def cli_fund_company(params, options):
         df = df.head(limit)
 
     selected = df.shape[0]
+    df = df.reset_index(drop= True)
     print( tb.tabulate(df, headers='keys') )
     print( selected, 'of', total, 'fund companies.')
 
