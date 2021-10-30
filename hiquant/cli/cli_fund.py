@@ -174,18 +174,18 @@ def cli_fund_company(params, options):
     df = get_cn_fund_company()
 
     limit = 0
-    yeartop = 0
+    yeartop = ''
     manager_out_csv = ''
     for k in options:
         if k.startswith('-limit='):
             limit = int(k.replace('-limit=',''))
         if k.startswith('-yeartop='):
-            yeartop = int(k.replace('-yeartop=',''))
+            yeartop = k.replace('-yeartop=','')
         if k.startswith('-manager_out=') and k.endswith('.csv'):
             manager_out_csv = k.replace('-manager_out=','')
 
-    if yeartop > 0:
-        df_top_managers = cli_fund_manager([], ['-yeartop='+str(yeartop)])
+    if yeartop:
+        df_top_managers = cli_fund_manager([], ['-yeartop='+yeartop])
         df_yeartop = df_top_managers[['company']].groupby(['company']).size().reset_index(name='yeartopn')
         company_yeartop = dict_from_df(df_yeartop, 'company', 'yeartopn')
         df['yeartopn'] = [company_yeartop[c] if (c in company_yeartop) else 0 for c in df['company'].tolist()]
@@ -310,14 +310,14 @@ def cli_fund_manager(params, options):
             df1['keywords'] = df1['company'] + df1['name'] + ' ' + df1['fund']
             df = df1[ df1['keywords'].str.contains(keyword, na=False) ].drop(columns=['keywords'])
 
-    yeartop = 0
+    yeartop = ''
     limit = 0
     belongto = ''
     for k in options:
         if k.startswith('-limit='):
             limit = int(k.replace('-limit=',''))
         if k.startswith('-yeartop='):
-            yeartop = int(k.replace('-yeartop=', ''))
+            yeartop = k.replace('-yeartop=', '')
         if k.startswith('-fund='):
             fund = k.replace('-fund=','')
             df = df[ df['fund'].str.contains(fund, na=False) ]
@@ -356,10 +356,21 @@ def cli_fund_manager(params, options):
 
     df['annual'] = round((np.power((df['best_return'] * 0.01 + 1), 1.0/(np.maximum(365.0,df['days'])/365.0)) - 1.0) * 100.0, 1)
 
-    if yeartop > 0:
-        df1 = df[ df['days'] >= 3650 ].sort_values(by='best_return', ascending=False).head(yeartop)
+    if yeartop:
+        df1 = df[ df['days'] >= 3650 ].sort_values(by='best_return', ascending=False)
+        if '%' in yeartop:
+            yeartopn = int(yeartop.replace('%','')) * df1.shape[0] // 100
+        else:
+            yeartopn = int(yeartop)
+        df1 = df1.head(yeartopn)
+
         for i in range(9,-1,-1):
-            df2 = df[ (df['days'] >= (i*365)) & (df['days'] < ((i+1))*365) ].sort_values(by='best_return', ascending=False).head(yeartop)
+            df2 = df[ (df['days'] >= (i*365)) & (df['days'] < ((i+1))*365) ].sort_values(by='best_return', ascending=False)
+            if '%' in yeartop:
+                yeartopn = int(yeartop.replace('%','')) * df2.shape[0] // 100
+            else:
+                yeartopn = int(yeartop)
+            df2 = df2.head( yeartopn )
             df1 = pd.concat([df1, df2], ignore_index=True)
         df = df1
 
