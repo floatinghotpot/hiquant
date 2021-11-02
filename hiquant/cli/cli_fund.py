@@ -364,7 +364,7 @@ def cli_fund_manager(params, options):
             yeartopn = int(yeartop)
         df1 = df1.head(yeartopn)
 
-        for i in range(9,-1,-1):
+        for i in range(9,0,-1):
             df2 = df[ (df['days'] >= (i*365)) & (df['days'] < ((i+1))*365) ].sort_values(by='best_return', ascending=False)
             if '%' in yeartop:
                 yeartopn = int(yeartop.replace('%','')) * df2.shape[0] // 100
@@ -451,6 +451,19 @@ def cli_fund_read_fund_symbols(excel_file):
 
     return df['symbol'].tolist() if ('symbol' in df) else []
 
+def symbols_from_params(params):
+    symbols = []
+    for param in params:
+        if param.endswith('.csv'):
+            symbols += pd.read_csv(param, dtype=str)['symbol'].tolist()
+        elif param.endswith('.xlsx'):
+            symbols += pd.read_excel(param, dtype=str)['symbol'].tolist()
+        elif ',' in param:
+            symbols += param.split(',')
+        else:
+            symbols.append(param)
+    return list(set(symbols))
+
 # hiquant fund update <symbols>
 # hiquant fund update <symbols.csv>
 # hiquant fund update all
@@ -460,23 +473,23 @@ def cli_fund_update(params, options):
         return
 
     df_fund_list = get_cn_fund_list(check_date= datetime_today())
-    fund_symbol_names = dict_from_df(df_fund_list, 'symbol', 'name')
 
     if params[0] == 'all':
-        params = df_fund_list['symbol'].tolist()
-    elif params[0].endswith('.csv') or params[0].endswith('.xlsx'):
-        params = cli_fund_read_fund_symbols(params[0])
-    elif ',' in params[0]:
-        params = params[0].split(',')
+        pass
+    else:
+        symbols = symbols_from_params(params)
+        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(symbols) ]
+
+    fund_symbol_names = dict_from_df(df_fund_list, 'symbol', 'name')
 
     i = 0
-    n = len(params)
-    for param in params:
+    n = len(symbols)
+    for symbol in symbols:
         i += 1
-        name = param + ' - ' + fund_symbol_names[ param ]
+        name = symbol + ' - ' + fund_symbol_names[ symbol ]
         print('{}/{} - updating {} ...'.format(i, n, name))
         try:
-            df = get_cn_fund_daily(symbol= param, check_date= datetime_today())
+            df = get_cn_fund_daily(symbol= symbol, check_date= datetime_today())
         except (KeyError, ValueError, IndexError) as err:
             print('error downloading', name)
             pass
@@ -594,19 +607,14 @@ def cli_fund_eval(params, options):
 
     df_fund_list = get_cn_fund_list()
 
+    if myfunds:
+        params.append( myfunds )
+
     if params[0] == 'all':
         pass
     else:
-        if params[0].endswith('.csv') or params[0].endswith('.xlsx'):
-            params = cli_fund_read_fund_symbols(params[0])
-            if myfunds:
-                if myfunds.endswith('.csv') or myfunds.endswith('.xlsx'):
-                    params = params + cli_fund_read_fund_symbols(myfunds)
-        elif ',' in params[0]:
-            params = params[0].split(',')
-        else:
-            pass
-        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
+        symbols = symbols_from_params(params)
+        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(symbols) ]
 
     date_from, date_to = date_range_from_options(options)
     range_from, range_to = range_from_options(options)
@@ -620,8 +628,8 @@ def cli_fund_eval(params, options):
         for k in ['债','油','黄金','商品','资源','周期','通胀','全球','美元','美汇','美钞','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
-        for k in ['LOF']:
-            df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
+        #for k in ['LOF']:
+        #    df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
         for k in ['ETF','指数','联接','中证']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
@@ -682,6 +690,9 @@ def cli_fund_eval(params, options):
         if belongto.endswith('.csv'):
             df_company = pd.read_csv(belongto, dtype= str)
             belongto = df_company['company'].tolist()
+        elif belongto.endswith('.xlsx'):
+            df_company = pd.read_excel(belongto, dtype= str)
+            belongto = df_company['company'].tolist()
         else:
             if ',' in belongto:
                 belongto = belongto.split(',')
@@ -695,22 +706,23 @@ def cli_fund_eval(params, options):
     if '-one_per_manager' in options:
         manager_symbol = {}
         for i, row in df_eval.iterrows():
-            for k in ['manager', 'manager2', 'manager3']:
-                manager = row['company'] + row[k]
-                if manager in manager_symbol:
-                    continue
-                else:
-                    manager_symbol[ manager ] = row['symbol']
+            symbol = row['symbol']
+            manager = row['company'] + row['manager']
+            if manager in manager_symbol:
+                continue
+            else:
+                manager_symbol[ manager ] = symbol
         df_eval = df_eval[ df_eval['symbol'].isin(manager_symbol.values()) ]
 
     if '-one_per_company' in options:
         company_symbol = {}
         for i, row in df_eval.iterrows():
+            symbol = row['symbol']
             company = row['company']
             if company in company_symbol:
                 continue
             else:
-                company_symbol[ company ] = row['symbol']
+                company_symbol[ company ] = symbol
         df_eval = df_eval[ df_eval['symbol'].isin(company_symbol.values()) ]
 
     if range_to:
@@ -739,10 +751,11 @@ def cli_fund_eval(params, options):
         managers = {}
         for i, row in df_eval.iterrows():
             company = row['company']
-            for k in ['manager', 'mananger2', 'manager3']:
-                name = row[k]
-                if name:
-                    managers[ company + ' ' + name ] = 1
+            for k in ['manager', 'manager2', 'manager3']:
+                if k in row:
+                    name = row[k]
+                    if name:
+                        managers[ company + ' ' + name ] = 1
         table = []
         for k in managers.keys():
             items = k.split(' ')
@@ -780,7 +793,7 @@ def cli_fund_eval(params, options):
         print('Exported to:', out_xls_file)
 
     if '-plot' in options:
-        cli_fund_plot(df_eval['symbol'].tolist(), options)
+        cli_fund_plot(df_eval['symbol'].tolist(), options, sizes = dict_from_df(df_eval, 'symbol', 'size'))
     elif '-plot_company' in options:
         companies = list(set(df_eval['company'].tolist()))
         options.append('-limit=5')
@@ -791,7 +804,7 @@ def cli_fund_eval(params, options):
 # hiquant fund plot 002943
 # hiquant fund plot 002943 005669
 # hiquant fund plot 002943 005669 -days=365
-def cli_fund_plot(params, options, title= None, mark_date = None, png = None):
+def cli_fund_plot(params, options, title= None, mark_date = None, png = None, sizes = None):
     if len(params) == 0:
         cli_fund_help()
         return
@@ -826,10 +839,12 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None):
         if symbol in fund_symbol_names:
             name = fund_symbol_names[ symbol ]
             if '-man' in options:
-                name = name + ' (' + (','.join(fund_manager_mapping[name])) + ')'
-            display_name = symbol + ' - ' + name
+                name = name + '(' + (','.join(fund_manager_mapping[name])) + ')'
+            display_name = symbol + ',' + name
         else:
             display_name = symbol
+        if (sizes is not None) and (symbol in sizes):
+            display_name += ',' + str(int(sizes[ symbol ])) + '亿'
         print( display_name )
         
         i += 1
