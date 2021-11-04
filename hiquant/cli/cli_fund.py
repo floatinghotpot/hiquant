@@ -204,7 +204,7 @@ def cli_fund_company(params, options):
         for i, row in df.iterrows():
             company = row['company']
             if company in company_managers:
-                names = ', '.join( company_managers[company] )
+                names = ','.join( company_managers[company] )
                 df['names'].iloc[i] = names
 
     if len(params) > 0:
@@ -236,7 +236,7 @@ def cli_fund_company(params, options):
         table = []
         for i, row in df.iterrows():
             company = row['company']
-            names = row['names'].split(', ')
+            names = row['names'].split(',')
             for name in names:
                 table.append([company, name])
         df_manager = pd.DataFrame(table, columns=['company','name'])
@@ -251,7 +251,6 @@ def cli_fund_company(params, options):
 
     if out_xls_file:
         df_com = df.rename(columns= {
-            'company': '基金公司',
             'company_start': '成立日期',
             'size': '管理规模\n(亿)',
             'funds': '基金\n总数',
@@ -296,8 +295,8 @@ def cli_fund_manager(params, options):
         keyword = params[0]
         if ',' in keyword:
             keyword = keyword.replace(',', '')
-        if keyword.endswith('.csv'):
-            df_filter = pd.read_csv(keyword, dtype= str)
+        if keyword.endswith('.csv') or keyword.endswith('.xlsx'):
+            df_filter = pd.read_csv(keyword, dtype= str) if keyword.endswith('.csv') else pd.read_excel(keyword, dtype= str)
             if 'name' in df_filter.columns:
                 df_filter['manager'] = df_filter['company'] + df_filter['name']
                 df1 = df.copy()
@@ -426,8 +425,6 @@ def cli_fund_manager(params, options):
         if 'days' in df.columns:
             df = df.drop(columns=['days'])
         df = df.rename(columns= {
-            'name': '基金经理',
-            'company': '基金公司',
             'managers': '基金经理人数',
             'funds': '基金总数',
             'fund': '基金',
@@ -440,6 +437,11 @@ def cli_fund_manager(params, options):
         df.to_excel(excel_writer= out_xls_file)
         print( tb.tabulate(df, headers='keys') )
         print('Exported to:', out_xls_file)
+
+    if '-plot' in options:
+        for i, row in df.iterrows():
+            manager = row['company'] + row['name']
+            cli_fund_show([manager], ['-png=output/' + manager + '.png'])
 
     return df
 
@@ -573,7 +575,7 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
     df = pd.DataFrame(eval_table, columns=en_cols)
 
     df['annual'] = round((np.power((df['pct_cum'] * 0.01 + 1), 1.0/(df['calc_days']/365.0)) - 1.0) * 100.0, 1)
-    df['annual'] = df[['pct_cum', 'annual']].min(axis= 1)
+    #df['annual'] = df[['pct_cum', 'annual']].min(axis= 1)
     df['score'] = round(df['pct_cum'] * df['sharpe'] * 0.1, 1)
     df['score2'] = round(df['pct_cum'] * df['sharpe'] / df['max_drawdown'], 1)
 
@@ -669,8 +671,8 @@ def cli_fund_eval(params, options):
                 df_eval['total'] += df_eval[k]
 
     if managedby:
-        if managedby.endswith('.csv'):
-            df_manager = pd.read_csv(managedby, dtype= str)
+        if managedby.endswith('.csv') or managedby.endswith('.xlsx'):
+            df_manager = pd.read_csv(managedby, dtype= str) if managedby.endswith('.csv') else pd.read_excel(managedby, dtype=str)
             managedby = (df_manager['company'] + df_manager['name']).tolist()
             df_tmp = df_eval.copy()
             df_tmp['manager'] = df_tmp['company'] + df_tmp['manager']
@@ -751,11 +753,9 @@ def cli_fund_eval(params, options):
         managers = {}
         for i, row in df_eval.iterrows():
             company = row['company']
-            for k in ['manager', 'manager2', 'manager3']:
-                if k in row:
-                    name = row[k]
-                    if name:
-                        managers[ company + ' ' + name ] = 1
+            name = row['name']
+            managers[ company + ' ' + name ] = 1
+
         table = []
         for k in managers.keys():
             items = k.split(' ')
@@ -793,7 +793,8 @@ def cli_fund_eval(params, options):
         print('Exported to:', out_xls_file)
 
     if '-plot' in options:
-        cli_fund_plot(df_eval['symbol'].tolist(), options, sizes = dict_from_df(df_eval, 'symbol', 'size'))
+        cli_fund_plot(df_eval['symbol'].tolist(), options + ['-man'], sizes = dict_from_df(df_eval, 'symbol', 'size'))
+
     elif '-plot_company' in options:
         companies = list(set(df_eval['company'].tolist()))
         options.append('-limit=5')
@@ -910,7 +911,6 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None, si
             if np.isnan(mark_y):
                 mark_y = 0.0
             max_y = max(list(df_tmp.iloc[-1]))
-            print(mark_x, mark_y, max_y)
             plt.annotate('更换\n基金经理\n(' + mark_date.strftime('%Y-%m-%d') + ')',
                 xy= (mark_x, mark_y + (max_y - mark_y)/20),
                 xycoords= 'data',
