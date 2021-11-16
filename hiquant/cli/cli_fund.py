@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_fund_company, get_cn_index_list_df, get_index_daily
-from ..utils import dict_from_df, datetime_today, sort_with_options, filter_with_options, date_range_from_options, range_from_options, csv_xlsx_from_options
+from ..utils import dict_from_df, datetime_today, sort_with_options, filter_with_options, date_range_from_options, range_from_options, csv_xlsx_from_options, symbols_from_params
 
 def cli_fund_help():
     syntax_tips = '''Syntax:
@@ -453,19 +453,6 @@ def cli_fund_read_fund_symbols(excel_file):
 
     return df['symbol'].tolist() if ('symbol' in df) else []
 
-def symbols_from_params(params):
-    symbols = []
-    for param in params:
-        if param.endswith('.csv'):
-            symbols += pd.read_csv(param, dtype=str)['symbol'].tolist()
-        elif param.endswith('.xlsx'):
-            symbols += pd.read_excel(param, dtype=str)['symbol'].tolist()
-        elif ',' in param:
-            symbols += param.split(',')
-        else:
-            symbols.append(param)
-    return list(set(symbols))
-
 # hiquant fund update <symbols>
 # hiquant fund update <symbols.csv>
 # hiquant fund update all
@@ -815,13 +802,8 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None, si
     if params[0] == 'all':
         pass
     else:
-        if params[0].endswith('.csv') or params[0].endswith('.xlsx'):
-            params = cli_fund_read_fund_symbols(params[0])
-        elif ',' in params[0]:
-            params = params[0].split(',')
-        else:
-            pass
-        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
+        symbols = symbols_from_params(params)
+        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(symbols) ]
 
     params = df_fund_list['symbol'].tolist()
 
@@ -1012,11 +994,9 @@ def cli_fund_backtest(params, options):
 
     if params[0] == 'all':
         pass
-    elif params[0].endswith('.csv') or params[0].endswith('.xlsx'):
-        params = cli_fund_read_fund_symbols(params[0])
-        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
     else:
-        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(params) ]
+        symbols = symbols_from_params(params)
+        df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(symbols) ]
 
     for k in ['C','持有']:
         df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]

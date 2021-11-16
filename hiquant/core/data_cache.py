@@ -401,6 +401,8 @@ def create_pepb_symmary_df(symbols= None, years = 10):
     table = []
     cols = None
     for symbol in symbols:
+        if symbol not in symbol_name:
+            continue
         name = symbol_name[ symbol ]
         row = get_pepb_summary(symbol, check_date = datetime_today(), years= years)
         if cols is None:

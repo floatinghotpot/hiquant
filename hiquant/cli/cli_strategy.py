@@ -135,7 +135,7 @@ def cli_strategy_backtest(params, options):
     for option in options:
         if option.startswith('-out=') and option.endswith('.png'):
             out_file = option.replace('-out=', '')
-        elif option.startswith('-cmp='):
+        if option.startswith('-cmp='):
             compare_index = option.replace('-cmp=', '')
 
     # compare with an index

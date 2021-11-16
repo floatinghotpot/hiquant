@@ -30,11 +30,14 @@ cd myProj
 hiquant index list us
 hiquant stock list us
 
-hiquant stock plot AAPL -ma -macd -kdj
-hiquant stock plot AAPL -all
-hiquant stock plot AAPL -wr -bias -mix
+hiquant stock plot 600519 -ma -macd -kdj
+hiquant stock plot 600519 -all
+hiquant stock plot 600519 -wr -bias -mix
 
-hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
+hiquant stockpool create stockpool/mystocks.csv 600519 600036 300750
+
+hiquant stock eval stockpool/mystocks.csv
+hiquant stock pepb stockpool/mystocks.csv
 
 hiquant strategy create strategy/mystrategy.py
 hiquant backtest strategy/mystrategy.py
@@ -75,16 +78,16 @@ hiquant stock list cn
 ```bash
 # 下载所有 A 股上市公司的 3 张财报、IPO信息、分红/送股信息
 #（4300个股票，约 400 MB数据，需要 10秒 * 4300 = 12 小时）
-hiquant finance update all
+hiquant stock update all
 
 # 下载所有 A 股上市公司的 市盈率市净率数据
 #（4300个股票，约 650 MB数据，需要 1.5 小时）
-hiquant pepb update all
+hiquant stock pepb all
 ```
 
 ### 第 3 步, 基本面分析，筛选出 价值股票
 ```bash
-hiquant finance show all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_rate=0.20- -sortby=roe -desc -out=stockpool/good_stock.csv
+hiquant stock eval all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_rate=0.20- -sortby=roe -desc -out=stockpool/good_stock.csv
 ```
 
 参数解释如下：
@@ -121,7 +124,7 @@ symbol,name
 ### 第 4步，估值分析，筛选出目前 价值低估 的 便宜股票
 
 ```bash
-hiquant pepb view good_stock.csv -pb_pos=0-70 -sortby=pb_pos -out=stockpool/good_cheap_stock.csv
+hiquant stock pepb good_stock.csv -pb_pos=0-70 -sortby=pb_pos -out=stockpool/good_cheap_stock.csv
 ```
 
 参数解释如下：

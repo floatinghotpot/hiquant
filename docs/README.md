@@ -76,16 +76,16 @@ Advice:
 ```bash
 # download financial reports (balance, income, cashflow, ipo info, dividend history)
 # ~ 4300 stocks, 10 seconds each, totally, 400 MB data, 10 sec * 4300 = 12 hours
-hiquant finance update all
+hiquant stock update all
 
 # download PE/PB data of all stocks
 # ~ 4300 stocks, 2 seconds each, totally, 650 MB data, 1 sec * 4300 = 2.4 hour
-hiquant pepb update all
+hiquant stock pepb all
 ```
 
 ### Step 3, Financial Analysis, find "vluable" stocks
 ```bash
-hiquant finance show all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_rate=0.20- -sortby=roe -desc -out=stockpool/good_stock.csv
+hiquant stock eval all -ipo_years=3- -earn_ttm=1.0- -roe=0.20-1.0 -3yr_grow_rate=0.20- -sortby=roe -desc -out=stockpool/good_stock.csv
 ```
 
 Comments on arguments:

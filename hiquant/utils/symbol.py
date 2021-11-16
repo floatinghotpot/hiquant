@@ -1,5 +1,7 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
+import pandas as pd
+
 '''
 symbol rule:
 
@@ -59,3 +61,16 @@ def symbol_yahoo_style(symbol):
         return symbol[-4:] + '.HK'
     else:
         return symbol
+
+def symbols_from_params(params):
+    symbols = []
+    for param in params:
+        if param.endswith('.csv'):
+            symbols += pd.read_csv(param, dtype=str)['symbol'].tolist()
+        elif param.endswith('.xlsx'):
+            symbols += pd.read_excel(param, dtype=str)['symbol'].tolist()
+        elif ',' in param:
+            symbols += param.split(',')
+        else:
+            symbols.append(param)
+    return list(set(symbols))

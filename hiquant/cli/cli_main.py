@@ -15,8 +15,6 @@ from ..utils import parse_params_options, dict_from_config_items
 from ..core import set_lang, get_hiquant_conf
 
 from .cli_init import cli_init
-from .cli_finance import cli_finance
-from .cli_pepb import cli_pepb
 from .cli_stockpool import cli_stockpool
 from .cli_strategy import cli_strategy
 from .cli_trade import cli_trade
@@ -82,16 +80,14 @@ def cli_main_params_options(params, options):
     # parse command line arguments
     cli_tools = {
         'init': cli_init,
-        'finance': cli_finance,
-        'pepb': cli_pepb,
         'stockpool': cli_stockpool,
-        'strategy': cli_strategy,
-        'trade': cli_trade,
-        'fund': cli_fund,
         'stock': cli_stock,
         'index': cli_index,
         'indicator': cli_indicator,
         'fundflow': cli_fundflow,
+        'strategy': cli_strategy,
+        'trade': cli_trade,
+        'fund': cli_fund,
     }
 
     if ('-v' in options) or ('--version' in options):

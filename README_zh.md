@@ -57,8 +57,9 @@ hiquant stock plot 600519 -all
 hiquant stock plot 600036 -wr -bias -mix
 
 hiquant stockpool create stockpool/mystocks.csv 600036 600519 600276 300357 002258
-hiquant finance view stockpool/mystocks.csv
-hiquant pepb view stockpool/mystocks.csv
+
+hiquant stock eval stockpool/mystocks.csv
+hiquant stock pepb stockpool/mystocks.csv
 
 hiquant strategy create strategy/mystrategy.py
 hiquant backtest strategy/mystrategy.py

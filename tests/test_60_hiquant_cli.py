@@ -11,11 +11,11 @@ def test_hiquant_cli():
     cli_stockpool(['exclude', 'output/mytest.csv', '002258'], [])
     cli_stockpool(['same', 'output/mytest.csv', 'stockpool/mystocks.csv'], [])
 
-    cli_finance(['view', '600036'], [])
-    cli_finance(['view', 'all'], ['-roe=0.20-', '-sortby=roe', '-desc'])
+    cli_stock(['eval', '600036'], [])
+    cli_stock(['eval', 'all'], ['-roe=0.20-', '-sortby=roe', '-desc'])
 
-    cli_pepb(['view', '600036', '000002'], [])
-    cli_pepb(['view', 'output/mytest.csv'], ['-pb_pos=50-'])
+    cli_stock(['pepb', '600036', '000002'], [])
+    cli_stock(['pepb', 'output/mytest.csv'], ['-pb_pos=50-'])
 
     cli_stock(['list', 'cn'], [])
     cli_stock(['plot', '600036'], ['-ma', '-macd', '-kdj', '-out=output/test_cli_stock.png'])
@@ -24,10 +24,6 @@ def test_hiquant_cli():
     cli_index(['plot', 'sh000300'], ['-ma', '-macd', '-kdj', '-out=output/test_cli_index.png'])
 
     cli_indicator(['list'], [])
-
-    #cli_pattern(['list'], [])
-    #cli_pattern(['demo', '0'], ['-out=output/pattern0.png'])
-    #cli_pattern(['demo', 'CDL3BLACKCROWS'], ['-out=output/pattern1.png'])
 
     cli_strategy(['help'], [])
 
