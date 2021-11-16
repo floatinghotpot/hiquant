@@ -1,7 +1,6 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
 from .cli_init import cli_init
-from .cli_stockpool import cli_stockpool
 from .cli_stock import cli_stock
 from .cli_index import cli_index
 from .cli_indicator import cli_indicator

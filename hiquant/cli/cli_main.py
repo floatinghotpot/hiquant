@@ -15,7 +15,6 @@ from ..utils import parse_params_options, dict_from_config_items
 from ..core import set_lang, get_hiquant_conf
 
 from .cli_init import cli_init
-from .cli_stockpool import cli_stockpool
 from .cli_strategy import cli_strategy
 from .cli_trade import cli_trade
 from .cli_fund import cli_fund
@@ -80,7 +79,6 @@ def cli_main_params_options(params, options):
     # parse command line arguments
     cli_tools = {
         'init': cli_init,
-        'stockpool': cli_stockpool,
         'stock': cli_stock,
         'index': cli_index,
         'indicator': cli_indicator,

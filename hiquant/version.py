@@ -4,7 +4,7 @@ from __future__ import (absolute_import, division, print_function, unicode_liter
 import os
 import sys
 
-__version__ = '0.4.11'
+__version__ = '0.4.12'
 
 __hqversion__ = tuple(int(x) for x in __version__.split('.'))
 

@@ -34,7 +34,7 @@ hiquant stock plot 600519 -ma -macd -kdj
 hiquant stock plot 600519 -all
 hiquant stock plot 600519 -wr -bias -mix
 
-hiquant stockpool create stockpool/mystocks.csv 600519 600036 300750
+hiquant stock pool 600036 600519 600276 300357 002258 -out=stockpool/mystocks.csv
 
 hiquant stock eval stockpool/mystocks.csv
 hiquant stock pepb stockpool/mystocks.csv

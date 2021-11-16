@@ -35,7 +35,7 @@ hiquant stock plot AAPL -ma -macd -kdj
 hiquant stock plot AAPL -all
 hiquant stock plot AAPL -wr -bias -mix
 
-hiquant stockpool create stockpool/mystocks.csv AAPL GOOG AMZN TSLA MSFT
+hiquant stock pool AAPL GOOG AMZN TSLA MSFT -out=stockpool/mystocks.csv
 
 hiquant strategy create strategy/mystrategy.py
 hiquant backtest strategy/mystrategy.py

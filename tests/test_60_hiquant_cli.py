@@ -6,10 +6,10 @@ def test_hiquant_cli():
     #cli_create(['./test2'])
     cli_main_params_options(['help'], [])
 
-    cli_stockpool(['create', 'output/mytest.csv', '600036', '000002'], [])
-    cli_stockpool(['merge', 'output/mytest.csv', '600276', '002258'], [])
-    cli_stockpool(['exclude', 'output/mytest.csv', '002258'], [])
-    cli_stockpool(['same', 'output/mytest.csv', 'stockpool/mystocks.csv'], [])
+    cli_stock(['600036', '000002'], ['-out=output/mytest.csv'])
+    cli_stock(['output/mytest.csv', '600276', '002258'], ['-out=output/mytest.csv'])
+    cli_stock(['output/mytest.csv'], ['-exclude=002258', '-out=output/mytest.csv'])
+    cli_stock(['output/mytest.csv'], ['-same=stockpool/mystocks.csv', '-out=output/mytest.csv'])
 
     cli_stock(['eval', '600036'], [])
     cli_stock(['eval', 'all'], ['-roe=0.20-', '-sortby=roe', '-desc'])

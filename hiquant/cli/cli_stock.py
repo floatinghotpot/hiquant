@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from ..utils import symbol_normalize, date_range_from_options, range_from_options, dict_from_df, csv_xlsx_from_options, sort_with_options, filter_with_options
 from ..utils import symbols_from_params, datetime_today
 from ..core import symbol_to_name, get_cn_stock_list_df, get_hk_stock_list_df, get_us_stock_list_df, get_all_stock_list_df, get_all_index_list_df
-from ..core import get_index_daily, get_daily
+from ..core import get_stockpool_df, get_index_daily, get_daily
 from ..core import list_signal_indicators, get_order_cost
 from ..core import update_finance_indicator_df, get_finance_indicator_df, get_pepb_symmary_df
 from ..core import Stock
@@ -37,6 +37,10 @@ def cli_stock_help():
 
 Example:
     __argv0__ stock list cn
+
+    __argv0__ stock pool 600036 000002 600276 -out=mystocks.csv
+    __argv0__ stock pool mystocks.csv -same=other.csv -out=mystocks.csv
+    __argv0__ stock pool mystocks.csv -exclude=other.csv -out=mystocks.csv
 
     __argv0__ stock update 600036 000002 600276
     __argv0__ stock update mystocks.csv
@@ -78,10 +82,46 @@ def cli_stock_list(params, options):
     print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
     print( 'Totally', df.shape[0], 'rows.\n')
 
-def cmp_stock_earn(params, options):
-    date_from, date_to = date_range_from_options(options)
+# hiquant stock pool params -out=mystocks.csv
+# hiquant stock pool params -same=other.csv -out=mystocks.csv
+# hiquant stock pool params -exclude=other.csv -out=mystocks.csv
+def cli_stock_pool(params, options):
+    symbols = symbols_from_params(params)
+    df = get_stockpool_df(symbols)
+
+    for option in options:
+        if option.startswith('-same='):
+            other_arg = option.replace('-same=','')
+            other_symbols = symbols_from_params( [ other_arg ])
+            df = df[ df['symbol'].isin(other_symbols) ]
+        elif option.startswith('-exclude='):
+            other_arg = option.replace('-exclude=','')
+            other_symbols = symbols_from_params( [ other_arg ])
+            df = df[ ~ df['symbol'].isin(other_symbols) ]
+
+    print(df)
+
+    df = filter_with_options(df, options)
+    df = sort_with_options(df, options, by_default='symbol')
     range_from, range_to = range_from_options(options)
     limit = range_to - range_from
+    if limit > 0:
+        df = df.head(limit)
+
+    out_csv_file, out_xlsx_file = csv_xlsx_from_options(options)
+
+    if out_csv_file:
+        df = df[['symbol', 'name']]
+        df.to_csv(out_csv_file, index= False)
+        print('Exported to:', out_csv_file)
+
+    if out_xlsx_file:
+        df = df[['symbol', 'name']]
+        df.to_excel(out_xlsx_file, index= False)
+        print('Exported to:', out_xlsx_file)
+
+def cmp_stock_earn(params, options):
+    date_from, date_to = date_range_from_options(options)
 
     df_stocks = None
     i = 0
@@ -111,13 +151,13 @@ def cmp_stock_earn(params, options):
     df_cmp = df_cmp.sort_values(by='earn', ascending= False)
     df_cmp.reset_index(drop= True, inplace= True)
 
-    if limit > 0:
-        df_cmp = df_cmp.head(limit)
-        symbols = df_cmp['symbol'].tolist()
-        df_stocks = df_stocks[ symbols ]
-    else:
-        symbols = df_cmp['symbol'].tolist()
+    range_from, range_to = range_from_options(options)
+    if range_to:
+        df_cmp = df_cmp.head(range_to)
+    if range_from:
+        df_cmp = df_cmp.tail(range_to - range_from)
 
+    symbols = df_cmp['symbol'].tolist()
     df_stock_list = get_all_stock_list_df()
     stock_symbol_names = dict_from_df(df_stock_list, 'symbol', 'name')
     df_cmp.insert(1, 'name', [stock_symbol_names[symbol] if (symbol in stock_symbol_names) else '' for symbol in symbols])
@@ -125,26 +165,19 @@ def cmp_stock_earn(params, options):
     return df_stocks, df_cmp
 
 def cli_stock_cmp(params, options):
-    if params[0].endswith('.csv'):
-        df = pd.read_csv(params[0], dtype=str)
-        params = df['symbol'].tolist()
-    elif ',' in params[0]:
-        params = params[0].split(',')
+    symbols = symbols_from_params(params)
 
-    df_stocks, df = cmp_stock_earn(params, options)
-
-    date_from, date_to = date_range_from_options(options)
-    range_from, range_to = range_from_options(options)
-    limit = range_to - range_from
-    if limit > 0:
-        df = df.head(limit)
-        df_stocks = df_stocks[ df['stock'].tolist() ]
+    df_stocks, df = cmp_stock_earn(symbols, options)
 
     df = filter_with_options(df, options)
     df = sort_with_options(df, options, by_default='earn')
 
-    print( tb.tabulate(df, headers='keys') )
+    range_from, range_to = range_from_options(options)
+    limit = range_to - range_from
+    if limit > 0:
+        df = df.head(limit)
 
+    print( tb.tabulate(df, headers='keys') )
     out_csv_file, out_xls_file = csv_xlsx_from_options(options)
 
     if out_csv_file:
@@ -153,7 +186,9 @@ def cli_stock_cmp(params, options):
         print('Exported to:', out_csv_file)
         print(df)
 
-    pass
+    if '-plot' in options:
+        symbols = df['symbol'].tolist()
+        cli_stock_plot(symbols, options)
 
 def cli_stock_plot_one(symbol, options):
     date_from, date_to = date_range_from_options(options)
@@ -208,11 +243,11 @@ def cli_stock_plot_one(symbol, options):
 
 def cli_stock_plot_multi(params, options):
     df_stocks, df_cmp = cmp_stock_earn(params, options)
+    print( tb.tabulate(df_cmp, headers='keys') )
 
-    print(df_cmp)
     df_stocks = df_stocks[ df_cmp['symbol'].tolist() ]
     symbol_names = dict_from_df(df_cmp, 'symbol', 'name')
-    df_stocks.columns = [(symbol + ' - ' + symbol_names[symbol]) for symbol in df_stocks.columns]
+    df_stocks.columns = [(symbol + ',' + symbol_names[symbol]) for symbol in df_stocks.columns]
 
     if '-mix' in options:
         df_stocks = df_stocks.mean(axis=1).to_frame()
@@ -312,20 +347,15 @@ def cli_stock_eval(params, options):
     df = df.reset_index(drop= True)
 
     total_n = df.shape[0]
-
-    # now filter
     df = filter_with_options(df, options)
+    df = sort_with_options(df, options, by_default='roe')
     filtered_n = df.shape[0]
 
-    # now sort
-    df = sort_with_options(df, options, by_default='roe')
-
-    limit = 0
-    for option in options:
-        if option.startswith('-limit='):
-            limit = int(option.replace('-limit=',''))
-    if limit > 0:
-        df = df.head(limit)
+    range_from, range_to = range_from_options(options)
+    if range_to:
+        df = df.head(range_to)
+    if range_from:
+        df = df.tail(range_to - range_from)
 
     if '-tab' in options:
         print( tb.tabulate(df, headers='keys') )
@@ -443,6 +473,9 @@ def cli_stock(params, options):
 
     if action == 'list':
         cli_stock_list(params, options)
+
+    elif action == 'pool':
+        cli_stock_pool(params, options)
 
     elif action in ['update']:
         cli_stock_update(params, options)
