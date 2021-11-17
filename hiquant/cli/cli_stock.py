@@ -271,7 +271,7 @@ def cli_stock_plot_multi(params, options):
     df_stocks[ base_name ] = df_base['pct_cum']
 
     df_stocks.index = df_stocks.index.strftime('%Y-%m-%d')
-    df_stocks.plot(kind='line', ylabel='return (%)', figsize=(10,6), title= '持仓收益')
+    df_stocks.plot(kind='line', ylabel='回报率 (%)', xlabel='日期', figsize=(10,6), title= '持仓收益')
     plt.xticks(rotation=15)
     plt.legend(loc='upper left')
     plt.show()

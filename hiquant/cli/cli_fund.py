@@ -780,7 +780,7 @@ def cli_fund_eval(params, options):
         print('Exported to:', out_xls_file)
 
     if '-plot' in options:
-        cli_fund_plot(df_eval['symbol'].tolist(), options + ['-man'], sizes = dict_from_df(df_eval, 'symbol', 'size'))
+        cli_fund_plot(df_eval['symbol'].tolist(), options + ['-man'], sizes = dict_from_df(df_eval, 'symbol', 'size'), pcts = dict_from_df(df_eval, 'symbol', 'pct_cum'))
 
     elif '-plot_company' in options:
         companies = list(set(df_eval['company'].tolist()))
@@ -792,7 +792,7 @@ def cli_fund_eval(params, options):
 # hiquant fund plot 002943
 # hiquant fund plot 002943 005669
 # hiquant fund plot 002943 005669 -days=365
-def cli_fund_plot(params, options, title= None, mark_date = None, png = None, sizes = None):
+def cli_fund_plot(params, options, title= None, mark_date = None, png = None, sizes = None, pcts = None):
     if len(params) == 0:
         cli_fund_help()
         return
@@ -826,6 +826,8 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None, si
             display_name = symbol + ',' + name
         else:
             display_name = symbol
+        if (pcts is not None) and (symbol in pcts):
+            display_name += ',' + str(int(pcts[ symbol ])) + '%'
         if (sizes is not None) and (symbol in sizes):
             display_name += ',' + str(int(sizes[ symbol ])) + '亿'
         print( display_name )
