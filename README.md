@@ -117,7 +117,6 @@ if __name__ == '__main__':
 
 Read following docs for more details:
 - [How to use hiquant tool](https://github.com/floatinghotpot/hiquant/blob/master/docs/README.md)
-- [Hiquant commands referrence](https://github.com/floatinghotpot/hiquant/blob/master/docs/CMD.md)
 
 ## Develop with Hiquant
 
@@ -143,6 +142,9 @@ hiquant stock AAPL -ma -macd -mix
 
 - Backtrade with multiple portoflios
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
+
+- Compare ROI of multiple stocks
+![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_us_stocks.png)
 
 ## Credits
 

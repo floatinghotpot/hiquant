@@ -122,7 +122,6 @@ if __name__ == '__main__':
 
 如何使用请参见 文档:
 - [《如何使用 hiquant 工具》](https://github.com/floatinghotpot/hiquant/blob/master/docs/README_zh.md)
-- [《 hiquant 命令集 参考》](https://github.com/floatinghotpot/hiquant/blob/master/docs/CMD.md)
 
 ## 如何开发
 
@@ -142,6 +141,12 @@ if __name__ == '__main__':
 
 - 运行多个投资组合：
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
+
+- 比较多只股票的投资回报率
+![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_stocks.png)
+
+- 比较多只基金的投资回报率
+![Compore funds](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_funds.png)
 
 ## 致谢
 

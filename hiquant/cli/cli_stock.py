@@ -256,20 +256,20 @@ def cli_stock_plot_multi(params, options):
     else:
         pass
 
+    date_from, date_to = date_range_from_options(options)
+    index_symbol_names = dict_from_df( get_all_index_list_df() )
     base = 'sh000300'
     for k in options:
         if k.startswith('-base='):
             base = k.replace('-base=', '')
-    df_base = get_index_daily( base )
-
-    date_from, date_to = date_range_from_options(options)
-    df_base = df_base[ df_base.index >= date_from ]
-    df_base = df_base[ df_base.index < date_to ]
-    df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
-
-    index_symbol_names = dict_from_df( get_all_index_list_df() )
-    base_name = index_symbol_names[ base ] if base in index_symbol_names else base
-    df_stocks[ base_name ] = df_base['pct_cum']
+    bases = base.split(',') if (',' in base) else [ base ]
+    for base in bases:
+        df_base = get_index_daily( base )
+        df_base = df_base[ df_base.index >= date_from ]
+        df_base = df_base[ df_base.index < date_to ]
+        df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
+        base_name = index_symbol_names[ base ] if base in index_symbol_names else base
+        df_stocks[ base_name ] = df_base['pct_cum']
 
     df_stocks.index = df_stocks.index.strftime('%Y-%m-%d')
     df_stocks.plot(kind='line', ylabel=LANG('return(%)'), xlabel=LANG('date'), figsize=(10,6), title= LANG('return on investment'))
