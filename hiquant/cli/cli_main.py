@@ -98,12 +98,19 @@ def cli_main_params_options(params, options):
 
     config = get_hiquant_conf()
     main_conf = dict_from_config_items(config.items('main'))
-    if 'lang' in main_conf:
-        set_lang(main_conf['lang'])
+    lang = None
+    if '-en' in options:
+        lang = 'en'
+    elif '-zh' in options:
+        lang = 'zh'
+    elif 'lang' in main_conf:
+        lang = main_conf['lang']
     else:
-        lang = os.getenv('LANG')
-        if lang is not None:
-            set_lang(lang[:2])
+        env_lang = os.getenv('LANG')
+        if env_lang is not None:
+            lang = lang[:2]
+    if lang is not None:
+        set_lang(lang)
 
     command = params[0]
 

@@ -17,5 +17,8 @@ add_lang('zh', {
     'return(%)': '收益率(%)',
     'position(%)': '仓位(%)',
     'drawdown(%)': '回撤(%)',
+    'date': '日期',
+    'average return': '平均收益',
+    'return on investment': '投资回报',
     'quantitative backtesting': '量化回测',
 })

@@ -17,5 +17,8 @@ add_lang('en', {
     'return(%)': 'return(%)',
     'position(%)': 'position(%)',
     'drawdown(%)': 'drawdown(%)',
+    'date': 'date',
+    'average return': 'average return',
+    'return on investment': 'return on investment',
     'quantitative backtesting': 'Quantitative backtesting',
 })

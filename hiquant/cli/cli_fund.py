@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_fund_company, get_cn_index_list_df, get_index_daily
 from ..utils import dict_from_df, datetime_today, sort_with_options, filter_with_options, date_range_from_options, range_from_options, csv_xlsx_from_options, symbols_from_params
+from ..core import LANG
 
 def cli_fund_help():
     syntax_tips = '''Syntax:
@@ -883,7 +884,9 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None, si
         df_funds[ base_name ] = df_base['pct_cum']
 
     #df_funds.index = df_funds.index.strftime('%Y-%m-%d')
-    df_funds.plot(kind='line', ylabel='收益率 (%)', xlabel='日期', figsize=(10,6), title= title)
+    if title is None:
+        title = LANG('return on investment')
+    df_funds.plot(kind='line', ylabel=LANG('return(%)'), xlabel=LANG('date'), figsize=(10,6), title= title)
 
     if mark_date:
         #mark_x = mark_date.strftime('%Y-%m-%d')

@@ -14,6 +14,7 @@ from ..core import get_stockpool_df, get_index_daily, get_daily
 from ..core import list_signal_indicators, get_order_cost
 from ..core import update_finance_indicator_df, get_finance_indicator_df, get_pepb_symmary_df
 from ..core import Stock
+from ..core import LANG
 
 def cli_stock_help():
     syntax_tips = '''Syntax:
@@ -251,7 +252,7 @@ def cli_stock_plot_multi(params, options):
 
     if '-mix' in options:
         df_stocks = df_stocks.mean(axis=1).to_frame()
-        df_stocks.columns = ['平均收益']
+        df_stocks.columns = [LANG('average return')]
     else:
         pass
 
@@ -271,7 +272,7 @@ def cli_stock_plot_multi(params, options):
     df_stocks[ base_name ] = df_base['pct_cum']
 
     df_stocks.index = df_stocks.index.strftime('%Y-%m-%d')
-    df_stocks.plot(kind='line', ylabel='回报率 (%)', xlabel='日期', figsize=(10,6), title= '持仓收益')
+    df_stocks.plot(kind='line', ylabel=LANG('return(%)'), xlabel=LANG('date'), figsize=(10,6), title= LANG('return on investment'))
     plt.xticks(rotation=15)
     plt.legend(loc='upper left')
     plt.show()
@@ -357,12 +358,7 @@ def cli_stock_eval(params, options):
     if range_from:
         df = df.tail(range_to - range_from)
 
-    if '-tab' in options:
-        print( tb.tabulate(df, headers='keys') )
-    else:
-        print('-' * 80)
-        print(df)
-        print('-' * 80)
+    print( tb.tabulate(df, headers='keys') )
 
     print('{} out of {} records selected.'.format(filtered_n, total_n))
 
