@@ -10,15 +10,18 @@ Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及
 
 ## 如何安装
 
+请确认您的 Python 是 3.7 以上版本，因为 Matplotlib 3.4 绘图需要。
+
 ```bash
-pip install hiquant
+python3 --version
+python3 -m pip install hiquant
 ```
 
 或者 从 GitHub 复制：
 ```bash
 git clone https://github.com/floatinghotpot/hiquant.git
 cd hiquant
-pip install -e .
+python3 -m pip install -e .
 ```
 
 ## 快速体验

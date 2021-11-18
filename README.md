@@ -31,15 +31,18 @@ Other additional features:
 
 ## Installation
 
+Please make sure your Python is v3.7 or above, as it's required by Matplotlib 3.4 for plottting.
+
 ```bash
-pip install hiquant
+python3 --version
+python3 -m pip install hiquant
 ```
 
 Or, clone from GitHub:
 ```bash
 git clone https://github.com/floatinghotpot/hiquant.git
 cd hiquant
-pip install -e .
+python3 -m pip install -e .
 ```
 
 ## Command quick start

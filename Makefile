@@ -3,11 +3,11 @@ test:
 	pytest
 
 version:
-	python hiquant/version.py bump
+	python3 hiquant/version.py bump
 
 package:
 	rm dist/*
-	python setup.py sdist bdist_wheel
+	python3 setup.py sdist bdist_wheel
 	ls -la dist/
 
 publishtest:

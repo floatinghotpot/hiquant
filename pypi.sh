@@ -2,4 +2,4 @@
 #
 # Generate pypi wheels universal package and upload
 #
-python setup.py bdist_wheel --universal upload -r pypi
+python3 setup.py bdist_wheel --universal upload -r pypi
