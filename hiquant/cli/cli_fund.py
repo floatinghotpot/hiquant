@@ -199,8 +199,11 @@ def cli_fund_list(params, options):
         print('Exported to:', out_csv_file)
         print(df)
 
+    if '-update' in options:
+        cli_fund_update(df['symbol'].tolist(), options)
+
     if '-plot' in options:
-            cli_fund_plot(df['symbol'].tolist(), options + ['-man'])
+        cli_fund_plot(df['symbol'].tolist(), options + ['-man'])
 
 def cli_fund_company(params, options):
     df = get_cn_fund_company()
