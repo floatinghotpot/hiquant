@@ -202,6 +202,10 @@ def cli_fund_list(params, options):
     if '-update' in options:
         cli_fund_update(df['symbol'].tolist(), options)
 
+    if '-eval' in options:
+        cli_fund_eval(df['symbol'].tolist(), options)
+        return
+
     if '-plot' in options:
         cli_fund_plot(df['symbol'].tolist(), options + ['-man'])
 
@@ -651,9 +655,6 @@ def cli_fund_eval(params, options):
 
         for k in ['债','油','黄金','商品','资源','周期','通胀','全球','美元','美汇','美钞','美国','香港','恒生','海外','亚太','亚洲','四国','QDII','纳斯达克','标普']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
-
-        #for k in ['LOF']:
-        #    df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
 
         for k in ['ETF','指数','联接','中证']:
             df_fund_list = df_fund_list[ ~ df_fund_list['name'].str.contains(k) ]
