@@ -148,6 +148,11 @@ def cli_fund_list(params, options):
             for k in keywords:
                 df = df[ ~ df['name'].str.contains(k) ]
             pass
+        elif option.startswith('-include='):
+            keywords = option.replace('-include=','').split(',')
+            for k in keywords:
+                df = df[ df['name'].str.contains(k) ]
+            pass
         elif option.startswith('-belongto='):
             keyword = option.replace('-belongto=','')
             if option.endswith('.csv'):
@@ -178,13 +183,6 @@ def cli_fund_list(params, options):
 
     df = filter_with_options(df, options)
     df = sort_with_options(df, options, by_default='symbol')
-
-    limit = 0
-    for option in options:
-        if option.startswith('-limit='):
-            limit = int(option.replace('-limit=',''))
-    if limit > 0:
-        df = df.head(limit)
 
     selected = df.shape[0]
 
