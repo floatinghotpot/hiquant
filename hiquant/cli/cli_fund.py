@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_fund_company, get_cn_index_list_df, get_index_daily
+from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_fund_company, get_all_index_list_df, get_index_daily
 from ..utils import dict_from_df, datetime_today, sort_with_options, filter_with_options, date_range_from_options, range_from_options, csv_xlsx_from_options, symbols_from_params
 from ..core import LANG
 
@@ -129,24 +129,52 @@ def cli_fund_list(params, options):
 
     selected = total = df.shape[0]
     if len(params) > 0:
-        keyword = params[0]
-        if keyword.endswith('.csv'):
-            df_manager = get_cn_fund_manager(check_date= datetime_today())
-            df_manager['manager'] = df_manager['company'] + df_manager['name']
-
-            df_filter = pd.read_csv(keyword, dtype= str)
-            if 'name' in df_filter.columns:
-                managers = (df_filter['company'] + df_filter['name']).tolist()
-                df_manager = df_manager[ df_manager['manager'].isin(managers) ]
+        filters = None
+        for param in params:
+            filter = df['name'].str.contains(param, na=False)
+            if filters is None:
+                filters = filter
             else:
-                companies = df_filter['company'].tolist()
-                df_manager = df_manager[ df_manager['company'].isin(companies) ]
-            funds = list(set(df_manager['fund'].tolist()))
+                filters = filters | filter
+        df = df[ filters ]
 
+    if '-nc' in options:
+        for k in ['C']:
+            df = df[ ~ df['name'].str.contains(k) ]
+
+    for option in options:
+        if option.startswith('-exclude='):
+            keywords = option.replace('-exclude=','').split(',')
+            for k in keywords:
+                df = df[ ~ df['name'].str.contains(k) ]
+            pass
+        elif option.startswith('-belongto='):
+            keyword = option.replace('-belongto=','')
+            if option.endswith('.csv'):
+                df_filter = pd.read_csv(keyword, dtype=str)
+                companies = df_filter['company'].tolist()
+            else:
+                companies = [ keyword ]
+            df_fund_manager = get_cn_fund_manager(check_date= datetime_today())
+            df_fund_manager = df_fund_manager[ df_fund_manager['company'].isin(companies) ]
+            funds = list(set(df_fund_manager['fund'].tolist()))
             df = df[ df['name'].isin(funds) ]
-        else:
-            df = df[ df['name'].str.contains(keyword, na=False) ]
-        selected = df.shape[0]
+            pass
+        elif option.startswith('-managedby='):
+            keyword = option.replace('-managedby=','')
+            if option.endswith('.csv'):
+                df_filter = pd.read_csv(keyword, dtype=str)
+                df_filter['manager'] = df_filter['company'] + df_filter['name']
+                managers = df_filter['manager'].tolist()
+            else:
+                managers = [ keyword ]
+            df_fund_manager = get_cn_fund_manager(check_date= datetime_today())
+            df_fund_manager['manager'] = df_fund_manager['company'] + df_fund_manager['name']
+            df_fund_manager = df_fund_manager[ df_fund_manager['manager'].isin(managers) ]
+            funds = list(set(df_fund_manager['fund'].tolist()))
+            df = df[ df['name'].isin(funds) ]
+            pass
+        pass
 
     df = filter_with_options(df, options)
     df = sort_with_options(df, options, by_default='symbol')
@@ -873,7 +901,7 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None, si
         if k.startswith('-png='):
             png = k.replace('-png=', '')
 
-    index_symbol_names = dict_from_df( get_cn_index_list_df() )
+    index_symbol_names = dict_from_df( get_all_index_list_df() )
     bases = base.split(',') if (',' in base) else [ base ]
     for base in bases:
         df_base = get_index_daily( base )
