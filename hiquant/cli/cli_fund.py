@@ -138,10 +138,6 @@ def cli_fund_list(params, options):
                 filters = filters | filter
         df = df[ filters ]
 
-    if '-nc' in options:
-        for k in ['C']:
-            df = df[ ~ df['name'].str.contains(k) ]
-
     for option in options:
         if option.startswith('-exclude='):
             keywords = option.replace('-exclude=','').split(',')
@@ -299,6 +295,12 @@ def cli_fund_company(params, options):
         df_com.to_excel(excel_writer= out_xls_file)
         print( tb.tabulate(df_com, headers='keys') )
         print('Exported to:', out_xls_file)
+
+    if '-plot' in options:
+        df_company_tmp = df.copy()
+        for i, row in df_company_tmp.iterrows():
+            company = row['company']
+            cli_fund_list([], options + ['-belongto=' + company, '-exclude=C,债,FOF,QDII,LOF', '-eval', '-one_per_manager', '-limit=10', '-png=output/' + company + '.png'])
 
 def get_fund_area(name):
     fund_areas = {
