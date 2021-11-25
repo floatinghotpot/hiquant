@@ -381,11 +381,17 @@ def get_pepb_summary(symbol, check_date= None, years = 10):
     mean_pb = sum(pb_list) / len(pb_list)
     pe_ratio = round(pe / mean_pe, 3)
     pb_ratio = round(pe / mean_pb, 3)
+    pe_list.sort()
+    pb_list.sort()
+    pe_mid = pe_list[ len(pe_list) // 2 ]
+    pb_mid = pb_list[ len(pb_list) // 2 ]
 
     return {
         'symbol': symbol,
         'pe': pe,
         'pb': pb,
+        'pe_mid': pe_mid,
+        'pb_mid': pb_mid,
         'pe_pos': pe_pos,
         'pb_pos': pb_pos,
         'pe_ratio': pe_ratio,
