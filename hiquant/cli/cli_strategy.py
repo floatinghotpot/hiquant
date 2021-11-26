@@ -4,7 +4,7 @@ import os
 import sys
 import datetime as dt
 
-from ..utils import date_from_str, dict_from_config_items
+from ..utils import date_from_str, dict_from_config_items, date_range_from_options
 from ..core import get_lang, get_hiquant_conf
 from ..core import Market, Trader, Fund, SimulatedAgent
 
@@ -65,9 +65,34 @@ if __name__ == '__main__':
 
 '''
 
+def cli_strategy_help():
+    syntax_tips = '''Syntax:
+    __argv0__ strategy <action> <my_strategy.py> [options]
+
+Actions:
+    create ................ create a strategy python file from template
+    backtest .............. backtest a strategy with default settings
+
+<my_strategy.py> ............ a strategy python file
+
+[options]
+    -cmp=<compare index> .... compare with the index
+    -out=<output.png> ....... output the plot to png file
+
+Example:
+    __argv0__ strategy create strategy/my_strategy.py
+    __argv0__ strategy backtest strategy/my_strategy.py -years=3 -cmp=sh000300 -out=output/backtest.png
+
+Alias:
+    __argv0__ backtest strategy/my_strategy.py -years=1
+'''.replace('__argv0__',os.path.basename(sys.argv[0]))
+
+    print( syntax_tips )
+
 def cli_strategy_create(params, options):
     if (len(params) == 0) or (not (params[0].endswith('.py'))):
         print('\nError: A strategy filename ending with .py is expected.\n')
+        cli_strategy_help()
         return
 
     file_to_create = params[0]
@@ -90,17 +115,15 @@ def cli_strategy_create(params, options):
 def cli_strategy_backtest(params, options):
     if (len(params) == 0) or (not (params[0].endswith('.py'))):
         print('\nError: A strategy filename ending with .py is expected.\n')
+        cli_strategy_help()
         return
 
     strategy_file = params[0]
-    start = params[1] if len(params) > 1 else '3 years ago'
-    end = params[2] if len(params) > 2 else 'yesterday'
+    date_start, date_end = date_range_from_options(options)
     if '-q' in options:
-        start = '3 months ago'
-        end = '1 week ago'
+        date_start = date_from_str('3 months ago')
+        date_end = date_from_str('1 week ago')
     verbose = '-d' in options
-    date_start = date_from_str( start )
-    date_end = date_from_str( end )
 
     start_tick = dt.datetime.now()
 
@@ -142,30 +165,6 @@ def cli_strategy_backtest(params, options):
     trader.plot(compare_index= compare_index, out_file= out_file)
 
     print('Done.\n')
-
-def cli_strategy_help():
-    syntax_tips = '''Syntax:
-    __argv0__ strategy <action> <my_strategy.py> [options]
-
-Actions:
-    create ................ create a strategy python file from template
-    backtest .............. backtest a strategy with default settings
-
-<my_strategy.py> ............ a strategy python file
-
-[options]
-    -cmp=<compare index> .... compare with the index
-    -out=<output.png> ....... output the plot to png file
-
-Example:
-    __argv0__ strategy create strategy/my_strategy.py
-    __argv0__ strategy backtest strategy/my_strategy.py 20180101 -cmp=sh000300 -out=output/backtest.png
-
-Alias:
-    __argv0__ backtest strategy/my_strategy.py 20180101
-'''.replace('__argv0__',os.path.basename(sys.argv[0]))
-
-    print( syntax_tips )
 
 def cli_strategy(params, options):
     if (len(params) == 0) or (params[0] == 'help'):

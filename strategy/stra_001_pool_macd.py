@@ -11,6 +11,7 @@ class StrategyMacd( hq.BasicStrategy ):
         trader.run_on_bar_update(self.trade, None)
 
     def select_stock(self):
+        return ['F.005669','600519','AAPL']
         stock_df = pd.read_csv('stockpool/t0_white_horse_20.csv', dtype=str)
         if self.fund.verbose:
             print(stock_df)

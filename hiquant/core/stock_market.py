@@ -94,12 +94,14 @@ class Market:
             # OHCLV
             df = get_daily( symbol )
 
-            # fund flow
-            fund_df = get_stock_fund_flow_daily( symbol )
-            if fund_df is not None:
-                df['main_fund'] = fund_df['main_fund']
-                df['main_pct'] = fund_df['main_pct']
-                df = df.fillna(0)
+            if not symbol.startswith('fund'):
+                # fund flow
+                fund_df = get_stock_fund_flow_daily( symbol )
+                if fund_df is not None:
+                    df['main_fund'] = fund_df['main_fund']
+                    df['main_pct'] = fund_df['main_pct']
+                    df = df.fillna(0)
+
             self.symbol_daily[ symbol ] = df
 
             if 'factor' in df.columns:

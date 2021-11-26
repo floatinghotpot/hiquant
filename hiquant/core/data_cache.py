@@ -3,9 +3,8 @@
 import os
 #import random
 import datetime as dt
+import numpy as np
 import pandas as pd
-
-from hiquant.utils.datetime import date_from_str
 
 from ..utils import get_file_modify_time, datetime_today, symbol_normalize, symbol_market, dict_from_df
 
@@ -125,7 +124,14 @@ def get_cn_stock_symbol_name():
 
 def get_all_symbol_name():
     symbol_name = dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
+
     symbol_name.update(dict_from_df(get_all_index_list_df(), 'symbol', 'name'))
+
+    df_cn_fund_list = get_cn_fund_list()
+    df_cn_fund_list['fundsymbol'] = 'F.' + df_cn_fund_list['symbol']
+    fund_symbol_names = dict_from_df(df_cn_fund_list, 'fundsymbol', 'name')
+    symbol_name.update(fund_symbol_names)
+
     return symbol_name
 
 def get_symbol_name_dict(symbols):
@@ -188,10 +194,20 @@ def get_index_daily( symbol ):
     return df
 
 def get_daily( symbol ):
-    # we get stock daily from yahoo, including us, cn, hk, etc.
-    symbol = symbol_yahoo_style( symbol )
-    func = download_us_stock_daily
-    df = get_cached_download_df('cache/market/{param}_1d.csv', download_func= func, param= symbol, check_date= datetime_today())
+    if symbol.startswith('F.'):
+        sym = symbol.replace('F.','')
+        df = get_cn_fund_daily( sym )
+        df['adj_close'] = df['close'] = df['value']
+        df['open'] = df['value'].shift(1)
+        df['open'].iloc[0] = df['value'].iloc[0]
+        df['high'] = np.maximum(df['open'], df['close'])
+        df['low'] = np.minimum(df['open'], df['close'])
+        df['volume'] = 1.0
+    else:
+        # we get stock daily from yahoo, including us, cn, hk, etc.
+        symbol = symbol_yahoo_style( symbol )
+        func = download_us_stock_daily
+        df = get_cached_download_df('cache/market/{param}_1d.csv', download_func= func, param= symbol, check_date= datetime_today())
 
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'])

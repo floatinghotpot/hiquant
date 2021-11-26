@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from ..utils import symbol_normalize, date_range_from_options, range_from_options, dict_from_df, csv_xlsx_from_options, sort_with_options, filter_with_options
 from ..utils import symbols_from_params, datetime_today
 from ..core import symbol_to_name, get_cn_stock_list_df, get_hk_stock_list_df, get_us_stock_list_df, get_all_stock_list_df, get_all_index_list_df
-from ..core import get_stockpool_df, get_index_daily, get_daily
+from ..core import get_stockpool_df, get_index_daily, get_daily, get_all_symbol_name
 from ..core import list_signal_indicators, get_order_cost
 from ..core import update_finance_indicator_df, get_finance_indicator_df, get_pepb_symmary_df
 from ..core import Stock
@@ -159,9 +159,8 @@ def cmp_stock_earn(params, options):
         df_cmp = df_cmp.tail(range_to - range_from)
 
     symbols = df_cmp['symbol'].tolist()
-    df_stock_list = get_all_stock_list_df()
-    stock_symbol_names = dict_from_df(df_stock_list, 'symbol', 'name')
-    df_cmp.insert(1, 'name', [stock_symbol_names[symbol] if (symbol in stock_symbol_names) else '' for symbol in symbols])
+    symbol_names = get_all_symbol_name()
+    df_cmp.insert(1, 'name', [symbol_names[symbol] if (symbol in symbol_names) else '' for symbol in symbols])
 
     return df_stocks, df_cmp
 
