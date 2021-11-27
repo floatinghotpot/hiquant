@@ -2,43 +2,15 @@
 import pandas as pd
 import hiquant as hq
 
-class StrategyMultiFactor( hq.BasicStrategy ):
+class StrategyMacd( hq.BasicStrategy ):
     def __init__(self, fund):
         super().__init__(fund, __file__)
 
     def schedule_task(self, trader):
-        trader.run_daily(self.daily_task, None, time='03:00')
         trader.run_daily(self.trade, None, time='09:30')
         trader.run_on_bar_update(self.trade, None)
 
-    def daily_task(self, param = None):
-        d = self.fund.market.current_date
-        self.daily(param)   # every day
-        if d.weekday() == 0:    # monday of every week
-            self.weekly(param)
-        if d.day == 1:          # first day of every onth
-            self.monthly(param)
-            if d.month % 3 == 1:    # first day of every quarter
-                self.quarterly(param)
-            if d.month == 1:        # first day of every year
-                self.yearly(param)
-
-    def daily(self,param = None):
-        pass
-
-    def weekly(self, param = None):
-        pass
-
-    def monthly(self, param = None):
-        pass
-
-    def quarterly(self, param = None):
-        pass
-
-    def yearly(self, param = None):
-        pass
-
-    def select_stock(self):
+    def select_targets(self):
         stock_df = pd.read_csv('stockpool/t0_white_horse_20.csv', dtype=str)
         if self.fund.verbose:
             print(stock_df)
@@ -65,7 +37,7 @@ class StrategyMultiFactor( hq.BasicStrategy ):
         return 'MACD 金叉' if (signal > 0) else 'MACD 死叉'
 
 def init(fund):
-    strategy = StrategyMultiFactor(fund)
+    strategy = StrategyMacd(fund)
 
 if __name__ == '__main__':
     backtest_args = dict(
@@ -76,4 +48,4 @@ if __name__ == '__main__':
         #parallel= True,
         compare_index= 'sh000300',
     )
-    hq.backtest_strategy( StrategyMultiFactor, **backtest_args )
+    hq.backtest_strategy( StrategyMacd, **backtest_args )

@@ -18,7 +18,7 @@ class MyStrategy( hq.BasicStrategy ):
         trader.run_daily(self.trade, None, time='10:00')
         #trader.run_on_bar_update(self.trade, None)
 
-    def select_stock(self):
+    def select_targets(self):
         # read stock from stock pool
         stock_df = hq.get_stockpool_df('stockpool/realtime_trade.csv')
         if self.fund.verbose:

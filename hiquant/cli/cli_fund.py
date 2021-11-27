@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_fund_company, get_all_index_list_df, get_index_daily
+from ..core import get_cn_fund_list, get_cn_fund_daily, get_cn_fund_manager, get_cn_fund_company, get_all_symbol_name, get_daily
 from ..utils import dict_from_df, datetime_today, sort_with_options, filter_with_options, date_range_from_options, range_from_options, csv_xlsx_from_options, symbols_from_params
 from ..core import LANG
 
@@ -908,14 +908,14 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None, si
         if k.startswith('-png='):
             png = k.replace('-png=', '')
 
-    index_symbol_names = dict_from_df( get_all_index_list_df() )
+    symbol_names = get_all_symbol_name()
     bases = base.split(',') if (',' in base) else [ base ]
     for base in bases:
-        df_base = get_index_daily( base )
+        df_base = get_daily( base )
         df_base = df_base[ df_base.index >= min(df_funds.index) ]
         df_base = df_base[ df_base.index < date_to ]
         df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
-        base_name = index_symbol_names[ base ] if base in index_symbol_names else base
+        base_name = symbol_names[ base ] if base in symbol_names else base
         df_funds[ base_name ] = df_base['pct_cum']
 
     #df_funds.index = df_funds.index.strftime('%Y-%m-%d')

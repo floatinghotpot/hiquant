@@ -10,7 +10,7 @@ class MyStrategy( hq.BasicStrategy ):
         self.stop_loss = 1 + (-0.10)
         self.stop_earn = 1 + (+0.20)
 
-    def select_stock(self):
+    def select_targets(self):
         return ['AAPL', 'MSFT', 'AMZN', 'TSLA', '0700.HK']
 
     def gen_trade_signal(self, symbol, init_data = False):

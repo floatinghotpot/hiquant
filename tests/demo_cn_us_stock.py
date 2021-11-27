@@ -20,11 +20,11 @@ class StrategyMacd( hq.BasicStrategy ):
         return 'MACD golden cross' if (signal > 0) else 'MACD dead cross'
 
 class StrategyCN( StrategyMacd ):
-    def select_stock(self):
+    def select_targets(self):
         return ['600519','002714','603882','300122','601888','hk3690','hk9988', 'hk0700']
 
 class StrategyUS( StrategyMacd ):
-    def select_stock(self):
+    def select_targets(self):
         return ['AAPL','GOOG','AMZN','TSLA','MSFT','NFLX','FB']
 
 if __name__ == '__main__':

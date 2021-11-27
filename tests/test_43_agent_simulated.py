@@ -9,8 +9,6 @@ def test_agent_simulated():
 
     agent = SimulatedAgent(market)
     agent.init_portfolio(start_cash = 1000000.00)
-    agent.transfer_cash(200000.00, bank_to_security = True)
-    agent.transfer_cash(20000.00, bank_to_security = False)
 
     agent.order('600036', 1000)
     agent.order_target('600036', 0)

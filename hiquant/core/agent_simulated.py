@@ -85,20 +85,11 @@ class SimulatedAgent:
         return self.buy_count, self.sell_count
 
     def init_portfolio(self, start_cash):
-        self.portfolio = Portfolio(self.market)
-        self.portfolio.available_cash = start_cash
+        self.portfolio = Portfolio(self.market, start_cash)
         self.last_order_time = self.market.current_time
         if not (not self.portfolio_load_file):
             self.load_portoflio_from_file()
             self.portfolio.print()
-
-    def transfer_cash(self, amount, bank_to_security = True):
-        if bank_to_security:
-            self.portfolio.available_cash += amount
-        else:
-            self.portfolio.available_cash -= amount
-        if self.portfolio.available_cash < 0:
-            self.portfolio.available_cash = 0.0
 
     def before_day(self):
         self.buy_count = 0

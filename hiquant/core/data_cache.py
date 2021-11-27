@@ -124,13 +124,11 @@ def get_cn_stock_symbol_name():
 
 def get_all_symbol_name():
     symbol_name = dict_from_df(get_all_stock_list_df(), 'symbol', 'name')
-
     symbol_name.update(dict_from_df(get_all_index_list_df(), 'symbol', 'name'))
 
     df_cn_fund_list = get_cn_fund_list()
     df_cn_fund_list['fundsymbol'] = 'F.' + df_cn_fund_list['symbol']
-    fund_symbol_names = dict_from_df(df_cn_fund_list, 'fundsymbol', 'name')
-    symbol_name.update(fund_symbol_names)
+    symbol_name.update( dict_from_df(df_cn_fund_list, 'fundsymbol', 'name') )
 
     return symbol_name
 
@@ -203,6 +201,8 @@ def get_daily( symbol ):
         df['high'] = np.maximum(df['open'], df['close'])
         df['low'] = np.minimum(df['open'], df['close'])
         df['volume'] = 1.0
+    elif symbol.startswith('sh') or symbol.startswith('sz') or symbol.startswith('^'):
+        return get_index_daily( symbol )
     else:
         # we get stock daily from yahoo, including us, cn, hk, etc.
         symbol = symbol_yahoo_style( symbol )

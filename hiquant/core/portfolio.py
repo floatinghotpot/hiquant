@@ -6,15 +6,17 @@ from .stock import Stock
 
 class Portfolio:
     market = None
+    init_value = 0.0
     available_cash = 0.0
     positions = {}
     history = {}
 
-    def __init__(self, market):
+    def __init__(self, market, init_cash = 0.0):
         self.market = market
-        self.available_cash = 0.0
+        self.available_cash = init_cash
         self.positions = {}
         self.history = {}
+        self.init_value = init_cash
 
     def count(self):
         return len(list(self.positions.keys()))
@@ -29,18 +31,23 @@ class Portfolio:
     def to_dataframe(self, use_real_price = True):
         market = self.market
 
-        table = [['cash', '-', self.available_cash, 1.0]]
+        table = [['cash', '-', self.available_cash, 1.0, 1.0]]
         for symbol, stock in self.positions.items():
             shares = stock.shares
             cost = stock.cost
+            price = market.get_price(symbol)
             if use_real_price:
                 adjust_factor = 1.0 / market.get_adjust_factor(symbol)
                 cost = round(cost * adjust_factor, 3)
                 shares = int(shares / adjust_factor)
-            row = [symbol, stock.name, shares, cost]
+            row = [symbol, stock.name, shares, cost, price]
             table.append(row)
 
-        return pd.DataFrame(table,columns=['symbol','name','shares','cost'])
+        df = pd.DataFrame(table,columns=['symbol','name','shares','cost', 'price'])
+        df['value'] = df['price'] * df['shares']
+        total_value = sum( df['value'] )
+        df['position'] = df['value'] / total_value
+        return df
 
     def from_dataframe(self, df, use_real_price = True):
         market = self.market
@@ -66,6 +73,7 @@ class Portfolio:
                 stock.shares = shares
                 stock.cost = cost
                 self.positions[ symbol ] = stock
+        self.init_value = self.total_value()
 
     def print(self):
         df = self.to_dataframe()

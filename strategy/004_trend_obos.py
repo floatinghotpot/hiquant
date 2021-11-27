@@ -14,7 +14,7 @@ class MyStrategy( hq.BasicStrategy ):
         trader.run_daily(self.trade, None, time='14:30')
         trader.run_on_bar_update(self.trade, None)
 
-    def select_stock(self):
+    def select_targets(self):
         stock_df = pd.read_csv('stockpool/t0_white_horse_20.csv', dtype=str)
         if self.fund.verbose:
             print(stock_df)

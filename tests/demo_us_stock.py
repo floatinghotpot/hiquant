@@ -6,7 +6,7 @@ class MyStrategy( hq.BasicStrategy ):
     def __init__(self, fund):
         super().__init__(fund, __file__)
 
-    def select_stock(self):
+    def select_targets(self):
         return ['AAPL','GOOG','AMZN','TSLA','FB','MSFT','NFLX', 'SONY']
 
     def gen_trade_signal(self, symbol, init_data = False):

@@ -306,10 +306,9 @@ class Market:
 
     def get_adjust_factor(self, symbol, date = None) -> pd.Series:
         df = self.get_daily(symbol, end = date, count = 1)
-        factor =  df['factor'].iloc[-1] if (df.shape[0] > 0) else False
-        if not factor:
-            print(df)
-        return factor
+        if (df.shape[0] > 0) and ('factor' in df):
+            return df['factor'].iloc[-1]
+        return 1.0
 
     def get_name(self, symbol) -> str:
         if symbol in self.all_symbol_name:

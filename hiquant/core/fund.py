@@ -231,17 +231,28 @@ class Fund:
                 df['buy'] = stat_df['buy']
                 df['sell'] = stat_df['sell']
 
+        fund_list = []
+        pos_list = []
+        drawdown_list = []
+        for k in df.columns:
+            if k.endswith('.'):
+                fund_list.append(k)
+            elif k.endswith(':'):
+                drawdown_list.append(k)
+            elif k.endswith(','):
+                pos_list.append(k)
+
         if compare_index is None:
             compare_index = self.compare_index
 
         if compare_index:
             symbol_name = get_all_symbol_name()
-            compare_index_name = symbol_name[ compare_index ] if (compare_index in symbol_name) else get_symbol_name(compare_index)
-
-            cmp_value = self.market.get_index_daily(compare_index, start=date_start, end=date_end)['close']
-            cmp_value = (cmp_value / cmp_value.iloc[0] -1) * 100.0
-
-            df[ compare_index_name ] = cmp_value
+            for base in compare_index.split(','):
+                base_name = symbol_name[ base ] if (base in symbol_name) else get_symbol_name(base)
+                base_value = self.market.get_daily(base, start=date_start, end=date_end)['close']
+                base_value = (base_value / base_value.iloc[0] -1) * 100.0
+                df[ base_name ] = base_value
+                fund_list.append( base_name )
 
         df.dropna(inplace=True)
         df.index = df.index.strftime('%Y-%m-%d')
@@ -259,18 +270,6 @@ class Fund:
 
         fig, axes = plt.subplots(nrows = plot_rows, gridspec_kw = {'height_ratios': grid_ratios})
 
-        fund_list = []
-        pos_list = []
-        drawdown_list = []
-        for k in df.columns:
-            if k.endswith('.'):
-                fund_list.append(k)
-            elif k.endswith(':'):
-                drawdown_list.append(k)
-            elif k.endswith(','):
-                pos_list.append(k)
-
-        fund_list.append( compare_index_name )
         df[ fund_list ].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], label = 'date', ylabel = LANG('return(%)'), title = LANG('quantitative backtesting'))
 
         if len(report) == 1:
@@ -282,7 +281,8 @@ class Fund:
         df[ pos_list ].plot(ax=axes[plot_rows -2], grid = True, sharex=axes[0], ylabel = LANG('position(%)'), legend=False)
         df[ drawdown_list ].plot(ax=axes[plot_rows -1], grid = True, sharex=axes[0], ylabel = LANG('drawdown(%)'), legend=False)
 
-        #plt.xticks(rotation=30)
+        #plt.xticks(rotation=15)
+        #plt.legend(loc='upper left')
 
         if out_file is not None:
             plt.savefig(out_file)

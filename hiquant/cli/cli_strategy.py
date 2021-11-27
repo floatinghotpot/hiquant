@@ -26,7 +26,7 @@ class MyStrategy( hq.BasicStrategy ):
         trader.run_daily(self.trade, None, time='09:30')
         trader.run_on_bar_update(self.trade, None)
 
-    def select_stock(self):
+    def select_targets(self):
         return ['AAPL', 'MSFT', 'AMZN', 'TSLA', '0700.HK']
 
     def gen_trade_signal(self, symbol, init_data = False):
@@ -76,12 +76,12 @@ Actions:
 <my_strategy.py> ............ a strategy python file
 
 [options]
-    -cmp=<compare index> .... compare with the index
+    -base=<compare index> .... compare with the index
     -out=<output.png> ....... output the plot to png file
 
 Example:
     __argv0__ strategy create strategy/my_strategy.py
-    __argv0__ strategy backtest strategy/my_strategy.py -years=3 -cmp=sh000300 -out=output/backtest.png
+    __argv0__ strategy backtest strategy/my_strategy.py -years=3 -base=sh000300 -out=output/backtest.png
 
 Alias:
     __argv0__ backtest strategy/my_strategy.py -years=1
@@ -142,27 +142,32 @@ def cli_strategy_backtest(params, options):
     trader.add_fund(fund)
     market.set_verbose( verbose )
     trader.set_verbose( verbose )
+
     trader.run_fund(date_start, date_end)
+
     trader.print_report()
     end_tick = dt.datetime.now()
     print('time used:', (end_tick - start_tick))
 
     config = get_hiquant_conf()
     main_conf = dict_from_config_items(config.items('main'))
-    if 'compare_index' in main_conf:
-        compare_index = main_conf[ 'compare_index' ]
+
+    if fund.compare_index is not None:
+        base = fund.compare_index
+    elif 'compare_index' in main_conf:
+        base = main_conf[ 'compare_index' ]
     else:
-        compare_index = 'sh000300' if (get_lang() == 'zh') else '^GSPC'
+        base = 'sh000300' if (get_lang() == 'zh') else '^GSPC'
 
     out_file = None
     for option in options:
         if option.startswith('-out=') and option.endswith('.png'):
             out_file = option.replace('-out=', '')
-        if option.startswith('-cmp='):
-            compare_index = option.replace('-cmp=', '')
+        if option.startswith('-base='):
+            base = option.replace('-base=', '')
 
     # compare with an index
-    trader.plot(compare_index= compare_index, out_file= out_file)
+    trader.plot(compare_index= base, out_file= out_file)
 
     print('Done.\n')
 

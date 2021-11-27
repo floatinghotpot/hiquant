@@ -241,7 +241,7 @@ class MyStrategy( hq.BasicStrategy ):
         self.stop_loss = 1 + (-0.10)
         self.stop_earn = 1 + (+0.20)
 
-    def select_stock(self):
+    def select_targets(self):
         return ['600036', '300122', '600519', '300357', '601888']
 
     def gen_trade_signal(self, symbol, init_data = False):

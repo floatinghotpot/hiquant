@@ -14,7 +14,7 @@ def test_fund():
     fund = Fund(market, trader, {
         'name': 'fund no.1',
         'start_cash': '1000000.00',
-        'strategy': 'strategy/stra_001_pool_macd.py',
+        'strategy': 'strategy/001_macd.py',
         'stock_pool': 'output/mytest.csv',
     })
     fund.set_verbose()
