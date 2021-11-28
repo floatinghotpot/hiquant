@@ -141,8 +141,23 @@ def cli_strategy_backtest(params, options):
     fund.set_name( os.path.basename(strategy_file) )
     fund.set_start_cash( 1000000.00 )
 
+    config = get_hiquant_conf()
+    main_conf = dict_from_config_items(config.items('main'))
+
+    if fund.compare_index is not None:
+        base = fund.compare_index
+    elif 'compare_index' in main_conf:
+        base = main_conf[ 'compare_index' ]
+    else:
+        base = 'sh000300' if (get_lang() == 'zh') else '^GSPC'
+
+    out_file = None
     for k in options:
-        if k.startswith('-funds='):
+        if k.startswith('-out=') and k.endswith('.png'):
+            out_file = k.replace('-out=', '')
+        elif k.startswith('-base='):
+            base = k.replace('-base=', '')
+        elif k.startswith('-funds='):
             k = k.replace('-funds=', '')
             symbols = symbols_from_params([k])
             fund.targets = [('F.'+symbol) for symbol in symbols]
@@ -161,23 +176,6 @@ def cli_strategy_backtest(params, options):
     trader.print_report()
     end_tick = dt.datetime.now()
     print('time used:', (end_tick - start_tick))
-
-    config = get_hiquant_conf()
-    main_conf = dict_from_config_items(config.items('main'))
-
-    if fund.compare_index is not None:
-        base = fund.compare_index
-    elif 'compare_index' in main_conf:
-        base = main_conf[ 'compare_index' ]
-    else:
-        base = 'sh000300' if (get_lang() == 'zh') else '^GSPC'
-
-    out_file = None
-    for option in options:
-        if option.startswith('-out=') and option.endswith('.png'):
-            out_file = option.replace('-out=', '')
-        if option.startswith('-base='):
-            base = option.replace('-base=', '')
 
     # compare with an index
     trader.plot(compare_index= base, out_file= out_file)
