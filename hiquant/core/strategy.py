@@ -60,7 +60,7 @@ class BasicStrategy( Strategy ):
         trader.run_on_bar_update(self.trade, None)
 
     def select_targets(self):
-        pass
+        return self.fund.targets
 
     def gen_trade_signal(self, symbol, init_data = False):
         pass

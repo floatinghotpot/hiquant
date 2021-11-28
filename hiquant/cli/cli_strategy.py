@@ -4,7 +4,7 @@ import os
 import sys
 import datetime as dt
 
-from ..utils import date_from_str, dict_from_config_items, date_range_from_options
+from ..utils import date_from_str, dict_from_config_items, date_range_from_options, symbols_from_params
 from ..core import get_lang, get_hiquant_conf
 from ..core import Market, Trader, Fund, SimulatedAgent
 
@@ -82,6 +82,7 @@ Actions:
 Example:
     __argv0__ strategy create strategy/my_strategy.py
     __argv0__ strategy backtest strategy/my_strategy.py -years=3 -base=sh000300 -out=output/backtest.png
+    __argv0__ strategy backtest strategy/my_strategy.py -years=3 -base=sh000300 -out=output/backtest.png -funds=output/myfunds.xlsx -stocks=output/mystocks.xlsx
 
 Alias:
     __argv0__ backtest strategy/my_strategy.py -years=1
@@ -139,7 +140,19 @@ def cli_strategy_backtest(params, options):
     fund.set_agent(agent)
     fund.set_name( os.path.basename(strategy_file) )
     fund.set_start_cash( 1000000.00 )
+
+    for k in options:
+        if k.startswith('-funds='):
+            k = k.replace('-funds=', '')
+            symbols = symbols_from_params([k])
+            fund.targets = [('F.'+symbol) for symbol in symbols]
+        elif k.startswith('-stocks='):
+            k = k.replace('-stocks=', '')
+            symbols = symbols_from_params([k])
+            fund.targets = symbols
+
     trader.add_fund(fund)
+
     market.set_verbose( verbose )
     trader.set_verbose( verbose )
 

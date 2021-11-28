@@ -26,12 +26,14 @@ class Fund:
     stat_file = None
     plot_file = None
     compare_index = None
+    _targets = []
 
     def __init__(self, market, trader, fund_conf = None):
         self.market = market
         self.trader = trader
         self.conf = fund_conf if (fund_conf is not None) else {}
         self.strategy_list = []
+        self._targets = []
         self.agent = None
         self.stat_df = None
         self.fund_name = ''
@@ -47,6 +49,14 @@ class Fund:
         if strategy not in self.strategy_list:
             self.strategy_list.append( strategy )
         pass
+
+    @property
+    def targets(self):
+        return self._targets
+
+    @targets.setter
+    def targets(self, value):
+        self._targets = value
 
     def set_agent(self, agent, order_cost = None):
         self.agent = agent
