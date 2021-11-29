@@ -1,4 +1,34 @@
 
+20211128:
+    - cli strategy module support funds as well as stocks
+
+20211125:
+    - add PE/PB middle number calculation in pepb module
+
+20211120:
+    - fund plot module now can plot top10 funds of several companies
+
+20211020:
+    - add feature to plot after eval and for selected fund company
+
+20211118:
+    - refactoring to make sure it run with python3 instead of python2
+
+20210926:
+    - add feature to compare return on invest of multiple stocks
+    - download index daily from tencent instead of sina to avoid block
+    - remove talib dependency from project to avoid install failure
+
+20210909:
+    - add new fund module to evaluate and plot open funds in China market
+
+20210823:
+    - change downloading cn stock daily source from sina to yahoo to avoid block
+    - get stock daily from yahoo and cache in yahoo style symbol
+
+20210720:
+    - add feature to list stocks of an China index
+
 20210707:
     - add option to run backtrade with multiprocessing
     - refactoring, seperate data source out of core

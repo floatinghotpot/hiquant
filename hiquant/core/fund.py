@@ -280,7 +280,7 @@ class Fund:
 
         fig, axes = plt.subplots(nrows = plot_rows, gridspec_kw = {'height_ratios': grid_ratios})
 
-        df[ fund_list ].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], label = 'date', ylabel = LANG('return(%)'), title = LANG('quantitative backtesting'))
+        df[ fund_list ].plot(ax=axes[0], figsize = (10,6), grid = True, sharex=axes[0], xlabel = LANG('date'), ylabel = LANG('return(%)'), title = LANG('quantitative backtesting'))
 
         if len(report) == 1:
             ax_id = plot_rows -3
@@ -288,10 +288,10 @@ class Fund:
             axes[ax_id].bar(df.index, df.buy, color='r')
             axes[ax_id].bar(df.index, df.sell, color='g')
 
-        df[ pos_list ].plot(ax=axes[plot_rows -2], grid = True, sharex=axes[0], ylabel = LANG('position(%)'), legend=False)
-        df[ drawdown_list ].plot(ax=axes[plot_rows -1], grid = True, sharex=axes[0], ylabel = LANG('drawdown(%)'), legend=False)
+        df[ pos_list ].plot(ax=axes[plot_rows -2], grid = True, sharex=axes[0], xlabel = LANG('date'), ylabel = LANG('position(%)'), legend=False)
+        df[ drawdown_list ].plot(ax=axes[plot_rows -1], grid = True, sharex=axes[0], xlabel = LANG('date'), ylabel = LANG('drawdown(%)'), legend=False)
 
-        #plt.xticks(rotation=15)
+        plt.xticks(rotation=15)
         #plt.legend(loc='upper left')
 
         if out_file is not None:
