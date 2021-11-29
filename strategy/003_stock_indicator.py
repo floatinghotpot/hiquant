@@ -9,6 +9,7 @@ class StrategyStockIndicator( hq.BasicStrategy ):
     def __init__(self, fund):
         super().__init__(fund, __file__)
         self.indicators = ['macd', 'kdj']
+        fund.set_name('个股独立多指标策略')
 
     def schedule_task(self, trader):
         trader.run_daily(self.trade, None, time='14:40')

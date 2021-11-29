@@ -9,16 +9,14 @@ class MyStrategy( hq.BasicStrategy ):
         self.max_weight = 1.2
         self.stop_loss = 1 + (-0.10)
         self.stop_earn = 1 + (+0.20)
+        fund.set_name('趋势超买超卖策略')
 
     def schedule_task(self, trader):
         trader.run_daily(self.trade, None, time='14:30')
         trader.run_on_bar_update(self.trade, None)
 
-    def select_targets(self):
-        stock_df = pd.read_csv('stockpool/t0_white_horse_20.csv', dtype=str)
-        if self.fund.verbose:
-            print(stock_df)
-        return stock_df['symbol'].tolist()
+    #def select_targets(self):
+    #    return pd.read_csv('stockpool/t0_white_horse_20.csv', dtype=str)['symbol'].tolist()
 
     def gen_trade_signal(self, symbol, init_data = False):
         market = self.fund.market

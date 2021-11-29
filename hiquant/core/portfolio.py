@@ -1,6 +1,7 @@
 # -*- coding: utf-8; py-indent-offset:4 -*-
 
 import pandas as pd
+import tabulate as tb
 
 from .stock import Stock
 
@@ -44,9 +45,9 @@ class Portfolio:
             table.append(row)
 
         df = pd.DataFrame(table,columns=['symbol','name','shares','cost', 'price'])
-        df['value'] = df['price'] * df['shares']
+        df['value'] = (df['price'] * df['shares']).round(2)
         total_value = sum( df['value'] )
-        df['position'] = df['value'] / total_value
+        df['position'] = (df['value'] / total_value * 100.0).round(2)
         return df
 
     def from_dataframe(self, df, use_real_price = True):
@@ -77,4 +78,4 @@ class Portfolio:
 
     def print(self):
         df = self.to_dataframe()
-        print(df)
+        print( tb.tabulate(df, headers='keys') )

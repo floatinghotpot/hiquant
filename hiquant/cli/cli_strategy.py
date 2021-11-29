@@ -173,9 +173,11 @@ def cli_strategy_backtest(params, options):
 
     trader.run_fund(date_start, date_end)
 
-    trader.print_report()
     end_tick = dt.datetime.now()
     print('time used:', (end_tick - start_tick))
+
+    trader.print_report()
+    agent.portfolio.print()
 
     # compare with an index
     trader.plot(compare_index= base, out_file= out_file)

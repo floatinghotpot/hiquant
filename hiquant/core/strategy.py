@@ -122,7 +122,7 @@ class BasicStrategy( Strategy ):
         agent = fund.agent
         portfolio = agent.get_portfolio()
 
-        max_stocks = min(self.max_stocks, len(self.targets))
+        max_stocks = max(1, min(self.max_stocks, len(self.targets)))
         max_value_pos_stock = portfolio.total_value() / max_stocks * self.max_weight
 
         # we merge the targets and in stock shares, but keep tarets ahead of others with higher priority to buy

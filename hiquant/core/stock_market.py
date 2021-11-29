@@ -267,7 +267,7 @@ class Market:
                 price = close_price - (close_price - open_price) * (f * f * f)
                 return price
         else:
-            print(date, 'not trading day')
+            #print(date, 'not trading day')
             return 0
 
     def get_real_price(self, symbol, date = None) -> float:
@@ -301,7 +301,7 @@ class Market:
                 price = close_price - (close_price - open_price) * f * f * f
                 return price
         else:
-            print(date, 'not trading day')
+            #print(date, 'not trading day')
             return 0
 
     def get_adjust_factor(self, symbol, date = None) -> pd.Series:

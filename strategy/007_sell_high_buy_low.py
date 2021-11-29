@@ -1,4 +1,4 @@
-
+import pandas as pd
 import hiquant as hq
 
 class StrategyValueAveraging( hq.BasicStrategy ):
@@ -7,6 +7,8 @@ class StrategyValueAveraging( hq.BasicStrategy ):
 
     def __init__(self, fund):
         super().__init__(fund, __file__)
+        self.max_stocks = 10
+        self.max_weight = 1.0
         fund.set_name('高抛低吸策略')
 
     def schedule_task(self, trader):
@@ -14,7 +16,7 @@ class StrategyValueAveraging( hq.BasicStrategy ):
         trader.run_on_bar_update(self.trade, None)
 
     #def select_targets(self):
-    #    return ['F.000209','F.000828']
+    #    return pd.read_csv('stockpool/t0_white_horse_20.csv', dtype=str)['symbol'].tolist()
 
     def get_trade_decision(self, symbol, market, portfolio, max_value_pos_stock):
         max_stocks = min(self.max_stocks, len(self.targets))

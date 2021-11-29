@@ -1,29 +1,28 @@
-
 # -*- coding: utf-8; py-indent-offset:4 -*-
 import datetime
+import pandas as pd
 import hiquant as hq
 
 class MyStrategy( hq.BasicStrategy ):
+    trade_morning = False
+
     def __init__(self, fund):
         super().__init__(fund, __file__)
-        self.max_stocks = 10
+        self.max_stocks = 5
         self.max_weight = 1.0
         self.stop_loss = 1 + (-0.05)
-        self.stop_earn = 1 + (+0.10)
+        self.stop_earn = 1 + (+0.30)
+        fund.set_name('主力资金流 -5%止损 +30%止盈 策略')
 
     def schedule_task(self, trader):
         # trade immediately after observing the main fund flow,
         # get a changed price vary from open to close price,
         # grab chance of timing, the early, the better
-        trader.run_daily(self.trade, None, time='10:00')
+        trader.run_daily(self.trade, None, time='10:30' if self.trade_morning else '14:45')
         #trader.run_on_bar_update(self.trade, None)
 
-    def select_targets(self):
-        # read stock from stock pool
-        stock_df = hq.get_stockpool_df('stockpool/realtime_trade.csv')
-        if self.fund.verbose:
-            print(stock_df)
-        return stock_df['symbol'].tolist()
+    #def select_targets(self):
+    #    return pd.read_csv('stockpool/t0_white_horse_20.csv', dtype=str)['symbol'].tolist()
 
     def trade(self, param = None):
         # sort the target stocks by main fund flow
@@ -50,7 +49,7 @@ class MyStrategy( hq.BasicStrategy ):
         # to avoid "future data or function" in backtesting, it should not be used for today's trading
         # either we trade at 14:30 before market close
         # or, shift(1) and trade next morning
-        return signal
+        return signal #.shift(1) if self.trade_morning else signal
 
     def get_signal_comment(self, symbol, signal):
         return '主力买入' if (signal > 0) else '主力卖出'
