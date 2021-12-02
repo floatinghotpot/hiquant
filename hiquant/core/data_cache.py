@@ -66,7 +66,7 @@ def get_us_index_list_df():
     return get_cached_download_df('cache/us_index_list.csv', download_us_index_list, check_date= datetime_today())
 
 def get_world_index_list_df():
-    return get_cached_download_df('cache/world_index_list.csv', download_world_index_list, check_date= datetime_today())
+    return get_cached_download_df('cache/world_index_list.csv', download_world_index_list, check_date= None)
 
 _market_funcs_get_stock_list_df = {
     'cn': get_cn_stock_list_df,
