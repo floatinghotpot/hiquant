@@ -3,7 +3,7 @@
 
 [阅读此文档的中文版本](https://github.com/floatinghotpot/hiquant/blob/master/README_zh.md)
 
-Hiquant is an out-of-box tool and framework for quantitative trading and study.
+Hiquant is a quatitative trading framework and out-of-box toolset for assisting stock/fund investment.
 
 It can run on any OS with Python 3, suggest Python v3.7+. 
 
@@ -107,17 +107,7 @@ if __name__ == '__main__':
     hq.backtest_strategy( MyStrategy, **backtest_args )
 ```
 
-## Usage
-
-Read following docs for more details:
-- [How to use hiquant tool](https://github.com/floatinghotpot/hiquant/blob/master/docs/README.md)
-
-## Develop with Hiquant
-
-Read this document on how to develop with Hiquant:
-- [How to develop with Hiquant](https://github.com/floatinghotpot/hiquant/blob/master/docs/DEV.md)
-
-## Screenshots
+## Examples
 
 - Draw stock indicators and yield curve
 ```bash
@@ -142,6 +132,16 @@ hiquant stock AAPL -ma -macd -mix
 hiquant stock plot AAPL GOOG AMZN -years=5 "-base=^IXIC,^GSPC"
 ```
 ![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_us_stocks.png)
+
+## Usage
+
+Read following docs for more details:
+- [How to use hiquant tool](https://github.com/floatinghotpot/hiquant/blob/master/docs/README.md)
+
+## Develop with Hiquant
+
+Read this document on how to develop with Hiquant:
+- [How to develop with Hiquant](https://github.com/floatinghotpot/hiquant/blob/master/docs/DEV.md)
 
 ## Credits
 

@@ -115,17 +115,7 @@ if __name__ == '__main__':
     hq.backtest_strategy( MyStrategy, **backtest_args )
 ```
 
-## 如何使用
-
-如何使用请参见 文档:
-- [《如何使用 hiquant 工具》](https://github.com/floatinghotpot/hiquant/blob/master/docs/README_zh.md)
-
-## 如何开发
-
-如何使用请参见 
-- [《如何基于 hiquant 开发》](https://github.com/floatinghotpot/hiquant/blob/master/docs/DEV.md)
-
-## 功能截图
+## 功能示范
 
 - 绘制股票 技术指标 和 收益率：
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_1.png)
@@ -144,6 +134,16 @@ if __name__ == '__main__':
 
 - 比较多只基金的投资回报率
 ![Compore funds](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_funds.png)
+
+## 如何使用
+
+如何使用请参见 文档:
+- [《如何使用 hiquant 工具》](https://github.com/floatinghotpot/hiquant/blob/master/docs/README_zh.md)
+
+## 如何开发
+
+如何使用请参见 
+- [《如何基于 hiquant 开发》](https://github.com/floatinghotpot/hiquant/blob/master/docs/DEV.md)
 
 ## 致谢
 
