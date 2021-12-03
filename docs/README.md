@@ -187,13 +187,13 @@ In addition, we can also view the performance of a certain stock's technical ind
 
 For example: plot a single or multiple indicators, and the performance of these indicators signal trading results:
 ```bash
-hiquant stock 600036 -ma -macd -kdj
+hiquant stock plot 600036 -ma -macd -kdj
 ```
 ![Draw stock](draw_stock_1.png)
 
 Another example: mixing multiple indicator signals, trading performance, and displaying trading actions and positions:
 ```bash
-hiquant stock 600036 -cci -macd -kdj -mix
+hiquant stock plot 600036 -cci -macd -kdj -mix
 ```
 ![Draw stock](draw_stock_2.png)
 
