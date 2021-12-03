@@ -14,7 +14,7 @@ from ..core import LANG
 def cli_fund_help():
     syntax_tips = '''Syntax:
     __argv0__ fund update <all | symbols | symbols.csv>
-    __argv0__ fund list [<keyword>] [-sortby=...] [-desc] [-filter_column=...-...]
+    __argv0__ fund list <all | symbols | symbols.csv> [-include=... -exclude=... -same=...]
     __argv0__ fund manager [<keyword>] [-s | -d] [-sortby=...] [-desc] [-filter_column=...-...]
     __argv0__ fund company [<keyword>]
     __argv0__ fund eval <all | symbols | symbols.csv> [-sortby=...] [-desc] [-filter_column=...-...]
@@ -33,14 +33,22 @@ Options:
     -d ............................. display symbol and name of the funds managed
 
 Example:
-    __argv0__ fund list 多因子
-    __argv0__ fund list 广发 -out=output/myfunds.csv
-    __argv0__ fund company 华安
+    __argv0__ fund list
+    __argv0__ fund list -include=广发 -exclude=债 -out=output/myfunds.csv
+
+    __argv0__ fund pool 1.csv 2.csv -exclude=3.csv -same=4.csv -out=5.csv
+
     __argv0__ fund update data/myfunds.csv
+
+    __argv0__ fund company 华安
+    __argv0__ fund manager -belongto=华夏基金
+
     __argv0__ fund eval all -days=365 -sortby=sharpe -desc -limit=20 -out=output/top20_funds.xlsx
     __argv0__ fund plot 002943 005669 000209 -days=365
+
     __argv0__ fund plot data/funds.csv -days=365
     __argv0__ fund plot data/funds.csv -years=3 -mix
+
     __argv0__ fund backtest all -year=2018 -mix
     __argv0__ fund backtest all -year=2010-2020 -mix
 '''.replace('__argv0__',os.path.basename(sys.argv[0]))
@@ -123,20 +131,14 @@ def get_manager_fund_mapping():
     return manager_fund
 
 # hiquant fund list
-# hiquant fund list 多因子
+# hiquant fund list -include=多因子
 def cli_fund_list(params, options):
     df = get_cn_fund_list(check_date= datetime_today())
 
     selected = total = df.shape[0]
     if len(params) > 0:
-        filters = None
-        for param in params:
-            filter = df['name'].str.contains(param, na=False)
-            if filters is None:
-                filters = filter
-            else:
-                filters = filters | filter
-        df = df[ filters ]
+        symbols = symbols_from_params(params)
+        df = df[ df['symbol'].isin(symbols) ]
 
     for option in options:
         if option.startswith('-exclude='):
@@ -146,8 +148,14 @@ def cli_fund_list(params, options):
             pass
         elif option.startswith('-include='):
             keywords = option.replace('-include=','').split(',')
+            filters = None
             for k in keywords:
-                df = df[ df['name'].str.contains(k) ]
+                filter = df['name'].str.contains(k, na=False)
+                if filters is None:
+                    filters = filter
+                else:
+                    filters = filters | filter
+            df = df[ filters ]
             pass
         elif option.startswith('-belongto='):
             keyword = option.replace('-belongto=','')
@@ -191,7 +199,7 @@ def cli_fund_list(params, options):
         df = df[['symbol', 'name']]
         df.to_csv(out_csv_file, index= False)
         print('Exported to:', out_csv_file)
-        print(df)
+        print( tb.tabulate(df, headers='keys') )
 
     if '-update' in options:
         cli_fund_update(df['symbol'].tolist(), options)
@@ -202,6 +210,45 @@ def cli_fund_list(params, options):
 
     if '-plot' in options:
         cli_fund_plot(df['symbol'].tolist(), options + ['-man'])
+
+# hiquant fund pool params -out=myfunds.csv
+# hiquant fund pool params -same=other.csv -out=myfunds.csv
+# hiquant fund pool params -exclude=other.csv -out=myfunds.csv
+def cli_fund_pool(params, options):
+    df = get_cn_fund_list(check_date= datetime_today())
+    symbols = symbols_from_params(params)
+    df = df[ df['symbol'].isin(symbols) ].reset_index(drop= True)
+
+    for option in options:
+        if option.startswith('-same='):
+            other_arg = option.replace('-same=','')
+            other_symbols = symbols_from_params( [ other_arg ])
+            df = df[ df['symbol'].isin(other_symbols) ]
+        elif option.startswith('-exclude='):
+            other_arg = option.replace('-exclude=','')
+            other_symbols = symbols_from_params( [ other_arg ])
+            df = df[ ~ df['symbol'].isin(other_symbols) ]
+
+    print( tb.tabulate(df, headers='keys') )
+
+    df = filter_with_options(df, options)
+    df = sort_with_options(df, options, by_default='symbol')
+    range_from, range_to = range_from_options(options)
+    limit = range_to - range_from
+    if limit > 0:
+        df = df.head(limit)
+
+    out_csv_file, out_xlsx_file = csv_xlsx_from_options(options)
+
+    if out_csv_file:
+        df = df[['symbol', 'name']]
+        df.to_csv(out_csv_file, index= False)
+        print('Exported to:', out_csv_file)
+
+    if out_xlsx_file:
+        df = df[['symbol', 'name']]
+        df.to_excel(out_xlsx_file, index= False)
+        print('Exported to:', out_xlsx_file)
 
 def cli_fund_company(params, options):
     df = get_cn_fund_company()
@@ -1100,6 +1147,9 @@ def cli_fund(params, options):
 
     if action == 'list':
         cli_fund_list(params, options)
+
+    elif action == 'pool':
+        cli_fund_pool(params, options)
 
     elif action == 'manager':
         cli_fund_manager(params, options)

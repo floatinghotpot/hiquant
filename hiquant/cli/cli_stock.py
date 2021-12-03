@@ -80,7 +80,7 @@ def cli_stock_list(params, options):
     func = list_funcs[ params[0] ]
     df = func()
     df['name'] = df['name'].str.slice(stop=60)
-    print( tb.tabulate(df, headers='keys', showindex=False, tablefmt='psql') )
+    print( tb.tabulate(df, headers='keys', showindex=False) )
     print( 'Totally', df.shape[0], 'rows.\n')
 
 # hiquant stock pool params -out=mystocks.csv
@@ -100,7 +100,7 @@ def cli_stock_pool(params, options):
             other_symbols = symbols_from_params( [ other_arg ])
             df = df[ ~ df['symbol'].isin(other_symbols) ]
 
-    print(df)
+    print( tb.tabulate(df, headers='keys') )
 
     df = filter_with_options(df, options)
     df = sort_with_options(df, options, by_default='symbol')

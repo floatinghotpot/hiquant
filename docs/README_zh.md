@@ -48,6 +48,10 @@ hiquant backtest strategy/mystrategy.py
 hiquant trade create etc/myfund.conf
 hiquant backtrade etc/myfund.conf
 hiquant run etc/myfund.conf
+
+hiquant fund list
+hiquant fund list -include=新能源 -exclude=C
+hiquant fund eval 005669 000209 002190 -years=3 -plot
 ```
 
 ## 如何使用

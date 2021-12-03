@@ -33,16 +33,13 @@ Global Commands:
     init ................. init a hiquant project
 
 Modules:
-    finance ................ Finance analysis on stock pool
-    pepb ................... PE/PE analysis on stock pool
-    stockpool .............. Create or edit stock pool .csv file
-    strategy ............... Create or bench a strategy
-
-    stock .................. Plot a stock with indicators
     index .................. Plot index with indicators
+    stock .................. Plot a stock with indicators
     fund ................... List or plot open funds
     indicator .............. List indicators
     fundflow ............... View main fundflow of stocks
+    strategy ............... Create or bench a strategy
+    trade .................. Backtrade or simulate trading
 
 Options:
     -v, --version .......... print out the version
@@ -61,8 +58,6 @@ Example:
     __argv0__ fund list
     __argv0__ fund plot 005669 000209
 
-    __argv0__ stockpool create stockpool/mystocks.csv 600036 000002 600276 300357
-
     __argv0__ strategy create strategy/mystrategy.py
     ... modify my_strategy.py ...
     __argv0__ backtest strategy/mystrategy.py
@@ -79,8 +74,8 @@ def cli_main_params_options(params, options):
     # parse command line arguments
     cli_tools = {
         'init': cli_init,
-        'stock': cli_stock,
         'index': cli_index,
+        'stock': cli_stock,
         'indicator': cli_indicator,
         'fundflow': cli_fundflow,
         'strategy': cli_strategy,
