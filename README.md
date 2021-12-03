@@ -19,7 +19,7 @@ It can run on any OS with Python 3, suggest Python v3.7+.
 - **TODO: Automated trading**: call the quantitative trading interface to realize automated trading (not yet implemented, planned)
 
 Other features:
-- **Evalute funds**: search and filter funds, calculate sharpe ratio and max drawdown, evaluate funds, comparing earning curve of multiple funds, comparing investment performance of fund managers
+- **Evaluate funds**: search and filter funds, calculate sharpe ratio and max drawdown, evaluate funds, comparing earning curve of multiple funds, comparing investment performance of fund managers
 
 ![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/raw/master/docs/hiquant.png)
 
