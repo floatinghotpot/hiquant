@@ -7,8 +7,6 @@ Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及
 
 可以运行于任何支持 Python 的操作系统。建议 Python 3.7 以上。
 
-本项目开发于 Mac 环境，因此本文的一些示范说明用于 Mac 环境，Linux 也差不多，Windows 可能有少量差异。
-
 ## 功能
 
 ![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/raw/master/docs/hiquant.png)
@@ -160,3 +158,6 @@ if __name__ == '__main__':
 本软件及相关代码，仅供研究用途，不构成任何投资建议。
 
 若投入资金做实盘用途，风险自负。
+
+本项目开发于 Mac 环境，因此本文的一些示范说明用于 Mac 环境，Linux 也差不多，Windows 可能有少量差异。
+

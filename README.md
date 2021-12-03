@@ -7,8 +7,6 @@ Hiquant is an out-of-box tool and framework for quantitative trading and study.
 
 It can run on any OS with Python 3, suggest Python v3.7+. 
 
-This software is developed on Mac, and the examples in this document are written with Mac environment. They are similiar for Linux, but might be a little difference on Windows.
-
 ## Features
 
 ![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/raw/master/docs/hiquant.png)
@@ -16,14 +14,14 @@ This software is developed on Mac, and the examples in this document are written
 - **Data acquisition**: fetch data from financial websites, including indices, stocks, funds, financial reports, history data, realtime data, etc.
 - **Valuation analysis**: extract key abstract info from financial reports like ROE, calculate PE/PB percentiles, find “cheap valuation” stocks, export to stock pool
 - **Plot stock with indicators**: plot k-line diagram of stocks with indicators, comparing earning curve of multiple indices or even multiple stocks
-- **Strategy framework**: with some trading strategy codes for demo purposes, and provides a command to create a new strategy from the template, which is convenient for users to write their own strategies
-- **Simulated backtrade**: Use historical market data to simulate backtesting of one or more portfolio strategies, output data analysis of investment returns, and draw yield curves for comparison
+- **Strategy framework**: implemented a strategy framework for backtesting, with sample code for demo purposes, and provides a command to create a new strategy from the template, which is convenient for users to write their own strategies
+- **Simulated backtesting**: Use historical market data, to simulate backtesting of one or more portfolio strategies, output data analysis of investment returns, and draw yield curves for comparison
 - **Simulated realtime trading**: Synchronize real-time market data, calculate trading decisions based on strategies, and send email notifications to remind users to trade
-- **Multi markets**: currently supports China, Hong Kong and United States market, will add support for markets in other countries
+- **Multi markets**: currently supports China, Hong Kong and United States market, will add support for markets in other countries if requested and data available
 - **TODO: Automated trading**: call the quantitative trading interface to realize automated trading (not yet implemented, planned)
 
 Other features:
-- **Evalute funds**: evaluate funds, plot diagram of funds, comparing earning curve of multiple funds
+- **Evalute funds**: search and filter funds, calculate sharpe ratio and max drawdown, evaluate funds, comparing earning curve of multiple funds, comparing investment performance of fund managers
 
 ## Installation
 
@@ -158,3 +156,6 @@ Thanks the warm-hearted knowledge sharing on Zhihu and Baidu websites.
 This software and related codes are for research purposes only and do not constitute any investment advice.
 
 If anyone invests money in actual investment based on this, please bear all risks by yourself.
+
+This software is developed on Mac, and the examples in this document are written with Mac environment. They are similiar for Linux, but might be a little difference on Windows.
+
