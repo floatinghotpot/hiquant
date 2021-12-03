@@ -9,8 +9,6 @@ Hiquant 是一个使用 Python 开发的量化交易框架 和 开箱即用的�
 
 ## 功能
 
-![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/raw/master/docs/hiquant.png)
-
 - **数据获取**：从金融网站获取数据，包括指数、股票、基金、财务报告、历史数据、实时数据等。
 - **估值分析**：从 ROE 等财务报告中提取关键抽象信息，计算 PE/PB 百分位数，找到“估值便宜”的股票，导出到股票池
 - **用指标绘制股票**：用指标绘制股票的k线图，比较多个指数甚至多个股票的收益曲线
@@ -22,6 +20,8 @@ Hiquant 是一个使用 Python 开发的量化交易框架 和 开箱即用的�
 
 其他特性：
 - **评估基金**：搜索和筛选基金，计算夏普比率和最大回撤，评估基金，比较多个基金的收益曲线，比较基金经理的投资业绩 
+
+![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/raw/master/docs/hiquant.png)
 
 ## 如何安装
 
