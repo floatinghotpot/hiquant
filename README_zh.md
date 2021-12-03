@@ -3,7 +3,7 @@
 
 [Read English version of this document](https://github.com/floatinghotpot/hiquant/blob/master/README.md)
 
-Hiquant 是一个用 Python 开发的 辅助股票投资的技术框架，以及一个开箱即用的命令行工具。
+Hiquant 是一个使用 Python 开发的量化交易框架 和 开箱即用的工具集，主要用于辅助股票/基金投资。有了它的帮助，炒股、买基金不再盲目，可以有效提高盈利概率。
 
 可以运行于任何支持 Python 的操作系统。建议 Python 3.7 以上。
 

@@ -9,8 +9,6 @@ It can run on any OS with Python 3, suggest Python v3.7+.
 
 ## Features
 
-![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/raw/master/docs/hiquant.png)
-
 - **Data acquisition**: fetch data from financial websites, including indices, stocks, funds, financial reports, history data, realtime data, etc.
 - **Valuation analysis**: extract key abstract info from financial reports like ROE, calculate PE/PB percentiles, find “cheap valuation” stocks, export to stock pool
 - **Plot stock with indicators**: plot k-line diagram of stocks with indicators, comparing earning curve of multiple indices or even multiple stocks
@@ -22,6 +20,8 @@ It can run on any OS with Python 3, suggest Python v3.7+.
 
 Other features:
 - **Evalute funds**: search and filter funds, calculate sharpe ratio and max drawdown, evaluate funds, comparing earning curve of multiple funds, comparing investment performance of fund managers
+
+![Hiquant system architecture](https://github.com/floatinghotpot/hiquant/raw/master/docs/hiquant.png)
 
 ## Installation
 
