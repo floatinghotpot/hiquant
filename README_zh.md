@@ -123,14 +123,14 @@ if __name__ == '__main__':
 - 绘制 多个技术指标的交易信号、持仓情况 以及收益率：
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_2.png)
 
+- 比较多只股票的投资回报率
+![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_stocks.png)
+
 - 模拟回测：
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/back_trade.png)
 
 - 运行多个投资组合：
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
-
-- 比较多只股票的投资回报率
-![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_stocks.png)
 
 - 比较多只基金的投资回报率
 ![Compore funds](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_funds.png)

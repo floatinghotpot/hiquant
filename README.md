@@ -121,17 +121,17 @@ hiquant stock AAPL -ma -macd -mix
 ```
 ![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_2.png)
 
-- Backtrade with one portoflio
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/back_trade.png)
-
-- Backtrade with multiple portoflios
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
-
 - Compare ROI of multiple stocks
 ```bash
 hiquant stock plot AAPL GOOG AMZN -years=5 "-base=^IXIC,^GSPC"
 ```
 ![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_us_stocks.png)
+
+- Backtrade with one portoflio
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/back_trade.png)
+
+- Backtrade with multiple portoflios
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
 
 ## Usage
 
