@@ -351,8 +351,8 @@ def cli_fund_company(params, options):
 
 def get_fund_area(name):
     fund_areas = {
+        'QDII': ['QDII','美国','全球','现钞','现汇','人民币','纳斯达克','标普'],
         'ETF': ['ETF','指数','联接'],
-        'QDII': ['QDII','美国','全球','现钞','现汇','人民币'],
         '债券': ['债'],
         '量化': ['量化'],
         '新能源': ['能源','双碳','低碳','碳中和','新经济','环保','环境','气候','智能汽车'],
@@ -621,8 +621,9 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
         daily_sharpe_ratio = (df['pct_change'].mean() - risk_free_rate) / df['pct_change'].std()
         sharpe_ratio = round(daily_sharpe_ratio * (252 ** 0.5), 2)
 
-        max_drawdown = (1 - df['pct_cum'] / df['pct_cum'].cummax()).max()
-        max_drawdown = round(100 * max_drawdown, 2)
+        drawdown = df['pct_cum'] / df['pct_cum'].cummax() - 1.0
+        max_drawdown = round(100 * drawdown.min(), 2)
+        last_drawdown = round(100 * drawdown.iloc[-1], 2)
 
         logreturns = np.diff( np.log(df['pct_cum']) )
         volatility = np.std(logreturns)
@@ -642,9 +643,9 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
         key_manager = company + manager
         size = manager_size[key_manager] if (key_manager in manager_size) else 0
 
-        eval_table.append([symbol, name, company, manager, manager2, manager3, size, min(days, fund_days), pct_cum, sharpe_ratio, max_drawdown, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
+        eval_table.append([symbol, name, company, manager, manager2, manager3, size, min(days, fund_days), pct_cum, sharpe_ratio, max_drawdown, last_drawdown, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
 
-    en_cols = ['symbol', 'name', 'company', 'manager', 'manager2', 'manager3', 'size', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
+    en_cols = ['symbol', 'name', 'company', 'manager', 'manager2', 'manager3', 'size', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'last_drawdown', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
     df = pd.DataFrame(eval_table, columns=en_cols)
 
     df['annual'] = round((np.power((df['pct_cum'] * 0.01 + 1), 1.0/(df['calc_days']/365.0)) - 1.0) * 100.0, 1)
@@ -804,7 +805,7 @@ def cli_fund_eval(params, options):
 
     df_eval = df_eval.reset_index(drop= True)
 
-    df_eval['area'] = df_eval['name'].apply(get_fund_area)
+    df_eval.insert(2, 'area', df_eval['name'].apply(get_fund_area))
 
     df_eval['fund_start'] = df_eval['fund_start'].dt.strftime('%Y-%m-%d')
 
@@ -847,6 +848,7 @@ def cli_fund_eval(params, options):
             'pct_cum': str(years) + '年\n收益率',
             'sharpe': '夏普比率',
             'max_drawdown': '最大回撤',
+            'last_drawdown': '目前回撤',
             'volatility': '波动率',
             'buy_state': '申购状态',
             'sell_state': '赎回状态',
