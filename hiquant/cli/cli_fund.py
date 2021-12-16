@@ -541,16 +541,18 @@ def cli_fund_read_fund_symbols(excel_file):
 
 # hiquant fund update <symbols>
 # hiquant fund update <symbols.csv>
-# hiquant fund update all
+# hiquant fund update all -range=500-
 def cli_fund_update(params, options):
     if len(params) == 0:
         cli_fund_help()
         return
 
+    range_from, range_to = range_from_options(options)
+
     df_fund_list = get_cn_fund_list(check_date= datetime_today())
 
     if params[0] == 'all':
-        pass
+        symbols = df_fund_list['symbol'].tolist()
     else:
         symbols = symbols_from_params(params)
         df_fund_list = df_fund_list[ df_fund_list['symbol'].isin(symbols) ]
@@ -561,6 +563,11 @@ def cli_fund_update(params, options):
     n = len(symbols)
     for symbol in symbols:
         i += 1
+        if range_from > 0 and i < range_from:
+            continue
+        if range_to > 0 and i > range_to:
+            break
+
         name = symbol + ' - ' + fund_symbol_names[ symbol ]
         print('{}/{} - updating {} ...'.format(i, n, name))
         try:

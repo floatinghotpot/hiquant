@@ -78,7 +78,7 @@ def range_from_options(options):
             if '-' in k:
                 ranges = k.split('-')
                 range_from = int(ranges[0])
-                range_to = int(ranges[1]) if (len(ranges)>1) else 0
+                range_to = int(ranges[1]) if (len(ranges)>1 and len(ranges[1])>0) else 0
                 return range_from, range_to
             else:
                 return 0, int(k)
