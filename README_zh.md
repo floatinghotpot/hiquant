@@ -5,8 +5,6 @@
 
 Hiquant 是一个使用 Python 开发的量化交易框架 和 开箱即用的工具集，主要用于辅助股票/基金投资。有了它的帮助，炒股、买基金不再盲目，可以有效提高盈利概率。
 
-可以运行于任何支持 Python 的操作系统。建议 Python 3.7 以上。
-
 ## 功能
 
 - **数据获取**：从金融网站获取数据，包括指数、股票、基金、财务报告、历史数据、实时数据等。
@@ -38,6 +36,26 @@ git clone https://github.com/floatinghotpot/hiquant.git
 cd hiquant
 python3 -m pip install -e .
 ```
+
+## 功能示范
+
+- 绘制股票 技术指标 和 收益率：
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_1.png)
+
+- 绘制 多个技术指标的交易信号、持仓情况 以及收益率：
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_2.png)
+
+- 比较多只股票的投资回报率
+![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_stocks.png)
+
+- 模拟回测：
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/back_trade.png)
+
+- 运行多个投资组合：
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
+
+- 比较多只基金的投资回报率
+![Compore funds](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_funds.png)
 
 ## 快速体验
 
@@ -114,26 +132,6 @@ if __name__ == '__main__':
     )
     hq.backtest_strategy( MyStrategy, **backtest_args )
 ```
-
-## 功能示范
-
-- 绘制股票 技术指标 和 收益率：
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_1.png)
-
-- 绘制 多个技术指标的交易信号、持仓情况 以及收益率：
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_2.png)
-
-- 比较多只股票的投资回报率
-![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_stocks.png)
-
-- 模拟回测：
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/back_trade.png)
-
-- 运行多个投资组合：
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
-
-- 比较多只基金的投资回报率
-![Compore funds](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_cn_funds.png)
 
 ## 如何使用
 

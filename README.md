@@ -5,8 +5,6 @@
 
 Hiquant is a quatitative trading framework and out-of-box toolset for assisting stock/fund investment.
 
-It can run on any OS with Python 3, suggest Python v3.7+. 
-
 ## Features
 
 - **Data acquisition**: fetch data from financial websites, including indices, stocks, funds, financial reports, history data, realtime data, etc.
@@ -38,6 +36,32 @@ git clone https://github.com/floatinghotpot/hiquant.git
 cd hiquant
 python3 -m pip install -e .
 ```
+
+## Examples
+
+- Draw stock indicators and yield curve
+```bash
+hiquant stock AAPL -ma -macd
+```
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_1.png)
+
+- Draw trade signal of mixed indicators, holding time, and yield curve
+```bash
+hiquant stock AAPL -ma -macd -mix
+```
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_2.png)
+
+- Compare ROI of multiple stocks
+```bash
+hiquant stock plot AAPL GOOG AMZN -years=5 "-base=^IXIC,^GSPC"
+```
+![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_us_stocks.png)
+
+- Backtrade with one portoflio
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/back_trade.png)
+
+- Backtrade with multiple portoflios
+![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
 
 ## Command quick start
 
@@ -106,32 +130,6 @@ if __name__ == '__main__':
     )
     hq.backtest_strategy( MyStrategy, **backtest_args )
 ```
-
-## Examples
-
-- Draw stock indicators and yield curve
-```bash
-hiquant stock AAPL -ma -macd
-```
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_1.png)
-
-- Draw trade signal of mixed indicators, holding time, and yield curve
-```bash
-hiquant stock AAPL -ma -macd -mix
-```
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/draw_stock_2.png)
-
-- Compare ROI of multiple stocks
-```bash
-hiquant stock plot AAPL GOOG AMZN -years=5 "-base=^IXIC,^GSPC"
-```
-![Compore stocks](https://github.com/floatinghotpot/hiquant/raw/master/docs/cmp_us_stocks.png)
-
-- Backtrade with one portoflio
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/back_trade.png)
-
-- Backtrade with multiple portoflios
-![Draw stock](https://github.com/floatinghotpot/hiquant/raw/master/docs/multi_funds.png)
 
 ## Usage
 
