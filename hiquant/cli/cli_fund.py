@@ -24,7 +24,7 @@ def cli_fund_help():
 Options:
     -sortby=<col> .................. sort by the column
     -sharpe=2.5- ................... sharpe value between <from> to <to>
-    -max_drawdown=-20 .............. max_drawdown between <from> to <to>
+    -drawdown_max=-20 .............. drawdown_max between <from> to <to>
     -volatility=-20 ................ volatility between <from> to <to>
     -out=file.csv .................. export fund list to .csv file
     -out=file.xlsx ................. export fund data to .xlsx file
@@ -617,9 +617,11 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
             continue
 
         try:
-            df['pct_cum'] = (df['pct_change'] * 0.01 +1).cumprod()
-            pct_cum = df['pct_cum'].iloc[-1] - 1.0
-            pct_cum = round(pct_cum * 100, 2)
+            df['earn'] = (df['pct_change'] * 0.01 +1).cumprod()
+            earn = df['earn'].iloc[-1] - 1.0
+            earn = round(earn * 100, 2)
+            earn_max = df['earn'].max() - 1.0
+            earn_max = round(earn_max * 100, 2)
         except (KeyError, ValueError, IndexError) as err:
             print('error calculating', symbol, name, ', skip.')
             continue
@@ -628,11 +630,12 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
         daily_sharpe_ratio = (df['pct_change'].mean() - risk_free_rate) / df['pct_change'].std()
         sharpe_ratio = round(daily_sharpe_ratio * (252 ** 0.5), 2)
 
-        drawdown = df['pct_cum'] / df['pct_cum'].cummax() - 1.0
-        max_drawdown = round(100 * drawdown.min(), 2)
-        last_drawdown = round(100 * drawdown.iloc[-1], 2)
+        drawdown = df['earn'] / df['earn'].cummax() - 1.0
+        drawdown_max = round(100 * drawdown.min(), 2)
+        drawdown_now = round(100 * drawdown.iloc[-1], 2)
+        drawdown_percent = round(drawdown_now / drawdown_max * 100) if (drawdown_max < 0) else 100
 
-        logreturns = np.diff( np.log(df['pct_cum']) )
+        logreturns = np.diff( np.log(df['earn']) )
         volatility = np.std(logreturns)
         annualVolatility = volatility * (252 ** 0.5)
         annualVolatility = round(annualVolatility * 100, 2)
@@ -650,15 +653,15 @@ def eval_fund_list(df_fund_list, date_from, date_to, ignore_new = False):
         key_manager = company + manager
         size = manager_size[key_manager] if (key_manager in manager_size) else 0
 
-        eval_table.append([symbol, name, company, manager, manager2, manager3, size, min(days, fund_days), pct_cum, sharpe_ratio, max_drawdown, last_drawdown, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
+        eval_table.append([symbol, name, company, manager, manager2, manager3, size, min(days, fund_days), earn, earn_max, drawdown_now, drawdown_max, drawdown_percent, sharpe_ratio, buy_state, sell_state, fee, fund_start, round(fund_days/365.0,1)])
 
-    en_cols = ['symbol', 'name', 'company', 'manager', 'manager2', 'manager3', 'size', 'calc_days', 'pct_cum', 'sharpe', 'max_drawdown', 'last_drawdown', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
+    en_cols = ['symbol', 'name', 'company', 'manager', 'manager2', 'manager3', 'size', 'calc_days', 'earn', 'earn_max', 'drawdown', 'drawdown_max', 'drawdown_pct', 'sharpe', 'buy_state', 'sell_state', 'fee', 'fund_start', 'fund_years']
     df = pd.DataFrame(eval_table, columns=en_cols)
 
-    df['annual'] = round((np.power((df['pct_cum'] * 0.01 + 1), 1.0/(df['calc_days']/365.0)) - 1.0) * 100.0, 1)
-    #df['annual'] = df[['pct_cum', 'annual']].min(axis= 1)
-    df['score'] = round(df['pct_cum'] * df['sharpe'] * 0.1, 1)
-    df['score2'] = round(df['pct_cum'] * df['sharpe'] / df['max_drawdown'], 1)
+    df['annual'] = round((np.power((df['earn'] * 0.01 + 1), 1.0/(df['calc_days']/365.0)) - 1.0) * 100.0, 1)
+    #df['annual'] = df[['earn', 'annual']].min(axis= 1)
+    df['score'] = round(df['earn'] * df['sharpe'] * 0.1, 1)
+    df['score2'] = round(- df['earn'] * df['sharpe'] / df['drawdown_max'], 1)
 
     return df
 
@@ -722,7 +725,7 @@ def cli_fund_eval(params, options):
             eval_from = date_from + dt.timedelta(days = i)
             eval_to = min(eval_from + dt.timedelta(days= 365), date_to)
             df_eval = eval_fund_list(df_fund_list, date_from= eval_from, date_to= eval_to)
-            df_eval = sort_with_options(df_eval, options, by_default='pct_cum')
+            df_eval = sort_with_options(df_eval, options, by_default='earn')
             if yeartop > 0:
                 df_eval = df_eval.head(yeartop)
             symbols += df_eval['symbol'].tolist()
@@ -781,7 +784,7 @@ def cli_fund_eval(params, options):
         df_eval = df_eval[ df_eval['company'].isin(belongto) ]
 
     df_eval = filter_with_options(df_eval, options)
-    df_eval = sort_with_options(df_eval, options, by_default='pct_cum')
+    df_eval = sort_with_options(df_eval, options, by_default='earn')
 
     if '-one_per_manager' in options:
         manager_symbol = {}
@@ -852,10 +855,10 @@ def cli_fund_eval(params, options):
             'manager2': '基金经理',
             'manager3': '基金经理',
             'size': '管理规模',
-            'pct_cum': str(years) + '年\n收益率',
+            'earn': str(years) + '年\n收益率',
             'sharpe': '夏普比率',
-            'max_drawdown': '最大回撤',
-            'last_drawdown': '目前回撤',
+            'drawdown_max': '最大回撤',
+            'drawdown_now': '目前回撤',
             'volatility': '波动率',
             'buy_state': '申购状态',
             'sell_state': '赎回状态',
@@ -872,7 +875,7 @@ def cli_fund_eval(params, options):
         print('Exported to:', out_xls_file)
 
     if '-plot' in options:
-        cli_fund_plot(df_eval['symbol'].tolist(), options + ['-man'], sizes = dict_from_df(df_eval, 'symbol', 'size'), pcts = dict_from_df(df_eval, 'symbol', 'pct_cum'))
+        cli_fund_plot(df_eval['symbol'].tolist(), options + ['-man'], sizes = dict_from_df(df_eval, 'symbol', 'size'), pcts = dict_from_df(df_eval, 'symbol', 'earn'))
 
     elif '-plot_company' in options:
         companies = list(set(df_eval['company'].tolist()))
@@ -936,12 +939,12 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None, si
 
         df = df[ df.index >= date_from ]
         df = df[ df.index < date_to ]
-        df['pct_cum'] = round(((df['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0, 1)
+        df['earn'] = round(((df['pct_change'] * 0.01 +1).cumprod() - 1.0) * 100.0, 1)
         if df_funds is None:
-            df_funds = df[['pct_cum']]
+            df_funds = df[['earn']]
             df_funds.columns = [ display_name ]
         else:
-            df_funds = pd.concat([df_funds, df['pct_cum'].copy().rename(display_name).to_frame()], axis=1)
+            df_funds = pd.concat([df_funds, df['earn'].copy().rename(display_name).to_frame()], axis=1)
 
     if '-mix' in options:
         df_funds = df_funds.mean(axis=1).to_frame()
@@ -970,9 +973,9 @@ def cli_fund_plot(params, options, title= None, mark_date = None, png = None, si
         df_base = get_daily( base )
         df_base = df_base[ df_base.index >= min(df_funds.index) ]
         df_base = df_base[ df_base.index < date_to ]
-        df_base['pct_cum'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
+        df_base['earn'] = (df_base['close'] / df_base['close'].iloc[0] - 1.0) * 100.0
         base_name = symbol_names[ base ] if base in symbol_names else base
-        df_funds[ base_name ] = df_base['pct_cum']
+        df_funds[ base_name ] = df_base['earn']
 
     #df_funds.index = df_funds.index.strftime('%Y-%m-%d')
     if title is None:
@@ -1032,7 +1035,7 @@ def filter_fund_list_simple_top(df_fund_list, date_from, ref_period):
     years = (datetime_today() - date_from).days / 365.0
     eval_years = ref_period / 365.0
     df_eval = df_eval[ df_eval['fund_years'] > years + eval_years ]
-    df_eval = df_eval[ df_eval['pct_cum'] > 10.0 ]
+    df_eval = df_eval[ df_eval['earn'] > 10.0 ]
     return df_eval
 
 def filter_fund_list_4433(df_fund_list, date_from, ref_period):
@@ -1051,7 +1054,7 @@ def filter_fund_list_4433(df_fund_list, date_from, ref_period):
         years = (datetime_today() - date_from).days / 365.0
         eval_years = ref_n / 365.0
         df_eval = df_eval[ df_eval['fund_years'] > years + eval_years ]
-        df_eval = df_eval.sort_values(by= 'pct_cum', ascending= False)
+        df_eval = df_eval.sort_values(by= 'earn', ascending= False)
         top_N = int(df_eval.shape[0] * top_percent)
         df_eval = df_eval.head( top_N )
         if len(symbols) == 0:
@@ -1129,7 +1132,7 @@ def cli_fund_backtest(params, options):
             manager = [ manager ]
         df_eval = df_eval[ df_eval['manager'].isin(manager) | df_eval['manager2'].isin(manager) | df_eval['manager3'].isin(manager)  ]
 
-    df_eval = sort_with_options(df_eval, options, by_default='pct_cum')
+    df_eval = sort_with_options(df_eval, options, by_default='earn')
     symbols = []
     managers = []
     for i, row in df_eval.iterrows():
