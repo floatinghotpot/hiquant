@@ -499,6 +499,14 @@ def cli_stock_eval(params, options):
 
     print('{} out of {} records selected.'.format(filtered_n, total_n))
 
+    out_csv_file, out_xlsx_file = csv_xlsx_from_options(options)
+
+    if out_csv_file:
+        df_stocks = df[['symbol', 'name']]
+        df_stocks.to_csv(out_csv_file, index= False)
+        print('Exported to:', out_csv_file)
+        print(df_stocks)
+
 def cli_stock(params, options):
     if (len(params) == 0) or (params[0] == 'help'):
         cli_stock_help()
