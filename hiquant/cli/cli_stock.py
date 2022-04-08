@@ -463,8 +463,13 @@ def cli_stock_eval(params, options):
         cli_stock_help()
         return
 
-    symbols = symbols_from_params(params)
-    df = get_stockpool_df(symbols).sort_values(by='symbol', ascending=True)
+    if 'all' in params:
+        df = get_cn_stock_list_df()
+    else:
+        symbols = symbols_from_params(params)
+        df = get_stockpool_df(symbols)
+
+    df = df.sort_values(by='symbol', ascending=True)
     symbols = df['symbol'].tolist()
 
     date_from, date_to = date_range_from_options(options)
@@ -502,10 +507,8 @@ def cli_stock_eval(params, options):
     out_csv_file, out_xlsx_file = csv_xlsx_from_options(options)
 
     if out_csv_file:
-        df_stocks = df[['symbol', 'name']]
-        df_stocks.to_csv(out_csv_file, index= False)
+        df.to_csv(out_csv_file, index= False)
         print('Exported to:', out_csv_file)
-        print(df_stocks)
 
 def cli_stock(params, options):
     if (len(params) == 0) or (params[0] == 'help'):
