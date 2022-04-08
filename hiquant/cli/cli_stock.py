@@ -51,6 +51,8 @@ Example:
     __argv0__ stock fin mystocks.csv
     __argv0__ stock fin all -ipo_years=1- -earn_ttm=1.0- -roe=0.15- -3yr_grow_rate=0.15- -sortby=roe -out=good_stock.csv
 
+    __argv0__ stock eval mystocks.csv -years=5 -sortby=drawdown -out=output/mystocks_drawdown.csv
+
     __argv0__ stock pepb 600036 000002 600276
 
     __argv0__ stock cmp 601012,300347
@@ -494,7 +496,7 @@ def cli_stock_eval(params, options):
 
     total_n = df.shape[0]
     df = filter_with_options(df, options)
-    df = sort_with_options(df, options, by_default='symbol')
+    df = sort_with_options(df, options, by_default='drawdown')
     filtered_n = df.shape[0]
 
     range_from, range_to = range_from_options(options)
