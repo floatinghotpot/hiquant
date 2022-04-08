@@ -47,9 +47,9 @@ Example:
     __argv0__ stock update mystocks.csv
     __argv0__ stock update all
 
-    __argv0__ stock eval 600036 000002 600276
-    __argv0__ stock eval mystocks.csv
-    __argv0__ stock eval all -ipo_years=1- -earn_ttm=1.0- -roe=0.15- -3yr_grow_rate=0.15- -sortby=roe -out=good_stock.csv
+    __argv0__ stock fin 600036 000002 600276
+    __argv0__ stock fin mystocks.csv
+    __argv0__ stock fin all -ipo_years=1- -earn_ttm=1.0- -roe=0.15- -3yr_grow_rate=0.15- -sortby=roe -out=good_stock.csv
 
     __argv0__ stock pepb 600036 000002 600276
 
@@ -319,7 +319,7 @@ def cli_stock_update(params, options):
     df = get_finance_indicator_df(symbols)
     print(df)
 
-def cli_stock_eval(params, options):
+def cli_stock_fin(params, options):
     if len(params) == 0:
         cli_stock_help()
         return
@@ -458,6 +458,47 @@ def cli_stock_pepb(params, options):
         symbols = df['symbol'].tolist()
         cli_stock_plot(symbols, options)
 
+def cli_stock_eval(params, options):
+    if len(params) == 0:
+        cli_stock_help()
+        return
+
+    symbols = symbols_from_params(params)
+    df = get_stockpool_df(symbols).sort_values(by='symbol', ascending=True)
+    symbols = df['symbol'].tolist()
+
+    date_from, date_to = date_range_from_options(options)
+
+    drawdown_list = []
+    for symbol in symbols:
+        try:
+            df_daily = get_daily(symbol)
+        except (KeyError, ValueError) as e:
+            continue
+
+        df_daily = df_daily[ df_daily.index >= date_from ]
+        df_daily = df_daily[ df_daily.index < date_to ]
+
+        drawdown = round(1 - df_daily['adj_close'].iloc[-1] / max(df_daily['adj_close']), 4)
+        drawdown_list.append(drawdown)
+
+    df['drawdown'] = drawdown_list
+
+    total_n = df.shape[0]
+    df = filter_with_options(df, options)
+    df = sort_with_options(df, options, by_default='symbol')
+    filtered_n = df.shape[0]
+
+    range_from, range_to = range_from_options(options)
+    if range_to:
+        df = df.head(range_to)
+    if range_from:
+        df = df.tail(range_to - range_from)
+
+    print( tb.tabulate(df, headers='keys') )
+
+    print('{} out of {} records selected.'.format(filtered_n, total_n))
+
 def cli_stock(params, options):
     if (len(params) == 0) or (params[0] == 'help'):
         cli_stock_help()
@@ -475,8 +516,11 @@ def cli_stock(params, options):
     elif action in ['update']:
         cli_stock_update(params, options)
 
-    elif action in ['eval', 'fin']:
+    elif action in ['eval']:
         cli_stock_eval(params, options)
+
+    elif action in ['fin']:
+        cli_stock_fin(params, options)
 
     elif action in ['pepb']:
         cli_stock_pepb(params, options)
