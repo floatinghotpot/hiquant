@@ -474,7 +474,8 @@ def cli_stock_eval(params, options):
 
     date_from, date_to = date_range_from_options(options)
 
-    drawdown_list = []
+    highest_price = []
+    lastest_price = []
     for symbol in symbols:
         try:
             df_daily = get_daily(symbol)
@@ -484,10 +485,12 @@ def cli_stock_eval(params, options):
         df_daily = df_daily[ df_daily.index >= date_from ]
         df_daily = df_daily[ df_daily.index < date_to ]
 
-        drawdown = round(1 - df_daily['adj_close'].iloc[-1] / max(df_daily['adj_close']), 4)
-        drawdown_list.append(drawdown)
+        highest_price.append( max(df_daily['adj_close']) )
+        lastest_price.append( df_daily['adj_close'].iloc[-1] )
 
-    df['drawdown'] = drawdown_list
+    df['highest_price'] = highest_price
+    df['latest_price'] = lastest_price
+    df['drawdown'] = (1 - df['latest_price'] / df['highest_price']).round(4)
 
     total_n = df.shape[0]
     df = filter_with_options(df, options)
