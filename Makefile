@@ -6,11 +6,11 @@ version:
 	python3 hiquant/version.py bump
 
 clean:
-	rm -r dist/*
-	rm -r build/*
+	rm -rf dist/*
+	rm -rf build/*
 
 package:
-	rm dist/*
+	rm -rf dist/*
 	python3 setup.py sdist bdist_wheel
 	ls -la dist/
 
