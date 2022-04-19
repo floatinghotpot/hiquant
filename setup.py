@@ -120,12 +120,12 @@ setuptools.setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires = [
-      'requests',
-      'pandas',
-      'akshare',
-      'tabulate',
-      'matplotlib',
-      'mplfinance',
+      'requests>=2.25.1',
+      'pandas>=1.2.4',
+      'akshare==0.9.95',
+      'tabulate>=0.8.9',
+      'matplotlib>=3.4.1',
+      'mplfinance>=0.12.7a17',
     ],
 
     # List additional groups of dependencies here
