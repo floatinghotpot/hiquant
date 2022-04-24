@@ -690,11 +690,12 @@ def cli_fund_eval(params, options):
             belongto = k.replace('-belongto=', '')
         if k.startswith('-myfunds='):
             myfunds = k.replace('-myfunds=', '')
+            params.append( myfunds )
 
     df_fund_list = get_cn_fund_list()
 
-    if myfunds:
-        params.append( myfunds )
+    if 'myfunds' in params[0]:
+        myfunds = params[0]
 
     if params[0] == 'all':
         pass
@@ -750,6 +751,7 @@ def cli_fund_eval(params, options):
                         df_eval[k].iloc[i] = float(symbol_account[symbol])
                 df_eval[k] = df_eval[k].fillna(0)
                 df_eval['total'] += df_eval[k]
+        df_eval['total_earn'] = (df_eval['total'] * df_eval['earn'] / 100.0).round(2)
 
     if managedby:
         if managedby.endswith('.csv') or managedby.endswith('.xlsx'):
@@ -821,6 +823,9 @@ def cli_fund_eval(params, options):
 
     print('\r', end= '', flush= True)
     print( tb.tabulate(df_eval, headers='keys') )
+    if myfunds:
+        total_earn = df_eval['total_earn'].sum()
+        print('My funds so far total earn: ', total_earn)
 
     out_csv_file, out_xls_file = csv_xlsx_from_options(options)
 
