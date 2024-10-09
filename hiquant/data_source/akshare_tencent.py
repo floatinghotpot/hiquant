@@ -7,7 +7,8 @@ import akshare as ak
 
 def download_cn_index_daily( symbol ):
     daily_df = ak.stock_zh_index_daily_tx(symbol = symbol)
-    daily_df['date'] = pd.to_datetime(daily_df.index.date)
+    #print(daily_df.index)
+    #daily_df['date'] = pd.to_datetime(daily_df.index.date)
     daily_df['volume'] = daily_df['amount']
     daily_df.set_index('date', inplace=True, drop=True)
     return daily_df

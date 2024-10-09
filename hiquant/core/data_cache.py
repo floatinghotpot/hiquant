@@ -206,7 +206,8 @@ def get_daily( symbol ):
     else:
         # we get stock daily from yahoo, including us, cn, hk, etc.
         symbol = symbol_yahoo_style( symbol )
-        func = download_us_stock_daily
+        #func = download_us_stock_daily
+        func = download_cn_stock_daily
         df = get_cached_download_df('cache/market/{param}_1d.csv', download_func= func, param= symbol, check_date= datetime_today())
 
     if 'date' in df.columns:
@@ -472,7 +473,7 @@ def get_cn_fund_daily(symbol, check_date= None):
     df = get_cached_download_df('cache/fund/{param}_1d.csv', download_func= download_cn_fund_info, param= symbol, check_date= check_date)
     df.columns = ['date', 'value', 'pct_change']
     df = df.astype({
-        'date': 'datetime64',
+        'date': 'datetime64[s]',
         'value': 'float64',
         'pct_change': 'float64',
     })
@@ -483,7 +484,7 @@ def get_cn_etf_daily(symbol, check_date= None):
     df = get_cached_download_df('cache/fund/{param}_1d.csv', download_func= download_cn_etf_fund_info, param= symbol, check_date= check_date)
     df.columns = ['date', 'value', 'pct_change']
     df = df.astype({
-        'date': 'datetime64',
+        'date': 'datetime64[s]',
         'value': 'float64',
         'pct_change': 'float64',
     })

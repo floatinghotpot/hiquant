@@ -824,8 +824,8 @@ def cli_fund_eval(params, options):
     print('\r', end= '', flush= True)
     print( tb.tabulate(df_eval, headers='keys') )
     if myfunds:
-        total_earn = df_eval['total_earn'].sum()
-        print('My funds so far total earn: ', total_earn)
+        total_earn = np.round(df_eval['total_earn'].sum(), 2)
+        print('My funds total earn: ', total_earn)
 
     out_csv_file, out_xls_file = csv_xlsx_from_options(options)
 

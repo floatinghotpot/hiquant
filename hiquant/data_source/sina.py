@@ -4,7 +4,7 @@ import pandas as pd
 
 from ..utils.symbol import symbol_normalize
 
-def download_cn_stock_spot( symbols, verbose= False ):
+def _download_cn_stock_spot( symbols, verbose= False ):
     if len(symbols) > 100:
         df = pd.DataFrame()
         for i in range(0, len(symbols), 100):
@@ -33,6 +33,7 @@ def download_cn_stock_spot( symbols, verbose= False ):
         print('\r', end = '', flush = True)
 
         table = []
+        print('status_code', r.status_code)
         if(r.status_code == 200):
             lines = r.text.replace('var hq_str_','').replace('="',',').replace('";','').split('\n')
             for line in lines:
@@ -66,7 +67,7 @@ def download_cn_stock_spot( symbols, verbose= False ):
             'high':'float64',
             'low':'float64',
             'volume':'int64',
-            'date':'datetime64'
+            'date':'datetime64[s]'
         })
         df['symbol'] = symbol_normalize(df['symbol'].tolist())
         return df

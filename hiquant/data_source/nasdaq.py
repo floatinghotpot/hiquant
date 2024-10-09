@@ -47,7 +47,9 @@ def download_us_stock_list(param = None, verbose = False):
         df = pd.DataFrame()
         for exchange in _EXCHANGE_LIST:
             ex_df = download_us_stock_list(exchange, verbose)
-            df = df.append(ex_df, ignore_index=True)
+            #print(ex_df)
+            #df = df.append(ex_df, ignore_index=True) # append deprecated, use contact instead
+            df = pd.concat([df, ex_df])
     # removes weird tickers
     df = df[['symbol','name','country','ipoyear']]
     df = df[~df['symbol'].str.contains(r'\.|\^', regex=True)]
@@ -80,7 +82,9 @@ def download_us_index_list(param = None, verbose = False):
         if df is None:
             df = pd.DataFrame(data['rows'], columns=data['headers'])
         else:
-            df = df.append( pd.DataFrame(data['rows'], columns=data['headers']) , ignore_index= True)
+            ex_df = pd.DataFrame(data['rows'], columns=data['headers'])
+            #df = df.append( ex_df , ignore_index= True) # append deprecated, use contact instead
+            df = pd.concat([df, ex_df])
         offset = int(records['offset']) + int(records['limit'])
         if offset > totalRecords:
             break

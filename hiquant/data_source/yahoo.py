@@ -3,10 +3,18 @@
 import requests
 import datetime
 import time
-import pandas as pd
 import io
 
+import pandas as pd
+import yfinance as yf
+
 from ..utils import symbol_yahoo_style
+
+def download_us_stock_daily( symbol, start= None, end= None, interval= '1d' ):
+    stock = yf.Ticker(symbol)
+    df = stock.history(period='3mo')
+    return df
+    pass
 
 # headers and params used to bypass NASDAQ's anti-scraping mechanism in function __exchange2df
 yahoo_headers = {
@@ -20,7 +28,7 @@ yahoo_headers = {
 # Data source:
 # https://query1.finance.yahoo.com/v7/finance/download/0700.HK?period1=1594019968&period2=1625555968&interval=1d&events=history&includeAdjustedClose=true
 #
-def download_us_stock_daily( symbol, start= None, end= None, interval= '1d' ):
+def _download_us_stock_daily( symbol, start= None, end= None, interval= '1d' ):
     if start is None:
         start = '2000-01-01'
 
@@ -69,7 +77,13 @@ def download_us_stock_quote(symbols, verbose = False):
     print('\r', end = '', flush = True)
 
     if 'Will be right back' in r.text:
+        print(r.text)
         raise RuntimeError("*** YAHOO! FINANCE IS CURRENTLY DOWN! ***.")
+
+    if '"code":"Unauthorized"' in r.text:
+        print(r.text)
+        raise RuntimeError("*** YAHOO! ACCESS DENIED! ***.")
+
     data = r.json()['quoteResponse']['result']
     return pd.DataFrame(data, columns=data[0].keys()) if (len(data) > 0) else pd.DataFrame()
 

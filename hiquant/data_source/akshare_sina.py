@@ -130,7 +130,9 @@ def download_finance_report(symbol, report_type = 'balance'):
     df = ak.stock_financial_report_sina(symbol, en_zh[ report_type ])
     time.sleep(_SINA_DOWNLOAD_DELAY)
 
-    df.rename(columns={'报表日期':'date'}, inplace= True)
+    print(df)
+
+    df.rename(columns={'公告日期':'date'}, inplace= True)
     val = df.iloc[0]['date']
     if type(val) == str:
         if '-' in val:
@@ -243,40 +245,41 @@ def download_ipo(symbol):
 
 def download_dividend_history(symbol):
     print('fetching dividend info ...')
-    df = ak.stock_history_dividend_detail(indicator="分红", stock=symbol, date='')
+    df = ak.stock_history_dividend_detail(symbol=symbol, indicator="分红")
     time.sleep(_SINA_DOWNLOAD_DELAY)
 
     df = df[df['进度'] == '实施']
     df.index = pd.to_datetime(df['公告日期'])
     df = df.astype({
-        '公告日期':'datetime64',
-        #'除权除息日':'datetime64',
-        #'股权登记日':'datetime64',
+        '公告日期':'datetime64[s]',
+        #'除权除息日':'datetime64[s]',
+        #'股权登记日':'datetime64[s]',
     })
     df.sort_index(ascending= True, inplace= True)
     return df
 
 def download_rightissue_history(symbol):
     print('fetching rightissue info ...')
-    df = ak.stock_history_dividend_detail(indicator="配股", stock=symbol, date='')
+    df = ak.stock_history_dividend_detail(symbol=symbol, indicator="配股")
     time.sleep(_SINA_DOWNLOAD_DELAY)
 
-    df = df[df['查看详细'] == '查看']
+    #print(df)
+    #df = df[df['查看详细'] == '查看']
     df.index = pd.to_datetime(df['公告日期'])
     df = df.astype({
-        '公告日期':'datetime64',
-        #'除权日':'datetime64',
-        #'股权登记日':'datetime64',
-        #'缴款起始日':'datetime64',
-        #'缴款终止日':'datetime64',
-        #'配股上市日':'datetime64',
+        '公告日期':'datetime64[s]',
+        #'除权日':'datetime64[s]',
+        #'股权登记日':'datetime64[s]',
+        #'缴款起始日':'datetime64[s]',
+        #'缴款终止日':'datetime64[s]',
+        #'配股上市日':'datetime64[s]',
     })
     df.sort_index(ascending= True, inplace= True)
     return df
 
 def get_share_grow(dividend_df, date_from, date_to):
     df = dividend_df.astype({
-        '公告日期':'datetime64',
+        '公告日期':'datetime64[s]',
         '送股(股)':'float64',
         '转增(股)':'float64',
         #'派息(税前)(元)':'float64',
@@ -390,14 +393,14 @@ def extract_finance_indicator_data(symbol, abstract_df, ipoinfo_df, dividend_df)
 
 def download_macro_bank_interest_rate(country):
     funcs = {
-        'china': ak.macro_bank_china_interest_rate,
+        #'china': ak.macro_bank_china_interest_rate, # removed
         'usa': ak.macro_bank_usa_interest_rate,
         'euro': ak.macro_bank_euro_interest_rate,
     }
     if country in funcs:
         func = funcs[ country ]
-        data = func()
+        df = func()
         time.sleep(_SINA_DOWNLOAD_DELAY)
-        return pd.DataFrame({'date':data.index, 'rate':data.values})
+        return pd.DataFrame({'date':df['日期'], 'rate':df['今值']})
     else:
         raise ValueError('Invalid country, not supported yet: ' + country)

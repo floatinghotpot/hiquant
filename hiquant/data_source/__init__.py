@@ -7,3 +7,4 @@ from .akshare_sina import *
 from .akshare_tencent import *
 from .akshare_legu import *
 from .akshare_eastmoney import *
+from .akshare_stock import *
