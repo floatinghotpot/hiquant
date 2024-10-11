@@ -18,6 +18,10 @@ def test_download_cn_stock_daily():
     df = download_cn_stock_daily('600036')
     print(df)
 
+def test_download_cn_index_spot():
+    df = download_cn_index_spot()
+    print(df)
+
 def test_download_cn_index_daily():
     df = download_cn_index_daily('sh000300')
     print(df)
@@ -44,8 +48,9 @@ if __name__ == "__main__":
     #test_download_cn_stock_list()
     #test_download_cn_index_list()
     #test_download_hk_stock_list()
-    test_download_cn_index_daily()
-    test_download_cn_stock_daily()
+    #test_download_cn_stock_daily()
+    test_download_cn_index_spot()
+    #test_download_cn_index_daily()
     #test_download_finance_report()
     #test_download_legu()
     #test_macro_bank_data()
