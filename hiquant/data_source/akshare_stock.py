@@ -1,6 +1,7 @@
 import datetime
 import time
 import pandas as pd
+import tabulate as tb
 import akshare as ak
 
 def download_cn_stock_list(param= None, verbose= False):
@@ -9,55 +10,6 @@ def download_cn_stock_list(param= None, verbose= False):
     if verbose:
         print(df)
     return df
-
-def download_cn_index_list(param, verbose = False):
-    df = ak.index_stock_info()
-    df.columns = ['symbol','name','publish_date']
-    df['symbol'] = df['symbol'].apply(lambda x: 'sh'+x if (x[0]=='0') else 'sz'+x)
-    df = df[['symbol', 'name']]
-
-    if verbose:
-        print(df)
-    return df
-
-def download_cn_index_stocks_list(symbol, verbose = False):
-    if symbol.startswith('sh') or symbol.startswith('sz'):
-        symbol = symbol[2:]
-        df = ak.index_stock_cons(index= symbol)
-        df.columns = ['symbol','name','publish_date']
-        df = df[['symbol', 'name']]
-        if verbose:
-            print(df)
-        return df
-    else:
-        raise ValueError('unknown index: ' + symbol)
-
-def download_cn_index_spot( symbols= None, verbose= False):
-    # use eastmoney instead of sina, much faster
-    #df = ak.stock_zh_index_spot_sina()
-    df = ak.stock_zh_index_spot_em(symbol='指数成份')
-    df = df.sort_values(by='代码', ascending=True).reset_index(drop= True)
-    df = df[['代码','名称','今开','昨收','最新价','最高','最低','成交量']]
-    df = df.rename(columns={
-        '代码':'symbol',
-        '名称':'name',
-        '今开':'open',
-        '昨收':'prevclose',
-        '最新价':'close',
-        '最高':'high',
-        '最低':'low',
-        '成交量':'volume'
-        })
-    #print( tb.tabulate(df, headers='keys') )
-    return df
-
-def download_cn_index_daily( symbol ):
-    daily_df = ak.stock_zh_index_daily_tx(symbol = symbol)
-    #print(daily_df.index)
-    #daily_df['date'] = pd.to_datetime(daily_df.index.date)
-    daily_df['volume'] = daily_df['amount']
-    daily_df.set_index('date', inplace=True, drop=True)
-    return daily_df
 
 def download_cn_stock_spot( symbols, verbose= False):
     # use eastmoney instead of sina, much faster
@@ -116,7 +68,56 @@ def download_cn_stock_daily( symbol, start= None, end= None, interval= '1d'):
     #print(df)
     df['factor'] = df['adj_close'] / df['close']
     return df
-    
+
+def download_cn_index_list(param, verbose = False):
+    df = ak.index_stock_info()
+    df.columns = ['symbol','name','publish_date']
+    df['symbol'] = df['symbol'].apply(lambda x: 'sh'+x if (x[0]=='0') else 'sz'+x)
+    df = df[['symbol', 'name']]
+
+    if verbose:
+        print(df)
+    return df
+
+def download_cn_index_stocks_list(symbol, verbose = False):
+    if symbol.startswith('sh') or symbol.startswith('sz'):
+        symbol = symbol[2:]
+        df = ak.index_stock_cons(index= symbol)
+        df.columns = ['symbol','name','publish_date']
+        df = df[['symbol', 'name']]
+        if verbose:
+            print(df)
+        return df
+    else:
+        raise ValueError('unknown index: ' + symbol)
+
+def download_cn_index_spot( symbols= None, verbose= False):
+    # use eastmoney instead of sina, much faster
+    #df = ak.stock_zh_index_spot_sina()
+    df = ak.stock_zh_index_spot_em(symbol='指数成份')
+    df = df.sort_values(by='代码', ascending=True).reset_index(drop= True)
+    df = df[['代码','名称','今开','昨收','最新价','最高','最低','成交量']]
+    df = df.rename(columns={
+        '代码':'symbol',
+        '名称':'name',
+        '今开':'open',
+        '昨收':'prevclose',
+        '最新价':'close',
+        '最高':'high',
+        '最低':'low',
+        '成交量':'volume'
+        })
+    #print( tb.tabulate(df, headers='keys') )
+    return df
+
+def download_cn_index_daily( symbol ):
+    daily_df = ak.stock_zh_index_daily_tx(symbol = symbol)
+    #print(daily_df.index)
+    #daily_df['date'] = pd.to_datetime(daily_df.index.date)
+    daily_df['volume'] = daily_df['amount']
+    daily_df.set_index('date', inplace=True, drop=True)
+    return daily_df
+
 def download_hk_stock_list(param= None, verbose= False):
     df = ak.stock_hk_spot()
     # columns: symbol, name, engname, tradetype, lasttrade, prevclose, open, high, low, volume, amount, ticktime, buy, sell, pricechange, changepercent

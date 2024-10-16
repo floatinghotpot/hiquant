@@ -6,15 +6,8 @@ import time
 import io
 
 import pandas as pd
-import yfinance as yf
 
 from ..utils import symbol_yahoo_style
-
-def download_us_stock_daily( symbol, start= None, end= None, interval= '1d' ):
-    stock = yf.Ticker(symbol)
-    df = stock.history(period='3mo')
-    return df
-    pass
 
 # headers and params used to bypass NASDAQ's anti-scraping mechanism in function __exchange2df
 yahoo_headers = {
@@ -68,56 +61,56 @@ def download_us_index_daily( symbol ):
 # Data source:
 # https://query1.finance.yahoo.com/v7/finance/quote?symbols=^GSPC,AAPL,0700.HK,000300.SS
 #
-def download_us_stock_quote(symbols, verbose = False):
-    url_template = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols={}'
-    url = url_template.format(','.join(symbols))
+# def download_us_stock_quote(symbols, verbose = False):
+#     url_template = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols={}'
+#     url = url_template.format(','.join(symbols))
 
-    print('\rfetching quote data ...', end = '', flush = True)
-    r = requests.get(url, headers= yahoo_headers)
-    print('\r', end = '', flush = True)
+#     print('\rfetching quote data ...', end = '', flush = True)
+#     r = requests.get(url, headers= yahoo_headers)
+#     print('\r', end = '', flush = True)
 
-    if 'Will be right back' in r.text:
-        print(r.text)
-        raise RuntimeError("*** YAHOO! FINANCE IS CURRENTLY DOWN! ***.")
+#     if 'Will be right back' in r.text:
+#         print(r.text)
+#         raise RuntimeError("*** YAHOO! FINANCE IS CURRENTLY DOWN! ***.")
 
-    if '"code":"Unauthorized"' in r.text:
-        print(r.text)
-        raise RuntimeError("*** YAHOO! ACCESS DENIED! ***.")
+#     if '"code":"Unauthorized"' in r.text:
+#         print(r.text)
+#         raise RuntimeError("*** YAHOO! ACCESS DENIED! ***.")
 
-    data = r.json()['quoteResponse']['result']
-    return pd.DataFrame(data, columns=data[0].keys()) if (len(data) > 0) else pd.DataFrame()
+#     data = r.json()['quoteResponse']['result']
+#     return pd.DataFrame(data, columns=data[0].keys()) if (len(data) > 0) else pd.DataFrame()
 
 #
 # NOTICE: yahoo quote delay 15 min than real market time, don't rely it on realtime trade
 #
-def download_us_stock_spot(symbols, verbose = False):
-    if len(symbols) > 100:
-        df = pd.DataFrame()
-        for i in range(0, len(symbols), 100):
-            page = symbols[i:i+100]
-            page_df = download_us_stock_spot(page)
-            df = df.append(page_df, ignore_index=True)
-        return df
-    else:
-        df = download_us_stock_quote(symbols, verbose= verbose)
-        date = pd.to_datetime(df['regularMarketTime'] + df['gmtOffSetMilliseconds'], unit='s')
-        df['date'] = date.dt.normalize()
-        df['time'] = date.dt.strftime('%H:%M:%S')
-        selected_columns = {
-            'symbol': 'symbol',
-            'shortName': 'name',
-            'regularMarketOpen': 'open',
-            'regularMarketPreviousClose': 'prevclose',
-            'regularMarketPrice': 'close',
-            'regularMarketDayHigh': 'high',
-            'regularMarketDayLow': 'low',
-            'regularMarketVolume': 'volume',
-            'date': 'date',
-            'time': 'time',
-            'market': 'market',
-        }
-        df = df[ list(selected_columns.keys()) ].rename(columns= selected_columns)
-        return df
+# def download_us_stock_spot(symbols, verbose = False):
+#     if len(symbols) > 100:
+#         df = pd.DataFrame()
+#         for i in range(0, len(symbols), 100):
+#             page = symbols[i:i+100]
+#             page_df = download_us_stock_spot(page)
+#             df = df.append(page_df, ignore_index=True)
+#         return df
+#     else:
+#         df = download_us_stock_quote(symbols, verbose= verbose)
+#         date = pd.to_datetime(df['regularMarketTime'] + df['gmtOffSetMilliseconds'], unit='s')
+#         df['date'] = date.dt.normalize()
+#         df['time'] = date.dt.strftime('%H:%M:%S')
+#         selected_columns = {
+#             'symbol': 'symbol',
+#             'shortName': 'name',
+#             'regularMarketOpen': 'open',
+#             'regularMarketPreviousClose': 'prevclose',
+#             'regularMarketPrice': 'close',
+#             'regularMarketDayHigh': 'high',
+#             'regularMarketDayLow': 'low',
+#             'regularMarketVolume': 'volume',
+#             'date': 'date',
+#             'time': 'time',
+#             'market': 'market',
+#         }
+#         df = df[ list(selected_columns.keys()) ].rename(columns= selected_columns)
+#         return df
 
 def download_world_index_list(param= None, verbose = False):
     symbols = '''^BSESN

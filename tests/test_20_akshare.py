@@ -6,6 +6,14 @@ def test_download_cn_stock_list():
     df = download_cn_stock_list(None)
     print(df)
 
+def test_download_cn_stock_spot():
+    df = download_cn_stock_spot('600036')
+    print(df)
+
+def test_download_cn_stock_daily():
+    df = download_cn_stock_daily('600036')
+    print(df)
+
 def test_download_cn_index_list():
     df = download_cn_index_list(None)
     print(df)
@@ -14,16 +22,20 @@ def test_download_hk_stock_list():
     df = download_hk_stock_list()
     print(df)
 
-def test_download_cn_stock_daily():
-    df = download_cn_stock_daily('600036')
-    print(df)
-
 def test_download_cn_index_spot():
     df = download_cn_index_spot()
     print(df)
 
 def test_download_cn_index_daily():
     df = download_cn_index_daily('sh000300')
+    print(df)
+
+def test_download_us_stock_spot():
+    df = download_us_stock_spot('APPL')
+    print(df)
+
+def test_download_us_stock_daily():
+    df = download_us_stock_daily('APPL')
     print(df)
 
 def test_download_finance_report():
@@ -35,7 +47,7 @@ def test_download_finance_report():
     df = download_dividend_history('600036')
     df = download_rightissue_history('600036')
 
-def test_download_legu():
+def test_download_pbpe():
     df = download_stock_pepb_history('600036')
 
 def test_macro_bank_data():
@@ -46,12 +58,15 @@ def test_macro_bank_data():
 
 if __name__ == "__main__":
     #test_download_cn_stock_list()
-    #test_download_cn_index_list()
-    #test_download_hk_stock_list()
+    #test_download_cn_stock_spot()
     #test_download_cn_stock_daily()
-    test_download_cn_index_spot()
+    #test_download_cn_index_list()
+    #test_download_cn_index_spot()
     #test_download_cn_index_daily()
+    test_download_us_stock_spot()
+    test_download_us_stock_daily()
+    #test_download_hk_stock_list()
     #test_download_finance_report()
-    #test_download_legu()
+    #test_download_pbpe()
     #test_macro_bank_data()
     pass

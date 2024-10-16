@@ -107,16 +107,19 @@ def get_all_stock_list_df():
     for market in _enabled_markets:
         func = _market_funcs_get_stock_list_df[ market ]
         market_df = func()[['symbol', 'name']]
-        df = df.append(market_df, ignore_index=True)
+        df = pd.concat([df, market_df], join="inner", ignore_index=True)
+        #df = df.append(market_df, ignore_index=True)
     return df.reset_index(drop= True)
 
 def get_all_index_list_df():
     df = pd.DataFrame([],  columns=['symbol', 'name'])
-    df = df.append(get_world_index_list_df(), ignore_index= True)
+    df = pd.concat([df, get_world_index_list_df()], join="inner", ignore_index=True)
+    #df = df.append(get_world_index_list_df(), ignore_index= True)
     for market in _enabled_markets:
         func = _market_funcs_get_index_list_df[ market ]
         market_df = func()[['symbol', 'name']]
-        df = df.append(market_df, ignore_index=True)
+        df = pd.concat([df, market_df], join="inner", ignore_index=True)
+        #df = df.append(market_df, ignore_index=True)
     return df.reset_index(drop= True)
 
 def get_cn_stock_symbol_name():
